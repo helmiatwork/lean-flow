@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env bash
 
 # Claude Code Usage Monitor for SwiftBar
 # Reads cached usage data written by the fetcher daemon

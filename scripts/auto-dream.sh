@@ -58,7 +58,8 @@ fi
 touch "$LOCK_FILE"
 
 (
-  "$CLAUDE_BIN" --print --model claude-haiku-4-5-20251001 \
+  # 5 minute timeout to prevent zombie processes
+  timeout 300 "$CLAUDE_BIN" --print --model claude-haiku-4-5-20251001 \
     --allowedTools "Read,Write,Edit,Glob,Grep" \
     --max-turns 20 \
     < "$DREAM_PROMPT" 2>/dev/null

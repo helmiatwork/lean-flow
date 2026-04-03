@@ -32,11 +32,11 @@ REQUIRED_ALLOW=(
 
 # Protected branches — deny direct push
 REQUIRED_DENY=(
-  "Bash(git push * master:*)"
-  "Bash(git push * main:*)"
-  "Bash(git push * staging:*)"
-  "Bash(git push --force:*)"
-  "Bash(git push -f:*)"
+  "Bash(git push * master)"
+  "Bash(git push * main)"
+  "Bash(git push * staging)"
+  "Bash(git push *--force*)"
+  "Bash(git push *-f *)"
 )
 
 changed=false

@@ -12,11 +12,18 @@ if [ -z "$CLAUDE_PLUGIN_ROOT" ]; then
   exit 0
 fi
 
-# Step 1: Copy MCP server files if not present
-if [ ! -f "${KNOWLEDGE_DIR}/${KNOWLEDGE_ENTRY}" ]; then
-  mkdir -p "$KNOWLEDGE_DIR"
+# Skip if node not available
+if ! command -v node &>/dev/null; then
+  exit 0
+fi
+
+# Step 1: Copy MCP server files if not present or outdated
+mkdir -p "$KNOWLEDGE_DIR"
+if [ ! -f "${KNOWLEDGE_DIR}/${KNOWLEDGE_ENTRY}" ] || ! diff -q "${KNOWLEDGE_SRC}/index.mjs" "${KNOWLEDGE_DIR}/${KNOWLEDGE_ENTRY}" &>/dev/null; then
   cp "${KNOWLEDGE_SRC}/index.mjs" "$KNOWLEDGE_DIR/"
   cp "${KNOWLEDGE_SRC}/package.json" "$KNOWLEDGE_DIR/"
+  # Force reinstall if source changed
+  rm -rf "${KNOWLEDGE_DIR}/node_modules"
 fi
 
 # Step 2: Install npm dependencies if node_modules missing

@@ -2,8 +2,8 @@
 # Ensure Playwright is installed locally and MCP server is registered.
 # Runs on SessionStart — idempotent.
 
-# Skip if claude CLI not available
-if ! command -v claude &>/dev/null; then
+# Skip if claude CLI or npx not available
+if ! command -v claude &>/dev/null || ! command -v npx &>/dev/null; then
   exit 0
 fi
 

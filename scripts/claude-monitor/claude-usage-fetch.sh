@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env bash
 
 # Claude Usage Fetcher — runs with a real TTY via script command
 
