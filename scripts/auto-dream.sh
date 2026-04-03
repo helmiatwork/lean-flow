@@ -4,7 +4,12 @@
 
 CLAUDE_BIN="${CLAUDE_BIN:-claude}"
 DREAM_STATE_DIR="${HOME}/.claude/dream-state"
-DREAM_PROMPT="${CLAUDE_PLUGIN_ROOT:-$(dirname "$0")}/scripts/auto-dream-prompt.md"
+DREAM_PROMPT="${CLAUDE_PLUGIN_ROOT}/scripts/auto-dream-prompt.md"
+
+# Bail if CLAUDE_PLUGIN_ROOT is not set (can't find prompt file)
+if [ -z "$CLAUDE_PLUGIN_ROOT" ] || [ ! -f "$DREAM_PROMPT" ]; then
+  exit 0
+fi
 
 mkdir -p "$DREAM_STATE_DIR"
 
@@ -35,9 +40,14 @@ if [ "$count" -lt 5 ]; then
   exit 0
 fi
 
-# Check lock (prevent concurrent runs)
+# Check lock (prevent concurrent runs) — portable stat
 if [ -f "$LOCK_FILE" ]; then
-  lock_age=$(($(date +%s) - $(stat -f %m "$LOCK_FILE" 2>/dev/null || echo 0)))
+  if [ "$(uname)" = "Darwin" ]; then
+    lock_mtime=$(stat -f %m "$LOCK_FILE" 2>/dev/null || echo 0)
+  else
+    lock_mtime=$(stat -c %Y "$LOCK_FILE" 2>/dev/null || echo 0)
+  fi
+  lock_age=$(($(date +%s) - lock_mtime))
   if [ "$lock_age" -lt 600 ]; then
     exit 0
   fi

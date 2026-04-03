@@ -13,32 +13,57 @@ Lightweight development workflow plugin for Claude Code. Replaces heavy MCP orch
 
 ## Install
 
-### 1. Install as Claude Code plugin
+### 1. Add the plugin marketplace to your settings.json
 
-```bash
-# Add the plugin marketplace
-claude plugins add-marketplace lean-flow --source github --repo helmiatwork/lean-flow
+Add this to `~/.claude/settings.json` under `extraKnownMarketplaces`:
 
-# Enable it
-claude plugins enable lean-flow
+```json
+{
+  "extraKnownMarketplaces": {
+    "lean-flow": {
+      "source": {
+        "source": "github",
+        "repo": "helmiatwork/lean-flow"
+      }
+    }
+  },
+  "enabledPlugins": {
+    "lean-flow@lean-flow": true
+  }
+}
 ```
 
-### 2. Register the knowledge MCP server
+### 2. Register the knowledge MCP server separately
+
+The MCP server runs outside the plugin system:
 
 ```bash
-# Install dependencies
-cd ~/.claude/plugins/cache/lean-flow/*/mcp-servers/knowledge && npm install
+# Clone and install
+git clone https://github.com/helmiatwork/lean-flow.git /tmp/lean-flow-install
+mkdir -p ~/.claude/mcp-servers/knowledge
+cp /tmp/lean-flow-install/mcp-servers/knowledge/* ~/.claude/mcp-servers/knowledge/
+cd ~/.claude/mcp-servers/knowledge && npm install
 
 # Register with Claude Code
-claude mcp add knowledge -- node ~/.claude/plugins/cache/lean-flow/*/mcp-servers/knowledge/index.mjs
+claude mcp add knowledge -- node ~/.claude/mcp-servers/knowledge/index.mjs
 ```
 
 ### 3. (Recommended) Also install plan-plus
 
-```bash
-claude plugins add-marketplace plan-plus --source github --repo RandyHaylor/plan-plus
-claude plugins enable plan-plus
+Add to `extraKnownMarketplaces` in settings.json:
+
+```json
+{
+  "plan-plus": {
+    "source": {
+      "source": "github",
+      "repo": "RandyHaylor/plan-plus"
+    }
+  }
+}
 ```
+
+And enable: `"plan-plus@plan-plus": true` under `enabledPlugins`.
 
 ## Development flow
 
