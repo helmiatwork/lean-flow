@@ -139,7 +139,16 @@ On first session, the plugin automatically:
 
 This means the full workflow runs end-to-end without permission prompts, except for protected branch pushes.
 
-### 3. Knowledge MCP server (auto-installed)
+### 3. Playwright MCP for E2E testing (auto-installed)
+
+On first session, the plugin automatically:
+- Installs `@playwright/mcp` (official Playwright MCP server)
+- Installs Chromium browser via `npx playwright install chromium`
+- Registers the `playwright` MCP server with Claude Code
+
+This gives you browser automation tools for E2E testing: `browser_navigate`, `browser_click`, `browser_fill_form`, `browser_snapshot`, `browser_take_screenshot`, and more.
+
+### 4. Knowledge MCP server (auto-installed)
 
 The knowledge MCP server (SQLite + FTS5, 3 tools) is **automatically installed on first session start**. The plugin:
 1. Copies the MCP server to `~/.claude/mcp-servers/knowledge/`
