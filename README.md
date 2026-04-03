@@ -130,7 +130,16 @@ Add this to `~/.claude/settings.json` under `extraKnownMarketplaces`:
 }
 ```
 
-### 2. Knowledge MCP server (auto-installed)
+### 2. Permissions and safety hooks (auto-configured)
+
+On first session, the plugin automatically:
+- **Allows** workflow tools: `Agent`, `TaskCreate/Update`, `EnterPlanMode/ExitPlanMode`, `SendMessage`, `TeamCreate`, `mcp__knowledge__*`
+- **Blocks** protected branch pushes: `main`, `master`, `staging`
+- **Blocks** `--no-verify` on git commands
+
+This means the full workflow runs end-to-end without permission prompts, except for protected branch pushes.
+
+### 3. Knowledge MCP server (auto-installed)
 
 The knowledge MCP server (SQLite + FTS5, 3 tools) is **automatically installed on first session start**. The plugin:
 1. Copies the MCP server to `~/.claude/mcp-servers/knowledge/`
