@@ -362,6 +362,7 @@ lean-flow/
 ├── scripts/
 │   ├── ensure-knowledge-mcp.sh  # Auto-install SQLite pattern memory
 │   ├── ensure-permissions.sh    # Auto-configure workflow permissions
+│   ├── ensure-plugins.sh        # Auto-enable superpowers + plan-plus
 │   ├── ensure-playwright-mcp.sh # Auto-install Playwright + Chromium
 │   ├── ensure-claude-monitor.sh # Auto-install SwiftBar usage monitor
 │   ├── block-protected-push.sh  # Block push to main/master/staging

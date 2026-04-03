@@ -92,8 +92,12 @@ flowchart TD
     style TEST fill:#7B68EE,color:#fff
     style AUDIT fill:#E74C3C,color:#fff
     style MAINPR fill:#2ECC71,color:#fff
+    style RESEARCH fill:#F39C12,color:#fff
+    style EXPLORER fill:#3498DB,color:#fff
+    style LIBRARIAN fill:#3498DB,color:#fff
+    style TESTWRITE fill:#7B68EE,color:#fff
     style ORACLE_ESC fill:#9B59B6,color:#fff
-    style ORACLE_FINAL fill:#9B59B6,color:#fff
+    style FINAL fill:#9B59B6,color:#fff
     style STEPPR fill:#2ECC71,color:#fff
     style STEPREV fill:#9B59B6,color:#fff
     style MERGE_STEP fill:#27AE60,color:#fff
@@ -208,7 +212,7 @@ Types: `feat`, `fix`, `test`, `docs`, `chore`, `refactor`, `perf`, `security`
 - What (1 sentence) + Changes (bullets) + How to test (commands)
 
 **Feature PRs (parent → main):** Descriptive and non-technical.
-- Overview + Background + Links to ALL step PRs + Security audit status + Release Notes
+- Overview (what + why) + Links to ALL step PRs + Security audit status + Release Notes
 - Release notes written for END USERS: "Teachers can now score all students at once"
 - Not: "Added bulkCreateDailyScores mutation"
 
@@ -216,19 +220,19 @@ Types: `feat`, `fix`, `test`, `docs`, `chore`, `refactor`, `perf`, `security`
 
 **Never include:** AI attribution, co-authored-by, paragraphs instead of bullets, technical jargon in release notes.
 
-### 10. Final PR: Parent → Main
+### 10. Final PR: Parent → Main (MUST include release notes)
 - Create PR from parent branch into main
 - Oracle does final review on the complete feature diff
 - Reviews: code quality, PR title/description, architecture, test coverage
 - Issues → fix on parent → re-review
 - Approved → learn + merge
 
-### 10. Learn (pattern_store)
+### 11. Learn (pattern_store)
 - `pattern_store` successful patterns via knowledge MCP
 - Tags: task type, files touched, approach used
 - Future sessions retrieve instead of re-reasoning
 
-### 11. Auto-Dream (Stop hook — background)
+### 12. Auto-Dream (Stop hook — background)
 - Runs on session end (every 5 sessions / 24h)
 - Consolidates memory, removes duplicates, prunes stale entries
 - Uses haiku in background — zero interactive cost

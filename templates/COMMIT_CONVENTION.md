@@ -49,8 +49,7 @@ This is a technical PR for the developer reviewing the step.
 
 Use `PULL_REQUEST_TEMPLATE_MAIN.md`. More descriptive:
 
-- **Overview**: 2-3 sentences — what the feature does, no jargon
-- **Background**: Why it was needed — business context, user impact
+- **Overview**: What it does + why, 3-4 sentences, no jargon
 - **Step PRs**: Links to ALL child PRs that were merged into parent
 - **How to test**: End-to-end verification of the complete feature
 - **Security audit**: Passed or issues found

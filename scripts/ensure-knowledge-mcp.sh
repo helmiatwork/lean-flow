@@ -43,7 +43,7 @@ if command -v claude &>/dev/null; then
     # Notify the user
     cat <<EOF
 {
-  "systemMessage": "[lean-flow] Knowledge MCP server installed and registered. 3 tools available: pattern_search, pattern_store, project_context. Data stored at ~/.claude/knowledge/patterns.db"
+  "systemMessage": "[lean-flow] Knowledge MCP server installed and registered. 6 tools available: pattern_search, pattern_store, pattern_list, pattern_delete, pattern_stats, project_context. Data stored at ~/.claude/knowledge/patterns.db"
 }
 EOF
     exit 0

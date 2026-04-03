@@ -1,7 +1,7 @@
 {
   "name": "lean-flow",
   "version": "1.0.0",
-  "description": "Lightweight dev workflow plugin: pattern memory (SQLite), parallel agents, plan-plus integration, auto-dream memory consolidation, oracle code review. Replaces heavy MCP orchestration frameworks with 3 tools + native Claude Code agents.",
+  "description": "Lightweight dev workflow plugin: pattern memory (SQLite), parallel agents, plan-plus integration, auto-dream memory consolidation, oracle code review. Replaces heavy MCP orchestration frameworks with 6 tools + native Claude Code agents.",
   "author": {
     "name": "helmiatwork"
   },
