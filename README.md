@@ -52,6 +52,21 @@ SQLite database with FTS5 full-text search. Save solved patterns, retrieve them 
 | **Designer** | Sonnet | UI/UX, frontend components |
 | **Explorer** | Haiku | File discovery, codebase navigation |
 
+### 🌿 Branch Naming Convention
+
+| Prefix | Use |
+|:-------|:----|
+| `feature/` | New functionality |
+| `fix/` | Bug fixes |
+| `improvement/` | Refactors, performance |
+| `security/` | Security patches |
+| `test/` | Test-only changes |
+| `docs/` | Documentation |
+| `chore/` | Dependencies, CI, config |
+| `hotfix/` | Urgent production fixes |
+
+Steps append `/step-N`: `feature/onboarding/step-1`
+
 ### 🔒 Safety Hooks
 - **Block** direct push to `main` / `master` / `staging`
 - **Block** `--no-verify` flag on git commands

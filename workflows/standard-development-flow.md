@@ -94,14 +94,34 @@ flowchart TD
     style AUDITREV fill:#8E44AD,color:#fff
 ```
 
+## Branch Naming Convention
+
+| Prefix | When to use | Example |
+|--------|------------|---------|
+| `feature/` | New functionality, screens, endpoints | `feature/user-onboarding` |
+| `fix/` | Bug fixes | `fix/login-redirect-loop` |
+| `improvement/` | Refactors, performance, code quality | `improvement/query-optimization` |
+| `security/` | Security patches, vulnerability fixes | `security/xss-sanitization` |
+| `test/` | Adding/improving tests only | `test/backend-model-coverage` |
+| `docs/` | Documentation changes only | `docs/api-reference` |
+| `chore/` | Dependencies, config, CI, tooling | `chore/upgrade-rails-8.2` |
+| `hotfix/` | Urgent production fixes | `hotfix/payment-crash` |
+
+**Step branches** append `/step-N` to the parent: `feature/user-onboarding/step-1`
+
+**Rules:**
+- Always kebab-case
+- Short but descriptive
+- Never generic (`feature/update`, `fix/bugfix`)
+
 ## Branching Strategy
 
 ```
 main
- └── feature/name              ← parent branch (1 per plan)
-      ├── feature/name/step-1  ← PR #1 → parent
-      ├── feature/name/step-2  ← PR #2 → parent (after #1 merged)
-      ├── feature/name/step-3  ← PR #3 → parent
+ └── <prefix>/name              ← parent branch (1 per plan)
+      ├── <prefix>/name/step-1  ← PR #1 → parent
+      ├── <prefix>/name/step-2  ← PR #2 → parent (after #1 merged)
+      ├── <prefix>/name/step-3  ← PR #3 → parent
       └── (all steps merged)
            └── security audit on parent
                 ├── issues → oracle fix PR → parent
