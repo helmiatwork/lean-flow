@@ -374,6 +374,9 @@ lean-flow/
 │   ├── warn-secret-files.sh     # Warn when secrets may be staged
 │   ├── track-test-failures.sh   # Count failures, escalate to oracle at 3
 │   └── claude-monitor/          # SwiftBar plugin + fetcher daemon
+├── templates/
+│   ├── PULL_REQUEST_TEMPLATE.md # PR description template
+│   └── COMMIT_CONVENTION.md     # Commit + PR style guide
 ├── workflows/
 │   └── standard-development-flow.md
 ├── mcp-servers/

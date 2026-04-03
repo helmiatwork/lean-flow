@@ -192,7 +192,26 @@ main
 - Orchestrator reviews oracle's fix (acts as PM/lead)
 - Re-audit until clean
 
-### 9. Final PR: Parent → Main
+### 9. Commit & PR Style
+
+**Commits:** `<type>: <what changed>` — lowercase, under 72 chars, no period.
+Types: `feat`, `fix`, `test`, `docs`, `chore`, `refactor`, `perf`, `security`
+
+**PR Title:** Same format, under 70 chars. Describes the outcome.
+- Good: `feat: add teacher student detail with radar chart`
+- Bad: `Feature/student-detail`, `Update index.tsx`
+
+**PR Description** (use repo template if exists, otherwise):
+- **What**: One sentence — reviewer understands the PR from this alone
+- **Why**: Business reason or technical motivation
+- **Changes**: Bullet points — scannable in 10 seconds
+- **How to test**: Real commands, not "run tests"
+
+**Never include:** AI attribution, co-authored-by, paragraphs instead of bullets.
+
+See `templates/COMMIT_CONVENTION.md` for full guide.
+
+### 10. Final PR: Parent → Main
 - Create PR from parent branch into main
 - Oracle does final review on the complete feature diff
 - Reviews: code quality, PR title/description, architecture, test coverage
