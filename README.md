@@ -1,6 +1,12 @@
 # lean-flow
 
-Lightweight development workflow plugin for Claude Code. Replaces heavy MCP orchestration frameworks (ruflo, claude-flow) with native Claude Code agents + 3-tool pattern memory.
+Lightweight development workflow plugin for Claude Code. Replaces heavy MCP orchestration frameworks with native Claude Code agents + 3-tool pattern memory.
+
+## Why lean-flow?
+
+Frameworks like [ruflo](https://github.com/ruvnet/ruflo) and [oh-my-opencode-slim](https://github.com/ruvnet/oh-my-opencode-slim) register 300+ MCP tools and fire multiple hooks per message, consuming ~3000 tokens/session + ~600 tokens/message in overhead. Most of those tools are never called.
+
+lean-flow extracts the **7 actually useful features** and implements them with native Claude Code capabilities — 3 MCP tools, 3 hooks, 5 agent definitions. Same workflow, 1/60th the token cost.
 
 ## What it does
 
@@ -103,6 +109,14 @@ Data stored in `~/.claude/knowledge/patterns.db` (SQLite + FTS5).
 | Tokens/session overhead | ~3000 | ~100 |
 | Tokens/message overhead | ~600 | ~50 |
 | Hooks firing per prompt | 5-8 | 1 |
+
+## Inspired by
+
+- [ruflo](https://github.com/ruvnet/ruflo) — Enterprise AI agent orchestration (300+ tools)
+- [oh-my-opencode-slim](https://github.com/ruvnet/oh-my-opencode-slim) — OpenCode/Claude Code enhancement framework
+- [plan-plus](https://github.com/RandyHaylor/plan-plus) — Plan mode optimizer (recommended companion plugin)
+
+lean-flow takes the useful patterns from these projects and reimplements them as a lightweight Claude Code plugin.
 
 ## License
 
