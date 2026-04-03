@@ -4,7 +4,7 @@
 
 **Lightweight dev workflow plugin for Claude Code**
 
-*Same workflow as ruflo/claude-flow. 3 tools instead of 300+. 1/60th the token cost.*
+*Same workflow as ruflo/claude-flow. 6 tools instead of 300+. 1/60th the token cost.*
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
 [![Claude Code](https://img.shields.io/badge/Claude_Code-Plugin-blueviolet)](https://claude.ai/claude-code)
@@ -22,7 +22,7 @@ lean-flow extracts the **7 actually useful features** and implements them with n
 
 | | ruflo | lean-flow |
 |:---|:---:|:---:|
-| MCP tools registered | 300+ | **3** |
+| MCP tools registered | 300+ | **6** |
 | Tokens/session overhead | ~3,000 | **~100** |
 | Tokens/message overhead | ~600 | **~50** |
 | Hooks per prompt | 5-8 | **1** |
@@ -40,6 +40,9 @@ SQLite database with FTS5 full-text search. Save solved patterns, retrieve them 
 |:-----|:--------|
 | `pattern_search` | Find previously solved patterns by keyword |
 | `pattern_store` | Save problem + solution pairs after success |
+| `pattern_list` | List all patterns for a project |
+| `pattern_delete` | Remove stale or incorrect patterns |
+| `pattern_stats` | Show usage statistics across all projects |
 | `project_context` | Store/retrieve project summary & conventions |
 
 ### 🤖 Parallel Agents
@@ -79,6 +82,8 @@ SwiftBar menu bar plugin showing real-time Claude Code usage:
 - Session %, weekly %, sonnet % with reset countdown
 - Color-coded: 🟢 <50% · 🟡 50-80% · 🔴 >80%
 - Auto-refresh via launchd daemon (every 3 min)
+
+> **Note:** The usage monitor requires macOS + SwiftBar. On Linux, you can manually check usage with `claude /usage` or read `/tmp/claude-usage-cache.json` if the fetcher is running.
 
 ### 🎭 E2E Testing
 Auto-installs [Playwright MCP](https://github.com/anthropics/anthropic-quickstarts/tree/main/mcp-playwright) for browser automation testing.
@@ -258,7 +263,7 @@ Everything else is **automatic**. On first session, lean-flow will:
 
 | Step | What gets installed | Time |
 |:-----|:-------------------|:----:|
-| 🧠 Knowledge MCP | SQLite + FTS5 pattern memory (3 tools) | ~10s |
+| 🧠 Knowledge MCP | SQLite + FTS5 pattern memory (6 tools) | ~10s |
 | 🔌 Companion Plugins | superpowers + plan-plus (auto-enabled) | ~1s |
 | 🔒 Permissions | Auto-allow workflow tools, block protected branches | ~1s |
 | 🎭 Playwright | `@playwright/mcp` + Chromium browser | ~30s |
@@ -277,6 +282,64 @@ lean-flow automatically enables these companion plugins on first session:
 | **plan-plus** | [RandyHaylor/plan-plus](https://github.com/RandyHaylor/plan-plus) | Structured planning with skeleton + step files |
 
 > No manual configuration needed. Restart session after first install to activate.
+
+---
+
+## Uninstall
+
+To completely remove lean-flow and all installed components:
+
+```bash
+bash /path/to/lean-flow/scripts/uninstall.sh
+```
+
+Or if installed as a plugin:
+```bash
+bash ~/.claude/plugins/cache/lean-flow/*/scripts/uninstall.sh
+```
+
+This removes: knowledge MCP, Playwright MCP, SwiftBar monitor, launchd daemon, dream state, and config file. Pattern database deletion requires confirmation.
+
+---
+
+## Configuration
+
+Customize lean-flow by creating `~/.claude/lean-flow.json`:
+
+```json
+{
+  "protectedBranches": ["main", "master", "staging", "production"],
+  "models": {
+    "fixer": "sonnet",
+    "oracle": "opus",
+    "explorer": "haiku"
+  },
+  "dream": {
+    "sessions": 5,
+    "hours": 24
+  },
+  "enable": {
+    "playwright": true,
+    "monitor": true,
+    "knowledge": true
+  },
+  "branchPrefixes": ["feature", "fix", "improvement", "security", "test", "docs", "chore", "hotfix"]
+}
+```
+
+All fields are optional — defaults are used for any missing field.
+
+---
+
+## Team Usage & CI/CD
+
+**Sharing patterns across a team:**
+- Export: `sqlite3 ~/.claude/knowledge/patterns.db ".dump patterns" > patterns.sql`
+- Import: `sqlite3 ~/.claude/knowledge/patterns.db < patterns.sql`
+
+**Monorepos:** Use distinct `project` names per service when calling `pattern_store`.
+
+**CI/CD:** lean-flow is designed for interactive Claude Code sessions. For CI, use the workflow doc (`workflows/standard-development-flow.md`) as reference for your pipeline stages.
 
 ---
 
@@ -306,6 +369,10 @@ lean-flow/
 │   ├── session-briefing.sh      # Git state on session start
 │   ├── auto-dream.sh            # Memory consolidation (background)
 │   ├── auto-dream-prompt.md     # Dream agent instructions
+│   ├── uninstall.sh             # Remove all lean-flow components
+│   ├── load-config.sh           # Load ~/.claude/lean-flow.json config
+│   ├── warn-secret-files.sh     # Warn when secrets may be staged
+│   ├── track-test-failures.sh   # Count failures, escalate to oracle at 3
 │   └── claude-monitor/          # SwiftBar plugin + fetcher daemon
 ├── workflows/
 │   └── standard-development-flow.md
@@ -313,6 +380,8 @@ lean-flow/
 │   └── knowledge/               # SQLite + FTS5 MCP server
 │       ├── index.mjs
 │       └── package.json
+├── CHANGELOG.md
+├── LICENSE
 └── README.md
 ```
 

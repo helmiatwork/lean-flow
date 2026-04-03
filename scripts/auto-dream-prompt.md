@@ -20,3 +20,10 @@ You are a memory consolidation agent. Your job is to clean up and organize the p
 - Don't delete project-level decisions unless you can verify they're outdated
 - Be conservative — when in doubt, keep the memory
 - Update `MEMORY.md` index after any changes
+
+## Pattern Database Cleanup
+
+If `~/.claude/knowledge/patterns.db` exists:
+1. Delete patterns with `used_count = 0` and `score < 0.5` that are older than 30 days
+2. Delete patterns with `used_count = 0` that are older than 90 days regardless of score
+3. Report how many patterns were pruned

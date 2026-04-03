@@ -139,6 +139,10 @@ const statsStmt = db.prepare(`
   FROM patterns GROUP BY project
 `);
 
+const deleteStmt = db.prepare(`
+  DELETE FROM patterns WHERE project = ? AND key = ?
+`);
+
 // --- MCP Server ---
 const server = new McpServer({
   name: 'claude-knowledge',
@@ -258,6 +262,56 @@ server.tool(
     }
 
     return { content: [{ type: 'text', text: JSON.stringify(row, null, 2) }] };
+  }
+);
+
+// Tool 4: Delete a pattern
+server.tool(
+  'pattern_delete',
+  'Delete a pattern by key. Use to remove stale or incorrect patterns.',
+  {
+    project: z.string().describe('Project name'),
+    key: z.string().describe('Pattern key to delete'),
+  },
+  async ({ project, key }) => {
+    const result = deleteStmt.run(project, key);
+    if (result.changes === 0) {
+      return { content: [{ type: 'text', text: `No pattern found: "${key}" in "${project}"` }] };
+    }
+    return { content: [{ type: 'text', text: `Deleted pattern "${key}" from "${project}"` }] };
+  }
+);
+
+// Tool 5: List all patterns for a project
+server.tool(
+  'pattern_list',
+  'List all patterns for a project, ordered by most used.',
+  {
+    project: z.string().describe('Project name'),
+    limit: z.number().optional().default(20).describe('Max results'),
+  },
+  async ({ project, limit }) => {
+    const rows = db.prepare(
+      'SELECT key, category, score, used_count, updated_at FROM patterns WHERE project = ? ORDER BY used_count DESC, score DESC LIMIT ?'
+    ).all(project, limit);
+    if (rows.length === 0) {
+      return { content: [{ type: 'text', text: `No patterns for project "${project}"` }] };
+    }
+    return { content: [{ type: 'text', text: JSON.stringify(rows, null, 2) }] };
+  }
+);
+
+// Tool 6: Pattern statistics across all projects
+server.tool(
+  'pattern_stats',
+  'Show pattern statistics across all projects.',
+  {},
+  async () => {
+    const stats = statsStmt.all();
+    const total = db.prepare('SELECT COUNT(*) as count FROM patterns').get();
+    return {
+      content: [{ type: 'text', text: JSON.stringify({ totalPatterns: total.count, byProject: stats }, null, 2) }],
+    };
   }
 );
 

@@ -2,6 +2,16 @@
 # Ensure Playwright is installed locally and MCP server is registered.
 # Runs on SessionStart — idempotent.
 
+# Load config (sets LEAN_FLOW_ENABLE_PLAYWRIGHT)
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+# shellcheck source=load-config.sh
+source "${SCRIPT_DIR}/load-config.sh" 2>/dev/null || true
+
+# Skip if disabled via config
+if [ "${LEAN_FLOW_ENABLE_PLAYWRIGHT}" = "false" ]; then
+  exit 0
+fi
+
 # Skip if claude CLI or npx not available
 if ! command -v claude &>/dev/null || ! command -v npx &>/dev/null; then
   exit 0

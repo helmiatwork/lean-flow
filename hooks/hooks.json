@@ -51,6 +51,16 @@
             "if": "Bash(git *--no-verify*)"
           }
         ]
+      },
+      {
+        "matcher": "Write|Edit",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "bash ${CLAUDE_PLUGIN_ROOT}/scripts/warn-secret-files.sh",
+            "timeout": 3000
+          }
+        ]
       }
     ],
     "PostToolUse": [
@@ -62,6 +72,11 @@
             "command": "jq -r '.tool_response.stdout // \"\"' | grep -o 'pull/[0-9]*' | grep -o '[0-9]*' | { read -r pr; [ -n \"$pr\" ] && printf '{\"hookSpecificOutput\":{\"hookEventName\":\"PostToolUse\",\"additionalContext\":\"PR #%s created. Dispatch @oracle to review the diff, then @fixer to fix any critical/high issues.\"}}\n' \"$pr\"; } || true",
             "if": "Bash(gh pr create*)",
             "async": false
+          },
+          {
+            "type": "command",
+            "command": "bash ${CLAUDE_PLUGIN_ROOT}/scripts/track-test-failures.sh",
+            "timeout": 3000
           }
         ]
       }

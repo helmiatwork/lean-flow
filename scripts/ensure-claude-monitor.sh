@@ -2,6 +2,16 @@
 # Ensure Claude Usage Monitor is installed (SwiftBar + fetcher + launchd).
 # macOS only. Runs on SessionStart — idempotent.
 
+# Load config (sets LEAN_FLOW_ENABLE_MONITOR)
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+# shellcheck source=load-config.sh
+source "${SCRIPT_DIR}/load-config.sh" 2>/dev/null || true
+
+# Skip if disabled via config
+if [ "${LEAN_FLOW_ENABLE_MONITOR}" = "false" ]; then
+  exit 0
+fi
+
 # Skip on non-macOS
 if [ "$(uname)" != "Darwin" ]; then
   exit 0

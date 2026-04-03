@@ -1,6 +1,11 @@
 #!/usr/bin/env bash
 # Auto Dream — Memory consolidation on session stop
-# Dual-gated: runs only after 5+ sessions AND 24+ hours since last dream
+# Dual-gated: runs only after N sessions AND N hours since last dream
+
+# Load config (sets LEAN_FLOW_DREAM_SESSIONS and LEAN_FLOW_DREAM_HOURS)
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+# shellcheck source=load-config.sh
+source "${SCRIPT_DIR}/load-config.sh" 2>/dev/null || true
 
 CLAUDE_BIN="${CLAUDE_BIN:-claude}"
 DREAM_STATE_DIR="${HOME}/.claude/dream-state"
@@ -30,13 +35,14 @@ if [ -f "$LAST_DREAM_FILE" ]; then
   last_dream=$(cat "$LAST_DREAM_FILE")
   now=$(date +%s)
   elapsed=$((now - last_dream))
-  if [ "$elapsed" -lt 86400 ]; then
+  _dream_seconds=$(( LEAN_FLOW_DREAM_HOURS * 3600 ))
+  if [ "$elapsed" -lt "$_dream_seconds" ]; then
     exit 0
   fi
 fi
 
-# Gate 2: 5+ sessions since last consolidation
-if [ "$count" -lt 5 ]; then
+# Gate 2: N+ sessions since last consolidation
+if [ "$count" -lt "$LEAN_FLOW_DREAM_SESSIONS" ]; then
   exit 0
 fi
 
