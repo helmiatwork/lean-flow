@@ -140,11 +140,15 @@ flowchart TD
     ADAPT --> BRANCH
     DIRECT --> DONE(["✅ Done"])
 
-    PP["📋 plan-plus\nGenerate plan"] --> REVIEW
+    PP["📋 plan-plus\nWrite plan"] --> REVIEW
 
     REVIEW{"Approved?"}
     REVIEW -->|"No"| PP
-    REVIEW -->|"Yes"| BRANCH
+    REVIEW -->|"Yes"| RESTRUCTURE
+
+    RESTRUCTURE["📋 plan-plus\nSplit into skeleton\n+ step files"] --> VIEWER
+
+    VIEWER["📺 Plan viewer\nOpens localhost:3456"] --> BRANCH
 
     BRANCH["🌿 Create parent branch"] --> STEP
 
@@ -204,6 +208,8 @@ flowchart TD
     style DIRECT fill:#27AE60,color:#fff
     style PP fill:#4A90D9,color:#fff
     style REVIEW fill:#F39C12,color:#fff
+    style RESTRUCTURE fill:#4A90D9,color:#fff
+    style VIEWER fill:#2980B9,color:#fff
     style BRANCH fill:#1ABC9C,color:#fff
     style STEP fill:#8E44AD,color:#fff
     style RESEARCH fill:#F39C12,color:#fff
