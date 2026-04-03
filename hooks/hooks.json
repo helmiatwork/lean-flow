@@ -21,7 +21,7 @@
           {
             "type": "command",
             "command": "bash ${CLAUDE_PLUGIN_ROOT}/scripts/ensure-playwright-mcp.sh",
-            "timeout": 15000
+            "timeout": 30000
           },
           {
             "type": "command",

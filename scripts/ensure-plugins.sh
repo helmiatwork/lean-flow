@@ -1,6 +1,7 @@
 #!/usr/bin/env bash
 # Ensure companion plugins (superpowers, plan-plus) are configured.
 # Runs on SessionStart — idempotent.
+# NOTE: Uses plain jq conditionals, not bash associative arrays (macOS bash 3.2 compat).
 
 SETTINGS_FILE="${HOME}/.claude/settings.json"
 
@@ -10,34 +11,26 @@ fi
 
 changed=false
 
-# Required plugins
-declare -A PLUGINS=(
-  ["superpowers@claude-plugins-official"]="true"
-  ["plan-plus@plan-plus"]="true"
-)
+# Enable superpowers plugin
+if ! jq -e '.enabledPlugins["superpowers@claude-plugins-official"]' "$SETTINGS_FILE" &>/dev/null; then
+  tmp=$(mktemp)
+  jq '.enabledPlugins["superpowers@claude-plugins-official"] = true' "$SETTINGS_FILE" > "$tmp" && mv "$tmp" "$SETTINGS_FILE"
+  changed=true
+fi
 
-# Required marketplaces
-declare -A MARKETPLACES=(
-  ["plan-plus"]='{"source":{"source":"github","repo":"RandyHaylor/plan-plus"}}'
-)
+# Enable plan-plus plugin
+if ! jq -e '.enabledPlugins["plan-plus@plan-plus"]' "$SETTINGS_FILE" &>/dev/null; then
+  tmp=$(mktemp)
+  jq '.enabledPlugins["plan-plus@plan-plus"] = true' "$SETTINGS_FILE" > "$tmp" && mv "$tmp" "$SETTINGS_FILE"
+  changed=true
+fi
 
-# Enable plugins
-for plugin in "${!PLUGINS[@]}"; do
-  if ! jq -e --arg p "$plugin" '.enabledPlugins[$p]' "$SETTINGS_FILE" &>/dev/null; then
-    tmp=$(mktemp)
-    jq --arg p "$plugin" '.enabledPlugins[$p] = true' "$SETTINGS_FILE" > "$tmp" && mv "$tmp" "$SETTINGS_FILE"
-    changed=true
-  fi
-done
-
-# Add marketplaces
-for name in "${!MARKETPLACES[@]}"; do
-  if ! jq -e --arg n "$name" '.extraKnownMarketplaces[$n]' "$SETTINGS_FILE" &>/dev/null; then
-    tmp=$(mktemp)
-    jq --arg n "$name" --argjson v "${MARKETPLACES[$name]}" '.extraKnownMarketplaces[$n] = $v' "$SETTINGS_FILE" > "$tmp" && mv "$tmp" "$SETTINGS_FILE"
-    changed=true
-  fi
-done
+# Add plan-plus marketplace
+if ! jq -e '.extraKnownMarketplaces["plan-plus"]' "$SETTINGS_FILE" &>/dev/null; then
+  tmp=$(mktemp)
+  jq '.extraKnownMarketplaces["plan-plus"] = {"source":{"source":"github","repo":"RandyHaylor/plan-plus"}}' "$SETTINGS_FILE" > "$tmp" && mv "$tmp" "$SETTINGS_FILE"
+  changed=true
+fi
 
 if [ "$changed" = true ]; then
   cat <<'EOF'
