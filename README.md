@@ -69,6 +69,9 @@ SQLite database with FTS5 full-text search. Save solved patterns, retrieve them 
 | `docs/` | Documentation |
 | `chore/` | Dependencies, CI, config |
 | `hotfix/` | Urgent production fixes |
+| `release/` | Release prep, version bumps |
+| `experiment/` | Spikes, prototypes (may discard) |
+| `revert/` | Reverting a bad merge |
 
 Steps append `/step-N`: `feature/onboarding/step-1`
 

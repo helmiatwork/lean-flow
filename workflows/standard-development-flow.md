@@ -159,6 +159,9 @@ flowchart TD
 | `docs/` | Documentation | `docs/api-reference` |
 | `chore/` | Dependencies, CI, config | `chore/upgrade-rails-8.2` |
 | `hotfix/` | Urgent production fixes | `hotfix/payment-crash` |
+| `release/` | Release prep, version bumps, changelog | `release/v2.1.0` |
+| `experiment/` | Spikes, prototypes (may be discarded) | `experiment/graphql-subscriptions` |
+| `revert/` | Reverting a bad merge | `revert/broken-auth-flow` |
 
 **Step branches** append `/step-N` to the parent: `feature/user-onboarding/step-1`
 
