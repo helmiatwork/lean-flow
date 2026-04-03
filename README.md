@@ -49,6 +49,7 @@ SQLite database with FTS5 full-text search. Save solved patterns, retrieve them 
 | **Oracle** | Opus | Architecture review, code review, stuck diagnosis |
 | **Fixer** | Sonnet | Implementation, bug fixes, tests |
 | **Auditor** | Sonnet | Security scan, diff risk, vulnerability detection |
+| **Tester** | Sonnet | Dedicated test writer, coverage improvement |
 | **Librarian** | Sonnet | Docs lookup, web search, research |
 | **Designer** | Sonnet | UI/UX, frontend components |
 | **Explorer** | Haiku | File discovery, codebase navigation |
@@ -266,6 +267,7 @@ lean-flow/
 │   ├── oracle.md                # Opus — code review, architecture
 │   ├── fixer.md                 # Sonnet — implementation
 │   ├── auditor.md               # Sonnet — security scan, diff risk
+│   ├── tester.md                # Sonnet — dedicated test writer
 │   ├── librarian.md             # Sonnet — research, docs
 │   ├── designer.md              # Sonnet — UI/UX
 │   └── explorer.md              # Haiku — codebase navigation
