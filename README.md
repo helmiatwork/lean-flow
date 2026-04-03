@@ -109,58 +109,76 @@ Background memory consolidation using Haiku. Runs every 5 sessions / 24 hours. C
 
 ```mermaid
 flowchart TD
-    USER(["User prompt"]) --> TRIAGE
+    USER(["👤 User prompt"]) --> TRIAGE
 
-    TRIAGE{"Orchestrator triages\ncomplexity"}
-    TRIAGE -->|"Simple"| DIRECT["Handle directly"]
+    TRIAGE{"🎯 Orchestrator\ntriages complexity"}
+    TRIAGE -->|"Simple"| DIRECT["Orchestrator\nhandles directly"]
     TRIAGE -->|"Complex"| MEMORY
 
-    MEMORY["pattern_search"] --> FOUND
+    MEMORY["🧠 pattern_search\nKnowledge MCP"] --> FOUND
 
     FOUND{"Match?"}
     FOUND -->|"Yes"| ADAPT["Apply pattern"]
     FOUND -->|"No"| PP
 
     ADAPT --> BRANCH
-    DIRECT --> DONE(["Done"])
+    DIRECT --> DONE(["✅ Done"])
 
-    PP["plan-plus"] --> REVIEW
+    PP["📋 plan-plus\nGenerate plan"] --> REVIEW
 
     REVIEW{"Approved?"}
     REVIEW -->|"No"| PP
     REVIEW -->|"Yes"| BRANCH
 
-    BRANCH["Create parent branch\nfeature/name"] --> STEP
+    BRANCH["🌿 Create parent branch"] --> STEP
 
     STEP{"Next step?"}
-    STEP -->|"Yes"| STEPBR["Step branch\nfeature/name/step-N"]
+    STEP -->|"Yes"| RESEARCH
     STEP -->|"All done"| AUDIT
 
-    STEPBR --> FIX["Fixer agents\n(parallel within step)"]
-    FIX --> TEST["Run tests"]
-    TEST -->|"Fail x3"| ORACLE_ESC["Oracle diagnosis"]
-    ORACLE_ESC --> FIX
-    TEST -->|"Pass"| STEPPR["PR step → parent"]
+    RESEARCH{"Needs research?"}
+    RESEARCH -->|"Unfamiliar code"| EXPLORER["🔍 Explorer\n(haiku)"]
+    RESEARCH -->|"Need docs"| LIBRARIAN["📚 Librarian\n(sonnet)"]
+    RESEARCH -->|"No"| STEPBR
 
-    STEPPR --> STEPREV["Oracle reviews step"]
+    EXPLORER --> STEPBR
+    LIBRARIAN --> STEPBR
+
+    STEPBR["🌿 Step branch\nprefix/name/step-N"] --> FIX
+
+    FIX["🔧 Fixer\n(sonnet, parallel)"] --> TESTWRITE
+
+    TESTWRITE["🧪 Tester\n(sonnet)\nWrite/verify tests"] --> TEST
+
+    TEST["Run tests"]
+    TEST -->|"Fail x3"| ORACLE_ESC["🔮 Oracle\n(opus)\nDiagnosis"]
+    ORACLE_ESC --> FIX
+    TEST -->|"Pass"| STEPPR
+
+    STEPPR["PR step → parent"] --> STEPREV
+
+    STEPREV["🔮 Oracle\n(opus)\nReview step PR"]
     STEPREV -->|"Issues"| FIX
     STEPREV -->|"Approved"| MERGE_STEP["Merge to parent"]
     MERGE_STEP --> STEP
 
-    AUDIT["Security audit\nfull parent diff"] --> CLEAN
+    AUDIT["🔒 Auditor\n(sonnet)\nSecurity scan\nfull parent diff"] --> CLEAN
 
     CLEAN{"Issues?"}
-    CLEAN -->|"Found"| FIXAUDIT["Oracle fix PR\n→ parent"]
+    CLEAN -->|"Found"| FIXAUDIT["🔮 Oracle creates\nfix PR → parent"]
     CLEAN -->|"Clean"| MAINPR
 
-    FIXAUDIT --> AUDIT
+    FIXAUDIT --> AUDITREV["🎯 Orchestrator\nreviews fix"]
+    AUDITREV --> AUDIT
 
-    MAINPR["PR parent → main"] --> FINAL["Oracle final review"]
-    FINAL -->|"Issues"| FIXFINAL["Fix on parent"]
+    MAINPR["PR parent → main"] --> FINAL
+
+    FINAL["🔮 Oracle\n(opus)\nFinal review"]
+    FINAL -->|"Issues"| FIXFINAL["🔧 Fixer\nfix on parent"]
     FINAL -->|"Approved"| LEARN
 
     FIXFINAL --> FINAL
-    LEARN["pattern_store"] --> MERGE(["Merge to main"])
+    LEARN["🧠 pattern_store\nSave patterns"] --> MERGE(["✅ Merge to main"])
 
     style USER fill:#34495E,color:#fff
     style TRIAGE fill:#8E44AD,color:#fff
@@ -172,8 +190,12 @@ flowchart TD
     style REVIEW fill:#F39C12,color:#fff
     style BRANCH fill:#1ABC9C,color:#fff
     style STEP fill:#8E44AD,color:#fff
+    style RESEARCH fill:#F39C12,color:#fff
+    style EXPLORER fill:#3498DB,color:#fff
+    style LIBRARIAN fill:#3498DB,color:#fff
     style STEPBR fill:#1ABC9C,color:#fff
     style FIX fill:#E67E22,color:#fff
+    style TESTWRITE fill:#7B68EE,color:#fff
     style FIXAUDIT fill:#E67E22,color:#fff
     style FIXFINAL fill:#E67E22,color:#fff
     style TEST fill:#7B68EE,color:#fff
@@ -188,6 +210,7 @@ flowchart TD
     style MERGE fill:#27AE60,color:#fff
     style DONE fill:#27AE60,color:#fff
     style CLEAN fill:#F39C12,color:#fff
+    style AUDITREV fill:#8E44AD,color:#fff
 ```
 
 <details>
@@ -292,6 +315,23 @@ lean-flow/
 │       └── package.json
 └── README.md
 ```
+
+---
+
+## Agent Comparison: lean-flow vs ruflo
+
+| Role | ruflo agent | lean-flow agent | Difference |
+|:-----|:-----------|:----------------|:-----------|
+| Architecture & review | `architect.yaml` (tags only) | **oracle.md** (opus) | Full instructions, severity levels, PR quality review |
+| Implementation | `coder.yaml` (tags only) | **fixer.md** (sonnet) | Retry behavior, test rules, clear spec execution |
+| Code review | `reviewer.yaml` (tags only) | **oracle.md** (opus) | Same agent handles review + architecture (saves opus calls) |
+| Security | `security-architect.yaml` (tags only) | **auditor.md** (sonnet) | Specific tools (brakeman, npm audit), PII checks, structured reports |
+| Testing | `tester.yaml` (tags only) | **tester.md** (sonnet) | Framework-specific rules (Minitest, Jest, Playwright), coverage focus |
+| Research | *(none)* | **librarian.md** (sonnet) | Docs lookup, web search, API reference |
+| UI/UX | *(none)* | **designer.md** (sonnet) | Frontend components, accessibility, responsive design |
+| Navigation | *(none)* | **explorer.md** (haiku) | Fast file discovery, codebase structure |
+
+> ruflo agents are YAML stubs (~5 lines each, no instructions). lean-flow agents are full markdown definitions with role, rules, tools, and behavioral constraints.
 
 ---
 

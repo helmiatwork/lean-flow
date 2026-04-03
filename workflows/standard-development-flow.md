@@ -4,66 +4,76 @@
 
 ```mermaid
 flowchart TD
-    USER(["User prompt"]) --> TRIAGE
+    USER(["👤 User prompt"]) --> TRIAGE
 
-    TRIAGE{"Orchestrator triages\ncomplexity"}
-    TRIAGE -->|"Simple"| DIRECT["Handle directly\non current branch"]
+    TRIAGE{"🎯 Orchestrator\ntriages complexity"}
+    TRIAGE -->|"Simple"| DIRECT["Orchestrator\nhandles directly"]
     TRIAGE -->|"Complex"| MEMORY
 
-    MEMORY["pattern_search"] --> FOUND
+    MEMORY["🧠 pattern_search\nKnowledge MCP"] --> FOUND
 
     FOUND{"Match?"}
     FOUND -->|"Yes"| ADAPT["Apply pattern"]
     FOUND -->|"No"| PP
 
     ADAPT --> BRANCH
-    DIRECT --> DONE(["Done"])
+    DIRECT --> DONE(["✅ Done"])
 
-    PP["plan-plus"] --> REVIEW
+    PP["📋 plan-plus\nGenerate plan"] --> REVIEW
 
     REVIEW{"Approved?"}
     REVIEW -->|"No"| PP
     REVIEW -->|"Yes"| BRANCH
 
-    BRANCH["Create parent branch\nfeature/name"] --> STEP
+    BRANCH["🌿 Create parent branch"] --> STEP
 
     STEP{"Next step?"}
-    STEP -->|"Yes"| STEPBR["Create step branch\nfeature/name/step-N"]
+    STEP -->|"Yes"| RESEARCH
     STEP -->|"All done"| AUDIT
 
-    STEPBR --> FIX
+    RESEARCH{"Needs research?"}
+    RESEARCH -->|"Unfamiliar code"| EXPLORER["🔍 Explorer\n(haiku)"]
+    RESEARCH -->|"Need docs"| LIBRARIAN["📚 Librarian\n(sonnet)"]
+    RESEARCH -->|"No"| STEPBR
 
-    FIX["Fixer agents\n(parallel within step)"] --> TEST
+    EXPLORER --> STEPBR
+    LIBRARIAN --> STEPBR
+
+    STEPBR["🌿 Step branch\nprefix/name/step-N"] --> FIX
+
+    FIX["🔧 Fixer\n(sonnet, parallel)"] --> TESTWRITE
+
+    TESTWRITE["🧪 Tester\n(sonnet)\nWrite/verify tests"] --> TEST
 
     TEST["Run tests"]
-    TEST -->|"Fail x3"| ORACLE_ESC["Oracle\ndiagnosis"]
+    TEST -->|"Fail x3"| ORACLE_ESC["🔮 Oracle\n(opus)\nDiagnosis"]
     ORACLE_ESC --> FIX
     TEST -->|"Pass"| STEPPR
 
-    STEPPR["PR step branch\n→ parent branch"] --> STEPREV["Oracle reviews\nstep PR"]
+    STEPPR["PR step → parent"] --> STEPREV
 
+    STEPREV["🔮 Oracle\n(opus)\nReview step PR"]
     STEPREV -->|"Issues"| FIX
-    STEPREV -->|"Approved"| MERGE_STEP["Merge step\ninto parent"]
-
+    STEPREV -->|"Approved"| MERGE_STEP["Merge to parent"]
     MERGE_STEP --> STEP
 
-    AUDIT["Security audit\non full parent diff"] --> CLEAN
+    AUDIT["🔒 Auditor\n(sonnet)\nSecurity scan\nfull parent diff"] --> CLEAN
 
     CLEAN{"Issues?"}
-    CLEAN -->|"Found"| FIXAUDIT["Oracle creates\nfix PR → parent"]
+    CLEAN -->|"Found"| FIXAUDIT["🔮 Oracle creates\nfix PR → parent"]
     CLEAN -->|"Clean"| MAINPR
 
-    FIXAUDIT --> AUDITREV["Orchestrator\nreviews fix"]
+    FIXAUDIT --> AUDITREV["🎯 Orchestrator\nreviews fix"]
     AUDITREV --> AUDIT
 
-    MAINPR["PR parent branch\n→ main"] --> ORACLE_FINAL["Oracle final review\nfull feature diff"]
+    MAINPR["PR parent → main"] --> FINAL
 
-    ORACLE_FINAL -->|"Issues"| FIXFINAL["Fix on parent"]
-    ORACLE_FINAL -->|"Approved"| LEARN
+    FINAL["🔮 Oracle\n(opus)\nFinal review"]
+    FINAL -->|"Issues"| FIXFINAL["🔧 Fixer\nfix on parent"]
+    FINAL -->|"Approved"| LEARN
 
-    FIXFINAL --> ORACLE_FINAL
-
-    LEARN["pattern_store"] --> MERGE_MAIN(["Merge to main"])
+    FIXFINAL --> FINAL
+    LEARN["🧠 pattern_store\nSave patterns"] --> MERGE_MAIN(["✅ Merge to main"])
 
     style USER fill:#34495E,color:#fff
     style TRIAGE fill:#8E44AD,color:#fff
