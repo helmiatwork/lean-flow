@@ -66,6 +66,23 @@ SwiftBar menu bar plugin showing real-time Claude Code usage:
 ### 🎭 E2E Testing
 Auto-installs [Playwright MCP](https://github.com/anthropics/anthropic-quickstarts/tree/main/mcp-playwright) for browser automation testing.
 
+### 🎯 Skills (via superpowers plugin)
+
+lean-flow auto-enables the [superpowers](https://github.com/anthropics/claude-code-plugins) plugin which provides these skills used in the workflow:
+
+| Skill | When it's used |
+|:------|:---------------|
+| `brainstorming` | Before any creative/feature work — explores intent and design |
+| `writing-plans` | When creating implementation plans (feeds into plan-plus) |
+| `test-driven-development` | Before writing implementation code |
+| `systematic-debugging` | When encountering bugs or test failures |
+| `verification-before-completion` | Before claiming work is done or creating PRs |
+| `receiving-code-review` | When processing oracle's review feedback |
+| `finishing-a-development-branch` | When implementation is complete, deciding merge/PR/cleanup |
+| `using-git-worktrees` | When feature work needs isolation from main workspace |
+
+> Skills are invoked automatically when their context matches. No manual activation needed.
+
 ### 💤 Auto-Dream
 Background memory consolidation using Haiku. Runs every 5 sessions / 24 hours. Cleans up stale memories, merges duplicates, prunes outdated entries.
 
