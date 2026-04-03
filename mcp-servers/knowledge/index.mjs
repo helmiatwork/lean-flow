@@ -161,8 +161,12 @@ server.tool(
     if (category && project) {
       rows = searchByCategoryStmt.all(project, category, limit);
     } else {
-      // FTS5 query — escape special chars
-      const ftsQuery = query.replace(/['"]/g, '').split(/\s+/).filter(Boolean).join(' OR ');
+      // FTS5 query — strip special chars that FTS5 interprets as operators
+      const ftsQuery = query
+        .replace(/['"()*:^+\-]/g, ' ')
+        .split(/\s+/)
+        .filter((w) => w.length > 1 && !['AND', 'OR', 'NOT', 'NEAR'].includes(w.toUpperCase()))
+        .join(' OR ');
       if (!ftsQuery) {
         return { content: [{ type: 'text', text: 'No results (empty query)' }] };
       }

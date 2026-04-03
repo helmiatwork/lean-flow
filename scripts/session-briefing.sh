@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env bash
 # Session briefing — show git state on session start
 
 if ! git rev-parse --is-inside-work-tree &>/dev/null; then

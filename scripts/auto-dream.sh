@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env bash
 # Auto Dream — Memory consolidation on session stop
 # Dual-gated: runs only after 5+ sessions AND 24+ hours since last dream
 
