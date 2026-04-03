@@ -40,25 +40,74 @@ function extractPlanName(markdown) {
   return match ? match[1].trim() : null;
 }
 
+/** Extract project/repo name from skeleton markdown.
+ *  Looks for `full plan: /path/to/repo/.claude/plans/...`
+ *  and extracts the repo directory name.
+ */
+function extractProjectName(markdown) {
+  const match = markdown.match(/full plan:\s*(.+)/m);
+  if (!match) return 'unknown';
+  // Extract repo name from path like /Users/x/Documents/repo/grewme/.claude/plans/...
+  const fullPath = match[1].trim();
+  const parts = fullPath.split('/.claude/');
+  if (parts.length >= 2) {
+    return path.basename(parts[0]);
+  }
+  return 'unknown';
+}
+
 /** Extract steps from skeleton markdown.
- *  Looks for lines like: `- [x] Step N: ...` or `- [ ] Step N: ...`
- *  Also handles plain `- [x] ...` lines.
+ *  Handles multiple formats:
+ *    - `N. [x] Description`  (numbered, plan-plus style)
+ *    - `- [x] Description`   (dashed)
+ *    - `* [x] Description`   (starred)
+ *  File references can be:
+ *    - Inline: `(path/to/file.md)` or `details: /abs/path`
+ *    - Next line: `   Step: /path/to/file.md` or `   Step requires using agent: ... — details: /path`
  */
 function extractSteps(markdown) {
   const steps = [];
-  const stepRegex = /^[-*]\s+\[([ xX])\]\s+(.+)$/gm;
-  let match;
-  while ((match = stepRegex.exec(markdown)) !== null) {
+  const lines = markdown.split('\n');
+
+  for (let i = 0; i < lines.length; i++) {
+    const line = lines[i];
+    // Match: `N. [x] ...`, `- [x] ...`, `* [x] ...`
+    const match = line.match(/^[\s]*(?:\d+\.|\-|\*)\s+\[([ xX])\]\s+(.+)$/);
+    if (!match) continue;
+
     const done = match[1].toLowerCase() === 'x';
-    const text = match[2].trim();
-    // Try to extract a file reference like (path/to/file.md)
-    const fileMatch = text.match(/\(([^)]+\.md)\)/);
-    steps.push({
-      done,
-      text: text.replace(/\s*\([^)]+\.md\)\s*/g, '').trim(),
-      file: fileMatch ? fileMatch[1] : null,
-    });
+    let text = match[2].trim();
+
+    // Extract file reference from current line or next line
+    let file = null;
+
+    // Pattern 1: inline `details: /path/to/file.md`
+    const detailsMatch = text.match(/details:\s*(\S+\.md)/);
+    if (detailsMatch) file = detailsMatch[1];
+
+    // Pattern 2: inline `(path/to/file.md)`
+    if (!file) {
+      const parenMatch = text.match(/\(([^)]+\.md)\)/);
+      if (parenMatch) file = parenMatch[1];
+    }
+
+    // Pattern 3: next line contains `Step:` or `details:`
+    if (!file && i + 1 < lines.length) {
+      const nextLine = lines[i + 1].trim();
+      const nextMatch = nextLine.match(/(?:Step|details):\s*(\S+\.md)/i);
+      if (nextMatch) file = nextMatch[1];
+    }
+
+    // Clean display text — remove file references and "Step requires using agent" noise
+    text = text
+      .replace(/\s*—?\s*details:\s*\S+/g, '')
+      .replace(/\s*\([^)]+\.md\)\s*/g, '')
+      .replace(/\s*Step requires using agent:.*$/i, '')
+      .trim();
+
+    steps.push({ done, text, file });
   }
+
   return steps;
 }
 
@@ -161,7 +210,8 @@ for (const scanDir of scanDirs) {
       }
     }
 
-    plans.push({ name: planName, file, scanDir, steps, hasPlanPlusDir });
+    const project = extractProjectName(skeleton);
+    plans.push({ name: planName, project, file, scanDir, steps, hasPlanPlusDir });
   }
 }
 
@@ -175,15 +225,25 @@ function renderStep(step, idx) {
   const icon = step.done
     ? '<span style="color:#3fb950;font-size:16px;">✓</span>'
     : '<span style="color:#484f58;font-size:16px;">○</span>';
-  const detailHtml = step.detail
-    ? `<div class="step-detail">${esc(step.detail.heading || step.detail.paragraph || '')}</div>`
+
+  let detailHtml = '';
+  if (step.detail) {
+    const heading = step.detail.heading ? `<strong>${esc(step.detail.heading)}</strong>` : '';
+    const para = step.detail.paragraph ? `<div style="margin-top:4px">${esc(step.detail.paragraph)}</div>` : '';
+    if (heading || para) {
+      detailHtml = `<details class="step-detail"><summary style="cursor:pointer;color:#58a6ff;font-size:12px;">Show details</summary><div style="margin-top:6px">${heading}${para}</div></details>`;
+    }
+  }
+
+  const fileLabel = step.file
+    ? `<span style="color:#484f58;font-size:11px;margin-left:8px;font-family:monospace;">${esc(path.basename(step.file))}</span>`
     : '';
 
   return `
       <div class="step${doneClass}">
         <div class="step-checkbox">${icon}</div>
         <div style="flex:1">
-          <div class="step-text">${esc(step.text)}</div>
+          <div class="step-text">${esc(step.text)}${fileLabel}</div>
           ${detailHtml}
         </div>
       </div>`;
@@ -221,8 +281,27 @@ function renderPlan(plan) {
     </div>`;
 }
 
+// Group plans by project
+const plansByProject = {};
+for (const plan of plans) {
+  if (!plansByProject[plan.project]) plansByProject[plan.project] = [];
+  plansByProject[plan.project].push(plan);
+}
+
 const plansHtml = totalPlans > 0
-  ? plans.map(renderPlan).join('')
+  ? Object.entries(plansByProject).map(([project, projectPlans]) => {
+      const projDone = projectPlans.reduce((a, p) => a + p.steps.filter(s => s.done).length, 0);
+      const projTotal = projectPlans.reduce((a, p) => a + p.steps.length, 0);
+      const projPct = projTotal > 0 ? Math.round((projDone / projTotal) * 100) : 0;
+      return `
+        <div style="margin-bottom:32px;">
+          <div style="display:flex;align-items:center;gap:12px;margin-bottom:12px;">
+            <h2 style="color:#f0f6fc;font-size:20px;font-weight:600;">📁 ${esc(project)}</h2>
+            <span class="badge ${projDone === projTotal && projTotal > 0 ? 'badge-done' : 'badge-pending'}">${projDone}/${projTotal} steps</span>
+          </div>
+          ${projectPlans.map(renderPlan).join('')}
+        </div>`;
+    }).join('')
   : `<div class="empty">
       <div style="font-size:48px;margin-bottom:16px;">📋</div>
       <div style="font-size:18px;margin-bottom:8px;">No plans found</div>
