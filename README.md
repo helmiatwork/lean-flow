@@ -375,8 +375,9 @@ lean-flow/
 │   ├── track-test-failures.sh   # Count failures, escalate to oracle at 3
 │   └── claude-monitor/          # SwiftBar plugin + fetcher daemon
 ├── templates/
-│   ├── PULL_REQUEST_TEMPLATE.md # PR description template
-│   └── COMMIT_CONVENTION.md     # Commit + PR style guide
+│   ├── PULL_REQUEST_TEMPLATE.md      # Step PR (child → parent)
+│   ├── PULL_REQUEST_TEMPLATE_MAIN.md # Feature PR (parent → main) + release notes
+│   └── COMMIT_CONVENTION.md          # Commit + PR style guide
 ├── workflows/
 │   └── standard-development-flow.md
 ├── mcp-servers/

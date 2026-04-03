@@ -1,10 +1,11 @@
+<!-- 
+  USE THIS TEMPLATE FOR: Step PRs (child → parent branch)
+  For parent → main PRs, use PULL_REQUEST_TEMPLATE_MAIN.md
+-->
+
 ## What
 
-<!-- One sentence: what does this PR do? -->
-
-## Why
-
-<!-- One sentence: why is this change needed? -->
+<!-- One sentence: what does this step implement? -->
 
 ## Changes
 
@@ -15,11 +16,7 @@
 
 ## How to test
 
-<!-- Concrete steps, not "test the feature" -->
-1. 
-2. 
-3. 
+<!-- Concrete commands or steps -->
+```bash
 
-## Screenshots
-
-<!-- If UI changes, add before/after screenshots. Delete this section if not applicable. -->
+```

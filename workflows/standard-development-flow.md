@@ -197,19 +197,24 @@ main
 **Commits:** `<type>: <what changed>` — lowercase, under 72 chars, no period.
 Types: `feat`, `fix`, `test`, `docs`, `chore`, `refactor`, `perf`, `security`
 
-**PR Title:** Same format, under 70 chars. Describes the outcome.
-- Good: `feat: add teacher student detail with radar chart`
-- Bad: `Feature/student-detail`, `Update index.tsx`
+**Two PR templates:**
 
-**PR Description** (use repo template if exists, otherwise):
-- **What**: One sentence — reviewer understands the PR from this alone
-- **Why**: Business reason or technical motivation
-- **Changes**: Bullet points — scannable in 10 seconds
-- **How to test**: Real commands, not "run tests"
+| PR Type | Template | Audience | Release Notes? |
+|---------|----------|----------|----------------|
+| Step → parent | `PULL_REQUEST_TEMPLATE.md` | Developer reviewing the step | No |
+| Parent → main | `PULL_REQUEST_TEMPLATE_MAIN.md` | Team + stakeholders | **Yes, required** |
 
-**Never include:** AI attribution, co-authored-by, paragraphs instead of bullets.
+**Step PRs (child → parent):** Short and technical.
+- What (1 sentence) + Changes (bullets) + How to test (commands)
 
-See `templates/COMMIT_CONVENTION.md` for full guide.
+**Feature PRs (parent → main):** Descriptive and non-technical.
+- Overview + Background + Links to ALL step PRs + Security audit status + Release Notes
+- Release notes written for END USERS: "Teachers can now score all students at once"
+- Not: "Added bulkCreateDailyScores mutation"
+
+**Any PR to main/master MUST include release notes.** Features, hotfixes, improvements, security — all of them.
+
+**Never include:** AI attribution, co-authored-by, paragraphs instead of bullets, technical jargon in release notes.
 
 ### 10. Final PR: Parent → Main
 - Create PR from parent branch into main
