@@ -5,6 +5,11 @@
         "hooks": [
           {
             "type": "command",
+            "command": "bash ${CLAUDE_PLUGIN_ROOT}/scripts/ensure-knowledge-mcp.sh",
+            "timeout": 30000
+          },
+          {
+            "type": "command",
             "command": "bash ${CLAUDE_PLUGIN_ROOT}/scripts/session-briefing.sh",
             "timeout": 10000
           }

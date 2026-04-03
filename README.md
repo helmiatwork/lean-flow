@@ -33,20 +33,15 @@ Add this to `~/.claude/settings.json` under `extraKnownMarketplaces`:
 }
 ```
 
-### 2. Register the knowledge MCP server separately
+### 2. Knowledge MCP server (auto-installed)
 
-The MCP server runs outside the plugin system:
+The knowledge MCP server (SQLite + FTS5, 3 tools) is **automatically installed on first session start**. The plugin:
+1. Copies the MCP server to `~/.claude/mcp-servers/knowledge/`
+2. Runs `npm install` for dependencies
+3. Registers it with `claude mcp add knowledge`
+4. Creates the database at `~/.claude/knowledge/patterns.db`
 
-```bash
-# Clone and install
-git clone https://github.com/helmiatwork/lean-flow.git /tmp/lean-flow-install
-mkdir -p ~/.claude/mcp-servers/knowledge
-cp /tmp/lean-flow-install/mcp-servers/knowledge/* ~/.claude/mcp-servers/knowledge/
-cd ~/.claude/mcp-servers/knowledge && npm install
-
-# Register with Claude Code
-claude mcp add knowledge -- node ~/.claude/mcp-servers/knowledge/index.mjs
-```
+No manual setup needed. You'll see a confirmation message on first session.
 
 ### 3. (Recommended) Also install plan-plus
 
