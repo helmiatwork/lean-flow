@@ -105,6 +105,17 @@ lean-flow auto-enables the [superpowers](https://github.com/anthropics/claude-co
 
 > Skills are invoked automatically when their context matches. No manual activation needed.
 
+### 📺 Live Plan Viewer
+Auto-opens a browser dashboard at `localhost:3456` when you exit plan mode. Shows all plans grouped by repo with real-time updates.
+
+- **Two-panel layout** — sidebar with repos + plans, main panel with step details
+- **Live reload** — file watcher + Server-Sent Events, updates instantly when steps are checked off
+- **Sorted** — incomplete plans on top (lowest progress first), completed at bottom
+- **20 per repo** — "Show more" button for older plans
+- **Status indicators** — 🟢 complete, 🟡 in progress, ⚫ not started
+
+The viewer runs as a background server. Starts automatically on first plan exit, reuses existing server on subsequent exits.
+
 ### 💤 Auto-Dream
 Background memory consolidation using Haiku. Runs every 5 sessions / 24 hours. Cleans up stale memories, merges duplicates, prunes outdated entries.
 
@@ -268,6 +279,7 @@ Everything else is **automatic**. On first session, lean-flow will:
 | 🔒 Permissions | Auto-allow workflow tools, block protected branches | ~1s |
 | 🎭 Playwright | `@playwright/mcp` + Chromium browser | ~30s |
 | 📊 Usage Monitor | SwiftBar + launchd fetcher *(macOS only)* | ~15s |
+| 📺 Plan Viewer | Live dashboard at localhost:3456 (on ExitPlanMode) | ~1s |
 | 📋 Session Briefing | Git state summary | ~1s |
 
 > **Subsequent sessions:** All checks run but skip in <100ms total (idempotent).
@@ -374,6 +386,9 @@ lean-flow/
 │   ├── load-config.sh           # Load ~/.claude/lean-flow.json config
 │   ├── warn-secret-files.sh     # Warn when secrets may be staged
 │   ├── track-test-failures.sh   # Count failures, escalate to oracle at 3
+│   ├── plan-server.mjs          # Live plan viewer server (SSE + file watch)
+│   ├── plan-viewer.mjs          # Static HTML generator (fallback)
+│   ├── generate-plan-viewer.sh  # Start/reuse plan server + open browser
 │   └── claude-monitor/          # SwiftBar plugin + fetcher daemon
 ├── templates/
 │   ├── PULL_REQUEST_TEMPLATE.md      # Step PR (child → parent)
