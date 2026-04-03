@@ -1,0 +1,39 @@
+{
+  "hooks": {
+    "SessionStart": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "bash ${CLAUDE_PLUGIN_ROOT}/scripts/session-briefing.sh",
+            "timeout": 10000
+          }
+        ]
+      }
+    ],
+    "PostToolUse": [
+      {
+        "matcher": "Bash",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "jq -r '.tool_response.stdout // \"\"' | grep -o 'pull/[0-9]*' | grep -o '[0-9]*' | { read -r pr; [ -n \"$pr\" ] && printf '{\"hookSpecificOutput\":{\"hookEventName\":\"PostToolUse\",\"additionalContext\":\"PR #%s created. Dispatch @oracle to review the diff, then @fixer to fix any critical/high issues.\"}}\n' \"$pr\"; } || true",
+            "if": "Bash(gh pr create*)",
+            "async": false
+          }
+        ]
+      }
+    ],
+    "Stop": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "bash ${CLAUDE_PLUGIN_ROOT}/scripts/auto-dream.sh",
+            "timeout": 5000
+          }
+        ]
+      }
+    ]
+  }
+}
