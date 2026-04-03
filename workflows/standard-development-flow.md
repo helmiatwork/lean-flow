@@ -7,17 +7,31 @@ flowchart TD
     USER(["👤 User prompt"]) --> TRIAGE
 
     TRIAGE{"🎯 Orchestrator\ntriages complexity"}
-    TRIAGE -->|"Simple"| DIRECT["Orchestrator\nhandles directly"]
+    TRIAGE -->|"Simple"| DIRECTFIX
     TRIAGE -->|"Complex"| MEMORY
+    TRIAGE -->|"Hotfix 🔥"| HOTFIX
 
+    %% === SIMPLE PATH ===
+    DIRECTFIX["🔧 Fixer\nImplement fix"] --> DIRECTTEST["Run tests"]
+    DIRECTTEST -->|"Pass"| DIRECTPR["PR → main\n(with release notes)"]
+    DIRECTTEST -->|"Fail"| DIRECTFIX
+    DIRECTPR --> DONE(["✅ Done"])
+
+    %% === HOTFIX PATH ===
+    HOTFIX["🔥 hotfix/ branch\nfrom main"] --> HOTFIXFIXER["🔧 Fixer\nMinimal fix"]
+    HOTFIXFIXER --> HOTFIXTEST["Run tests"]
+    HOTFIXTEST -->|"Fail"| HOTFIXFIXER
+    HOTFIXTEST -->|"Pass"| HOTFIXPR["PR hotfix → main\n🔮 Oracle inline review\n+ release notes"]
+    HOTFIXPR --> HOTFIXMERGE(["✅ Merge + cherry-pick\nto in-flight branches"])
+
+    %% === COMPLEX PATH ===
     MEMORY["🧠 pattern_search\nKnowledge MCP"] --> FOUND
 
     FOUND{"Match?"}
-    FOUND -->|"Yes"| ADAPT["Apply pattern"]
-    FOUND -->|"No"| PP
+    FOUND -->|"Yes"| ADAPT["Apply pattern\n🔧 Fixer implements"]
+    FOUND -->|"No"| BRAINSTORM
 
-    ADAPT --> BRANCH
-    DIRECT --> DONE(["✅ Done"])
+    BRAINSTORM["💡 Brainstorming skill\nExplore requirements"] --> PP
 
     PP["📋 plan-plus\nWrite plan"] --> REVIEW
 
@@ -27,13 +41,18 @@ flowchart TD
 
     RESTRUCTURE["📋 plan-plus\nSplit into skeleton\n+ step files"] --> VIEWER
 
-    VIEWER["📺 Plan viewer\nOpens localhost:3456"] --> BRANCH
+    VIEWER["📺 Plan viewer\nlocalhost:3456"] --> BRANCH
+
+    ADAPT --> BRANCH
 
     BRANCH["🌿 Create parent branch"] --> STEP
 
     STEP{"Next step?"}
     STEP -->|"Yes"| RESEARCH
     STEP -->|"All done"| AUDIT
+    STEP -->|"Plan invalid"| REPLAN
+
+    REPLAN["📋 Revise remaining\nsteps in plan-plus"] --> STEP
 
     RESEARCH{"Needs research?"}
     RESEARCH -->|"Unfamiliar code"| EXPLORER["🔍 Explorer\n(haiku)"]
@@ -43,11 +62,15 @@ flowchart TD
     EXPLORER --> STEPBR
     LIBRARIAN --> STEPBR
 
-    STEPBR["🌿 Step branch\nprefix/name/step-N"] --> FIX
+    STEPBR["🌿 Step branch\nprefix/name/step-N"] --> TESTFIRST
 
-    FIX["🔧 Fixer\n(sonnet, parallel)"] --> TESTWRITE
+    TESTFIRST{"TDD?"}
+    TESTFIRST -->|"Yes"| TDDTEST["🧪 Tester writes\nfailing tests"] --> FIX
+    TESTFIRST -->|"No"| FIX
 
-    TESTWRITE["🧪 Tester\n(sonnet)\nWrite/verify tests"] --> TEST
+    FIX["🔧 Fixer\n(sonnet, parallel)"] --> TESTVERIFY
+
+    TESTVERIFY["🧪 Tester\nverify + add tests"] --> TEST
 
     TEST["Run tests"]
     TEST -->|"Fail x3"| ORACLE_ESC["🔮 Oracle\n(opus)\nDiagnosis"]
@@ -64,13 +87,12 @@ flowchart TD
     AUDIT["🔒 Auditor\n(sonnet)\nSecurity scan\nfull parent diff"] --> CLEAN
 
     CLEAN{"Issues?"}
-    CLEAN -->|"Found"| FIXAUDIT["🔮 Oracle creates\nfix PR → parent"]
+    CLEAN -->|"Found"| FIXAUDIT["🔧 Fixer implements\n🔮 Oracle reviews fix"]
     CLEAN -->|"Clean"| MAINPR
 
-    FIXAUDIT --> AUDITREV["🎯 Orchestrator\nreviews fix"]
-    AUDITREV --> AUDIT
+    FIXAUDIT --> AUDIT
 
-    MAINPR["PR parent → main"] --> FINAL
+    MAINPR["PR parent → main\n+ release notes"] --> FINAL
 
     FINAL["🔮 Oracle\n(opus)\nFinal review"]
     FINAL -->|"Issues"| FIXFINAL["🔧 Fixer\nfix on parent"]
@@ -84,24 +106,31 @@ flowchart TD
     style MEMORY fill:#2980B9,color:#fff
     style FOUND fill:#F39C12,color:#fff
     style ADAPT fill:#2980B9,color:#fff
+    style BRAINSTORM fill:#E91E63,color:#fff
     style DIRECT fill:#27AE60,color:#fff
+    style DIRECTFIX fill:#E67E22,color:#fff
+    style DIRECTTEST fill:#7B68EE,color:#fff
+    style DIRECTPR fill:#2ECC71,color:#fff
     style PP fill:#4A90D9,color:#fff
     style REVIEW fill:#F39C12,color:#fff
     style RESTRUCTURE fill:#4A90D9,color:#fff
     style VIEWER fill:#2980B9,color:#fff
     style BRANCH fill:#1ABC9C,color:#fff
     style STEP fill:#8E44AD,color:#fff
+    style REPLAN fill:#4A90D9,color:#fff
     style STEPBR fill:#1ABC9C,color:#fff
+    style TESTFIRST fill:#F39C12,color:#fff
+    style TDDTEST fill:#7B68EE,color:#fff
     style FIX fill:#E67E22,color:#fff
     style FIXAUDIT fill:#E67E22,color:#fff
     style FIXFINAL fill:#E67E22,color:#fff
     style TEST fill:#7B68EE,color:#fff
+    style TESTVERIFY fill:#7B68EE,color:#fff
     style AUDIT fill:#E74C3C,color:#fff
     style MAINPR fill:#2ECC71,color:#fff
     style RESEARCH fill:#F39C12,color:#fff
     style EXPLORER fill:#3498DB,color:#fff
     style LIBRARIAN fill:#3498DB,color:#fff
-    style TESTWRITE fill:#7B68EE,color:#fff
     style ORACLE_ESC fill:#9B59B6,color:#fff
     style FINAL fill:#9B59B6,color:#fff
     style STEPPR fill:#2ECC71,color:#fff
@@ -111,20 +140,24 @@ flowchart TD
     style MERGE_MAIN fill:#27AE60,color:#fff
     style DONE fill:#27AE60,color:#fff
     style CLEAN fill:#F39C12,color:#fff
-    style AUDITREV fill:#8E44AD,color:#fff
+    style HOTFIX fill:#E74C3C,color:#fff
+    style HOTFIXFIXER fill:#E67E22,color:#fff
+    style HOTFIXTEST fill:#7B68EE,color:#fff
+    style HOTFIXPR fill:#2ECC71,color:#fff
+    style HOTFIXMERGE fill:#27AE60,color:#fff
 ```
 
 ## Branch Naming Convention
 
 | Prefix | When to use | Example |
 |--------|------------|---------|
-| `feature/` | New functionality, screens, endpoints | `feature/user-onboarding` |
+| `feature/` | New functionality | `feature/user-onboarding` |
 | `fix/` | Bug fixes | `fix/login-redirect-loop` |
-| `improvement/` | Refactors, performance, code quality | `improvement/query-optimization` |
-| `security/` | Security patches, vulnerability fixes | `security/xss-sanitization` |
-| `test/` | Adding/improving tests only | `test/backend-model-coverage` |
-| `docs/` | Documentation changes only | `docs/api-reference` |
-| `chore/` | Dependencies, config, CI, tooling | `chore/upgrade-rails-8.2` |
+| `improvement/` | Refactors, performance | `improvement/query-optimization` |
+| `security/` | Security patches | `security/xss-sanitization` |
+| `test/` | Test-only changes | `test/backend-model-coverage` |
+| `docs/` | Documentation | `docs/api-reference` |
+| `chore/` | Dependencies, CI, config | `chore/upgrade-rails-8.2` |
 | `hotfix/` | Urgent production fixes | `hotfix/payment-crash` |
 
 **Step branches** append `/step-N` to the parent: `feature/user-onboarding/step-1`
@@ -144,65 +177,91 @@ main
       ├── <prefix>/name/step-3  ← PR #3 → parent
       └── (all steps merged)
            └── security audit on parent
-                ├── issues → oracle fix PR → parent
+                ├── issues → fixer implements fix, oracle reviews
                 └── clean → PR parent → main
+
+Hotfix (fast path):
+main
+ └── hotfix/name                ← branch directly from main
+      └── fix + test → PR → oracle inline review → merge to main
 ```
 
 ## Flow Rules
 
 ### 1. Triage (Orchestrator — no agent cost)
-- Simple tasks (1-2 files, clear change): handle directly, no plan needed
-- Complex tasks: continue to pattern search + planning
+- **Simple** tasks (1-2 files, clear change): fixer implements → tests → PR to main
+- **Complex** tasks: continue to pattern search + planning
+- **Hotfix** (production emergency): fast path — skip planning, minimal review
 
 ### 2. Pattern Search (knowledge MCP)
 - `pattern_search` for previously solved patterns
-- Match found: apply pattern directly, skip full planning
-- No match: proceed to plan-plus
+- Match found: fixer applies pattern, skip planning, enter step loop
+- No match: proceed to brainstorming + plan-plus
 
-### 3. Planning (plan-plus — ALWAYS for complex tasks)
+### 3. Brainstorming (superpowers skill)
+- Auto-invoked before planning for complex tasks
+- Explores user intent, requirements, and design before implementation
+- Output feeds into plan-plus
+
+### 4. Planning (plan-plus — ALWAYS for complex tasks)
 - Generate structured plan with skeleton + files format
 - User MUST review and approve before execution
 - Changes loop back to re-plan
+- Plan viewer opens at localhost:3456 after plan approved
 
-### 4. Branching
-- Create parent branch: `feature/<plan-name>` from main
-- Each step gets its own branch: `feature/<plan-name>/step-N` from parent
+### 5. Branching
+- Create parent branch: `<prefix>/<name>` from main
+- Each step gets its own branch: `<prefix>/<name>/step-N` from parent
 - Steps are sequential — step-2 branch created after step-1 PR is merged into parent
+- If step branch has conflicts with parent: rebase step branch onto parent
 
-### 5. Execute Steps (sequential, parallel fixers within)
+### 6. Execute Steps (sequential, parallel fixers within)
 - For each step:
   1. Create step branch from parent
-  2. Dispatch fixer(s) — parallel for independent sub-tasks within the step
-  3. Run tests
-  4. Create PR: step branch → parent branch
-  5. Oracle reviews step PR
-  6. Merge step PR into parent
-  7. Loop to next step
+  2. **TDD mode** (if applicable): tester writes failing tests first
+  3. Dispatch fixer(s) — parallel for independent sub-tasks within the step
+  4. Tester verifies + adds additional tests
+  5. Run tests
+  6. Create PR: step branch → parent branch
+  7. Oracle reviews step PR
+  8. Merge step PR into parent
+  9. Loop to next step
 
-### 6. Agent Model Routing
+### 7. Re-planning (mid-execution escape hatch)
+- If a step reveals the plan is wrong (assumptions broken, scope changed):
+  - Pause execution at the STEP decision node
+  - Re-invoke plan-plus to revise remaining steps
+  - User reviews revised plan
+  - Continue execution from the revised steps
+
+### 8. Agent Model Routing
 | Agent | Model | When |
 |-------|-------|------|
 | Explorer | haiku | File discovery, codebase navigation |
 | Librarian | sonnet | Docs, API lookup, web search |
-| Fixer | sonnet | All implementation work |
+| Fixer | sonnet | All implementation work (including security fixes from audit) |
+| Tester | sonnet | Write tests (TDD or verification), improve coverage |
 | Auditor | sonnet | Security scan, diff risk analysis |
-| Oracle | opus | Code review, stuck diagnosis, security fixes |
-| Orchestrator | opus | Triage, PR creation (no agent cost) |
+| Oracle | opus | Code review, stuck diagnosis, architecture decisions (read-only) |
+| Orchestrator | opus | Triage, PR creation, reviews auditor fixes (no agent cost) |
 
-### 7. Test + Retry
+> **Oracle is read-only.** Oracle diagnoses issues and reviews code but never edits files. When the audit finds issues, **fixer** implements the fix and **oracle** reviews it.
+
+### 9. Test + Retry
 - Run tests after each step
 - Retry fixer up to 2x on failure
 - 3rd failure: escalate to Oracle (opus) for root cause diagnosis
 - Oracle provides guidance → Fixer implements fix
+- After 3 oracle escalations on the same step: flag for human intervention
 
-### 8. Security Audit (once, after ALL steps merged into parent)
+### 10. Security Audit (once, after ALL steps merged into parent)
 - Run on the full parent branch diff vs main
 - Auditor (sonnet) scans for security issues, N+1, diff risk
-- If issues found: Oracle creates a fix PR into parent branch
-- Orchestrator reviews oracle's fix (acts as PM/lead)
-- Re-audit until clean
+- **Special attention:** database migrations (table locks, backward compat, reversibility)
+- If issues found: **Fixer** implements fix on parent, **Oracle** reviews the fix
+- Re-audit until clean (max 3 rounds, then escalate to human)
 
-### 9. Commit & PR Style
+### 11. Commit & PR Style
 
 **Commits:** `<type>: <what changed>` — lowercase, under 72 chars, no period.
 Types: `feat`, `fix`, `test`, `docs`, `chore`, `refactor`, `perf`, `security`
@@ -213,32 +272,37 @@ Types: `feat`, `fix`, `test`, `docs`, `chore`, `refactor`, `perf`, `security`
 |---------|----------|----------|----------------|
 | Step → parent | `PULL_REQUEST_TEMPLATE.md` | Developer reviewing the step | No |
 | Parent → main | `PULL_REQUEST_TEMPLATE_MAIN.md` | Team + stakeholders | **Yes, required** |
+| Simple fix → main | `PULL_REQUEST_TEMPLATE_MAIN.md` | Team + stakeholders | **Yes, required** |
+| Hotfix → main | `PULL_REQUEST_TEMPLATE_MAIN.md` | Team + stakeholders | **Yes, required** |
 
-**Step PRs (child → parent):** Short and technical.
-- What (1 sentence) + Changes (bullets) + How to test (commands)
+**Any PR to main/master MUST include release notes.** Written for end users, not developers.
 
-**Feature PRs (parent → main):** Descriptive and non-technical.
-- Overview (what + why) + Links to ALL step PRs + Security audit status + Release Notes
-- Release notes written for END USERS: "Teachers can now score all students at once"
-- Not: "Added bulkCreateDailyScores mutation"
-
-**Any PR to main/master MUST include release notes.** Features, hotfixes, improvements, security — all of them.
-
-**Never include:** AI attribution, co-authored-by, paragraphs instead of bullets, technical jargon in release notes.
-
-### 10. Final PR: Parent → Main (MUST include release notes)
+### 12. Final PR: Parent → Main (MUST include release notes)
 - Create PR from parent branch into main
 - Oracle does final review on the complete feature diff
 - Reviews: code quality, PR title/description, architecture, test coverage
 - Issues → fix on parent → re-review
 - Approved → learn + merge
 
-### 11. Learn (pattern_store)
+### 13. Hotfix Fast Path 🔥
+- For production emergencies only (critical bugs, security vulnerabilities)
+- Branch `hotfix/<name>` directly from main (no parent branch, no step branches)
+- Fixer implements minimal fix + tests
+- Oracle does inline review (combined code + security review in one pass)
+- PR directly to main with release notes
+- After merge: cherry-pick into any in-flight feature parent branches
+
+### 14. Post-Merge
+- **Monitor:** watch for errors after merge (Sentry, logs, CI)
+- **Rollback:** if the merge breaks production, create a `hotfix/revert-<feature>` branch with `git revert` and fast-track through the hotfix path
+- **Fix-forward vs revert:** prefer fix-forward for minor issues, revert for critical breakage
+
+### 15. Learn (pattern_store)
 - `pattern_store` successful patterns via knowledge MCP
 - Tags: task type, files touched, approach used
 - Future sessions retrieve instead of re-reasoning
 
-### 12. Auto-Dream (Stop hook — background)
+### 16. Auto-Dream (Stop hook — background)
 - Runs on session end (every 5 sessions / 24h)
 - Consolidates memory, removes duplicates, prunes stale entries
 - Uses haiku in background — zero interactive cost

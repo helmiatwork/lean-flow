@@ -236,17 +236,24 @@ flowchart TD
 ```
 
 <details>
-<summary><strong>Workflow steps explained</strong></summary>
+<summary><strong>Workflow steps explained (16 steps)</strong></summary>
 
-1. **Triage** — Simple tasks handled directly. Complex tasks go to pattern search.
-2. **Pattern Search** — Check if this problem was solved before. If yes, reuse the pattern.
-3. **Plan** — Generate structured plan via [plan-plus](https://github.com/RandyHaylor/plan-plus). User reviews and approves.
-4. **Branch** — Create parent branch `feature/name` from main.
-5. **Steps** — For each step: create `feature/name/step-N` branch → fixer implements → tests pass → PR into parent → oracle reviews → merge into parent.
-6. **Retry** — Failed tests retry twice. Third failure escalates to Oracle for diagnosis.
-7. **Audit** — After all steps merged into parent: security scan on full diff. Oracle fixes issues via PR into parent.
-8. **Final PR** — PR parent branch → main. Oracle final review on complete feature.
-9. **Learn** — Save successful patterns via `pattern_store` for future sessions.
+1. **Triage** — Simple → fixer + test + PR. Complex → pattern search. Hotfix → fast path.
+2. **Pattern Search** — Check knowledge MCP. Match → fixer applies. No match → brainstorm.
+3. **Brainstorming** — Explore requirements and design before planning.
+4. **Planning** — plan-plus generates skeleton + step files. User approves.
+5. **Branching** — Parent branch from main. Step branches from parent.
+6. **Execute Steps** — TDD optional. Fixer implements, tester verifies, oracle reviews each step PR.
+7. **Re-planning** — If a step reveals plan is wrong, revise remaining steps.
+8. **Agent Routing** — Explorer (haiku), Fixer/Tester/Auditor (sonnet), Oracle (opus, read-only).
+9. **Test + Retry** — 3 failures → oracle escalation. 3 oracle rounds → human intervention.
+10. **Security Audit** — Once on full parent diff. Fixer fixes, oracle reviews. Max 3 rounds.
+11. **Commit & PR Style** — Two templates: step PR (technical) vs main PR (business + release notes).
+12. **Final PR** — Parent → main with release notes. Oracle final review.
+13. **Hotfix** 🔥 — Branch from main, skip planning, inline oracle review, fast merge.
+14. **Post-Merge** — Monitor. Rollback via hotfix path if broken.
+15. **Learn** — Save patterns for future sessions.
+16. **Auto-Dream** — Background memory consolidation.
 
 </details>
 
