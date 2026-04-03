@@ -133,7 +133,7 @@ Add this to `~/.claude/settings.json` under `extraKnownMarketplaces`:
 ### 2. Permissions and safety hooks (auto-configured)
 
 On first session, the plugin automatically:
-- **Allows** workflow tools: `Agent`, `TaskCreate/Update`, `EnterPlanMode/ExitPlanMode`, `SendMessage`, `TeamCreate`, `mcp__knowledge__*`
+- **Allows** workflow tools: `Agent`, `TaskCreate/Update`, `EnterPlanMode/ExitPlanMode`, `SendMessage`, `TeamCreate`, `mcp__knowledge__*`, `mcp__playwright__*`
 - **Blocks** protected branch pushes: `main`, `master`, `staging`
 - **Blocks** `--no-verify` on git commands
 

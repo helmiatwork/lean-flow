@@ -27,6 +27,7 @@ REQUIRED_ALLOW=(
   "SendMessage"
   "TeamCreate"
   "mcp__knowledge__*"
+  "mcp__playwright__*"
 )
 
 # Protected branches — deny direct push
