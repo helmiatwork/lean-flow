@@ -104,32 +104,46 @@ flowchart TD
     FOUND -->|"Yes"| ADAPT["Apply pattern"]
     FOUND -->|"No"| PP
 
-    ADAPT --> FIX
+    ADAPT --> BRANCH
     DIRECT --> DONE(["Done"])
 
     PP["plan-plus"] --> REVIEW
 
     REVIEW{"Approved?"}
     REVIEW -->|"No"| PP
-    REVIEW -->|"Yes"| STEP
+    REVIEW -->|"Yes"| BRANCH
 
-    STEP{"Next batch?"}
-    STEP -->|"Yes"| FIX
+    BRANCH["Create parent branch\nfeature/name"] --> STEP
+
+    STEP{"Next step?"}
+    STEP -->|"Yes"| STEPBR["Step branch\nfeature/name/step-N"]
     STEP -->|"All done"| AUDIT
 
-    FIX["Fixer agents\n(parallel)"] --> TEST
+    STEPBR --> FIX["Fixer agents\n(parallel within step)"]
+    FIX --> TEST["Run tests"]
+    TEST -->|"Fail x3"| ORACLE_ESC["Oracle diagnosis"]
+    ORACLE_ESC --> FIX
+    TEST -->|"Pass"| STEPPR["PR step → parent"]
 
-    TEST["Run tests"]
-    TEST -->|"Fail x3"| ORACLE["Oracle\ndiagnosis"]
-    ORACLE --> FIX
-    TEST -->|"Pass"| STEP
+    STEPPR --> STEPREV["Oracle reviews step"]
+    STEPREV -->|"Issues"| FIX
+    STEPREV -->|"Approved"| MERGE_STEP["Merge to parent"]
+    MERGE_STEP --> STEP
 
-    AUDIT["Security audit"] --> PR
-    PR["Create PR"] --> REVIEW_PR["Oracle\ncode review"]
-    REVIEW_PR -->|"Issues"| FIX
-    REVIEW_PR -->|"Approved"| LEARN
+    AUDIT["Security audit\nfull parent diff"] --> CLEAN
 
-    LEARN["pattern_store"] --> MERGE(["Merge"])
+    CLEAN{"Issues?"}
+    CLEAN -->|"Found"| FIXAUDIT["Oracle fix PR\n→ parent"]
+    CLEAN -->|"Clean"| MAINPR
+
+    FIXAUDIT --> AUDIT
+
+    MAINPR["PR parent → main"] --> FINAL["Oracle final review"]
+    FINAL -->|"Issues"| FIXFINAL["Fix on parent"]
+    FINAL -->|"Approved"| LEARN
+
+    FIXFINAL --> FINAL
+    LEARN["pattern_store"] --> MERGE(["Merge to main"])
 
     style USER fill:#34495E,color:#fff
     style TRIAGE fill:#8E44AD,color:#fff
@@ -139,16 +153,24 @@ flowchart TD
     style DIRECT fill:#27AE60,color:#fff
     style PP fill:#4A90D9,color:#fff
     style REVIEW fill:#F39C12,color:#fff
+    style BRANCH fill:#1ABC9C,color:#fff
+    style STEP fill:#8E44AD,color:#fff
+    style STEPBR fill:#1ABC9C,color:#fff
     style FIX fill:#E67E22,color:#fff
+    style FIXAUDIT fill:#E67E22,color:#fff
+    style FIXFINAL fill:#E67E22,color:#fff
     style TEST fill:#7B68EE,color:#fff
     style AUDIT fill:#E74C3C,color:#fff
-    style PR fill:#2ECC71,color:#fff
-    style REVIEW_PR fill:#9B59B6,color:#fff
-    style ORACLE fill:#9B59B6,color:#fff
+    style MAINPR fill:#2ECC71,color:#fff
+    style ORACLE_ESC fill:#9B59B6,color:#fff
+    style FINAL fill:#9B59B6,color:#fff
+    style STEPPR fill:#2ECC71,color:#fff
+    style STEPREV fill:#9B59B6,color:#fff
+    style MERGE_STEP fill:#27AE60,color:#fff
     style LEARN fill:#2980B9,color:#fff
     style MERGE fill:#27AE60,color:#fff
     style DONE fill:#27AE60,color:#fff
-    style STEP fill:#8E44AD,color:#fff
+    style CLEAN fill:#F39C12,color:#fff
 ```
 
 <details>
@@ -157,11 +179,12 @@ flowchart TD
 1. **Triage** — Simple tasks handled directly. Complex tasks go to pattern search.
 2. **Pattern Search** — Check if this problem was solved before. If yes, reuse the pattern.
 3. **Plan** — Generate structured plan via [plan-plus](https://github.com/RandyHaylor/plan-plus). User reviews and approves.
-4. **Execute** — Dispatch parallel Fixer agents for independent steps. Run tests after each batch.
-5. **Retry** — Failed tests retry twice. Third failure escalates to Oracle for diagnosis.
-6. **Audit** — Security scan + diff risk analysis on the full branch diff.
-7. **PR + Review** — Create PR, Oracle reviews code quality + description.
-8. **Learn** — Save successful patterns via `pattern_store` for future sessions.
+4. **Branch** — Create parent branch `feature/name` from main.
+5. **Steps** — For each step: create `feature/name/step-N` branch → fixer implements → tests pass → PR into parent → oracle reviews → merge into parent.
+6. **Retry** — Failed tests retry twice. Third failure escalates to Oracle for diagnosis.
+7. **Audit** — After all steps merged into parent: security scan on full diff. Oracle fixes issues via PR into parent.
+8. **Final PR** — PR parent branch → main. Oracle final review on complete feature.
+9. **Learn** — Save successful patterns via `pattern_store` for future sessions.
 
 </details>
 

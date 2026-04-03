@@ -7,64 +7,63 @@ flowchart TD
     USER(["User prompt"]) --> TRIAGE
 
     TRIAGE{"Orchestrator triages\ncomplexity"}
-    TRIAGE -->|"Simple (1-2 files)"| DIRECT["Orchestrator handles directly"]
+    TRIAGE -->|"Simple"| DIRECT["Handle directly\non current branch"]
     TRIAGE -->|"Complex"| MEMORY
 
-    MEMORY["pattern_search\nCheck for solved patterns"] --> FOUND
+    MEMORY["pattern_search"] --> FOUND
 
-    FOUND{"Pattern found?"}
-    FOUND -->|"Strong match"| ADAPT["Apply known pattern\nSkip planning"]
-    FOUND -->|"No match"| PP
+    FOUND{"Match?"}
+    FOUND -->|"Yes"| ADAPT["Apply pattern"]
+    FOUND -->|"No"| PP
 
-    ADAPT --> FIX
-    DIRECT --> DONE
+    ADAPT --> BRANCH
+    DIRECT --> DONE(["Done"])
 
-    PP["plan-plus\nGenerate plan, break into steps"] --> REVIEW
+    PP["plan-plus"] --> REVIEW
 
-    REVIEW{"User reviews plan"}
-    REVIEW -->|"Changes needed"| PP
-    REVIEW -->|"Approved"| GROUP
+    REVIEW{"Approved?"}
+    REVIEW -->|"No"| PP
+    REVIEW -->|"Yes"| BRANCH
 
-    GROUP["Group independent steps\nfor parallel execution"] --> STEP
+    BRANCH["Create parent branch\nfeature/name"] --> STEP
 
-    STEP{"Next step/batch?"}
-    STEP -->|"Yes"| RESEARCH{"Needs research?"}
+    STEP{"Next step?"}
+    STEP -->|"Yes"| STEPBR["Create step branch\nfeature/name/step-N"]
     STEP -->|"All done"| AUDIT
 
-    RESEARCH -->|"Unfamiliar code"| EXP["Explorer - haiku\nFind files, navigate codebase"]
-    RESEARCH -->|"External API/docs"| LIB["Librarian - sonnet\nDocs lookup, web search"]
-    RESEARCH -->|"No"| FIX
+    STEPBR --> FIX
 
-    EXP --> FIX
-    LIB --> FIX
+    FIX["Fixer agents\n(parallel within step)"] --> TEST
 
-    FIX["Fixer - sonnet\nImplement step\n(parallel for independent steps)"] --> TEST
+    TEST["Run tests"]
+    TEST -->|"Fail x3"| ORACLE_ESC["Oracle\ndiagnosis"]
+    ORACLE_ESC --> FIX
+    TEST -->|"Pass"| STEPPR
 
-    TEST["Tests\nrails test / npm test"]
-    TEST -->|"Fail"| RETRY{"Retry count?"}
-    RETRY -->|"1st-2nd"| FIX
-    RETRY -->|"3rd fail"| ESCALATE["Oracle - opus\nDiagnose root cause\nProvide fix guidance"]
-    ESCALATE --> FIX
-    TEST -->|"Pass"| STEP
+    STEPPR["PR step branch\n→ parent branch"] --> STEPREV["Oracle reviews\nstep PR"]
 
-    AUDIT["Auditor - sonnet\nSecurity scan + diff risk\non FULL diff"] --> CLEAN
+    STEPREV -->|"Issues"| FIX
+    STEPREV -->|"Approved"| MERGE_STEP["Merge step\ninto parent"]
+
+    MERGE_STEP --> STEP
+
+    AUDIT["Security audit\non full parent diff"] --> CLEAN
 
     CLEAN{"Issues?"}
-    CLEAN -->|"Found"| FIX
-    CLEAN -->|"Clean"| PR
+    CLEAN -->|"Found"| FIXAUDIT["Oracle creates\nfix PR → parent"]
+    CLEAN -->|"Clean"| MAINPR
 
-    PR["Orchestrator creates PR\ngh pr create\nFollow PR template"] --> ORACLE
+    FIXAUDIT --> AUDITREV["Orchestrator\nreviews fix"]
+    AUDITREV --> AUDIT
 
-    ORACLE["Oracle - opus\nCode review\nReview PR quality + description"]
+    MAINPR["PR parent branch\n→ main"] --> ORACLE_FINAL["Oracle final review\nfull feature diff"]
 
-    ORACLE -->|"Issues"| FIXPR["Fixer - sonnet\nFix oracle feedback"]
-    ORACLE -->|"Approved"| LEARN
+    ORACLE_FINAL -->|"Issues"| FIXFINAL["Fix on parent"]
+    ORACLE_FINAL -->|"Approved"| LEARN
 
-    FIXPR --> ORACLE
+    FIXFINAL --> ORACLE_FINAL
 
-    LEARN["pattern_store\nSave successful patterns\nfor future sessions"] --> MERGE
-
-    MERGE(["Merge PR\ngh pr merge"])
+    LEARN["pattern_store"] --> MERGE_MAIN(["Merge to main"])
 
     style USER fill:#34495E,color:#fff
     style TRIAGE fill:#8E44AD,color:#fff
@@ -74,21 +73,39 @@ flowchart TD
     style DIRECT fill:#27AE60,color:#fff
     style PP fill:#4A90D9,color:#fff
     style REVIEW fill:#F39C12,color:#fff
-    style GROUP fill:#8E44AD,color:#fff
+    style BRANCH fill:#1ABC9C,color:#fff
+    style STEP fill:#8E44AD,color:#fff
+    style STEPBR fill:#1ABC9C,color:#fff
     style FIX fill:#E67E22,color:#fff
-    style FIXPR fill:#E67E22,color:#fff
+    style FIXAUDIT fill:#E67E22,color:#fff
+    style FIXFINAL fill:#E67E22,color:#fff
     style TEST fill:#7B68EE,color:#fff
     style AUDIT fill:#E74C3C,color:#fff
-    style PR fill:#2ECC71,color:#fff
-    style ORACLE fill:#9B59B6,color:#fff
+    style MAINPR fill:#2ECC71,color:#fff
+    style ORACLE_ESC fill:#9B59B6,color:#fff
+    style ORACLE_FINAL fill:#9B59B6,color:#fff
+    style STEPPR fill:#2ECC71,color:#fff
+    style STEPREV fill:#9B59B6,color:#fff
+    style MERGE_STEP fill:#27AE60,color:#fff
     style LEARN fill:#2980B9,color:#fff
-    style MERGE fill:#27AE60,color:#fff
-    style EXP fill:#3498DB,color:#fff
-    style LIB fill:#3498DB,color:#fff
+    style MERGE_MAIN fill:#27AE60,color:#fff
     style DONE fill:#27AE60,color:#fff
-    style RETRY fill:#E67E22,color:#fff
-    style ESCALATE fill:#9B59B6,color:#fff
     style CLEAN fill:#F39C12,color:#fff
+    style AUDITREV fill:#8E44AD,color:#fff
+```
+
+## Branching Strategy
+
+```
+main
+ └── feature/name              ← parent branch (1 per plan)
+      ├── feature/name/step-1  ← PR #1 → parent
+      ├── feature/name/step-2  ← PR #2 → parent (after #1 merged)
+      ├── feature/name/step-3  ← PR #3 → parent
+      └── (all steps merged)
+           └── security audit on parent
+                ├── issues → oracle fix PR → parent
+                └── clean → PR parent → main
 ```
 
 ## Flow Rules
@@ -107,42 +124,50 @@ flowchart TD
 - User MUST review and approve before execution
 - Changes loop back to re-plan
 
-### 4. Execute Steps in Batches (then loop)
-- Group independent steps for parallel execution
-- Each fixer runs as `plan-plus:plan-plus-executor` subagent (ephemeral context)
-- After each batch completes + tests pass, loop to next batch
-- Continue until all steps done
+### 4. Branching
+- Create parent branch: `feature/<plan-name>` from main
+- Each step gets its own branch: `feature/<plan-name>/step-N` from parent
+- Steps are sequential — step-2 branch created after step-1 PR is merged into parent
 
-### 5. Agent Model Routing
+### 5. Execute Steps (sequential, parallel fixers within)
+- For each step:
+  1. Create step branch from parent
+  2. Dispatch fixer(s) — parallel for independent sub-tasks within the step
+  3. Run tests
+  4. Create PR: step branch → parent branch
+  5. Oracle reviews step PR
+  6. Merge step PR into parent
+  7. Loop to next step
+
+### 6. Agent Model Routing
 | Agent | Model | When |
 |-------|-------|------|
 | Explorer | haiku | File discovery, codebase navigation |
 | Librarian | sonnet | Docs, API lookup, web search |
 | Fixer | sonnet | All implementation work |
 | Auditor | sonnet | Security scan, diff risk analysis |
-| Oracle | opus | Code review, stuck diagnosis only |
+| Oracle | opus | Code review, stuck diagnosis, security fixes |
 | Orchestrator | opus | Triage, PR creation (no agent cost) |
 
-### 6. Test + Retry
-- Run tests after each step/batch
+### 7. Test + Retry
+- Run tests after each step
 - Retry fixer up to 2x on failure
 - 3rd failure: escalate to Oracle (opus) for root cause diagnosis
 - Oracle provides guidance → Fixer implements fix
 
-### 7. Audit (once, on FULL diff before PR)
-- Security scan + diff risk on the complete branch diff
-- Runs after ALL steps pass tests
-- Uses sonnet for thoroughness
+### 8. Security Audit (once, after ALL steps merged into parent)
+- Run on the full parent branch diff vs main
+- Auditor (sonnet) scans for security issues, N+1, diff risk
+- If issues found: Oracle creates a fix PR into parent branch
+- Orchestrator reviews oracle's fix (acts as PM/lead)
+- Re-audit until clean
 
-### 8. PR Creation (Orchestrator — no agent cost)
-- Orchestrator creates PR directly via `gh pr create`
-- Follows repo's `.github/PULL_REQUEST_TEMPLATE.md`
-
-### 9. Code Review (Oracle — opus, one call)
-- Reviews full PR diff + title + description
-- Checks: N+1, security, architecture, test coverage, PR quality
-- Issues → Fixer fixes → Oracle re-reviews
-- Approved → proceed to learn + merge
+### 9. Final PR: Parent → Main
+- Create PR from parent branch into main
+- Oracle does final review on the complete feature diff
+- Reviews: code quality, PR title/description, architecture, test coverage
+- Issues → fix on parent → re-review
+- Approved → learn + merge
 
 ### 10. Learn (pattern_store)
 - `pattern_store` successful patterns via knowledge MCP
