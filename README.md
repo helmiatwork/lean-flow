@@ -179,6 +179,7 @@ Everything else is **automatic**. On first session, lean-flow will:
 | Step | What gets installed | Time |
 |:-----|:-------------------|:----:|
 | 🧠 Knowledge MCP | SQLite + FTS5 pattern memory (3 tools) | ~10s |
+| 🔌 Companion Plugins | superpowers + plan-plus (auto-enabled) | ~1s |
 | 🔒 Permissions | Auto-allow workflow tools, block protected branches | ~1s |
 | 🎭 Playwright | `@playwright/mcp` + Chromium browser | ~30s |
 | 📊 Usage Monitor | SwiftBar + launchd fetcher *(macOS only)* | ~15s |
@@ -186,20 +187,16 @@ Everything else is **automatic**. On first session, lean-flow will:
 
 > **Subsequent sessions:** All checks run but skip in <100ms total (idempotent).
 
-### 3. (Recommended) Also install plan-plus
+### 3. Companion plugins (auto-configured)
 
-```json
-{
-  "extraKnownMarketplaces": {
-    "plan-plus": {
-      "source": { "source": "github", "repo": "RandyHaylor/plan-plus" }
-    }
-  },
-  "enabledPlugins": {
-    "plan-plus@plan-plus": true
-  }
-}
-```
+lean-flow automatically enables these companion plugins on first session:
+
+| Plugin | Source | Purpose |
+|:-------|:-------|:--------|
+| **superpowers** | [claude-plugins-official](https://github.com/anthropics/claude-code-plugins) | Skills & workflows (brainstorming, TDD, debugging, etc.) |
+| **plan-plus** | [RandyHaylor/plan-plus](https://github.com/RandyHaylor/plan-plus) | Structured planning with skeleton + step files |
+
+> No manual configuration needed. Restart session after first install to activate.
 
 ---
 
