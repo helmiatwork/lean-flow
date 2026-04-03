@@ -6,11 +6,7 @@
 
 ## Overview
 
-<!-- 2-3 sentences: What does this feature/fix do? Written for someone who hasn't seen the code. No technical jargon. -->
-
-## Background
-
-<!-- Why was this needed? What problem does it solve? Business context, user impact, or motivation. -->
+<!-- What does this do and why? 3-4 sentences max. Written for someone who hasn't seen the code. Include the business context or user impact. No technical jargon. -->
 
 ## Step PRs
 
