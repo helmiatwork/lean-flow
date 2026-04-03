@@ -1,12 +1,75 @@
+<div align="center">
+
 # lean-flow
 
-Lightweight development workflow plugin for Claude Code. Replaces heavy MCP orchestration frameworks with native Claude Code agents + 3-tool pattern memory.
+**Lightweight dev workflow plugin for Claude Code**
+
+*Same workflow as ruflo/claude-flow. 3 tools instead of 300+. 1/60th the token cost.*
+
+[![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
+[![Claude Code](https://img.shields.io/badge/Claude_Code-Plugin-blueviolet)](https://claude.ai/claude-code)
+[![PRs Welcome](https://img.shields.io/badge/PRs-welcome-brightgreen.svg)](https://github.com/helmiatwork/lean-flow/pulls)
+
+</div>
+
+---
 
 ## Why lean-flow?
 
-Frameworks like [ruflo](https://github.com/ruvnet/ruflo) and [oh-my-opencode-slim](https://github.com/ruvnet/oh-my-opencode-slim) register 300+ MCP tools and fire multiple hooks per message, consuming ~3000 tokens/session + ~600 tokens/message in overhead. Most of those tools are never called.
+Frameworks like [ruflo](https://github.com/ruvnet/ruflo) and [oh-my-opencode-slim](https://github.com/ruvnet/oh-my-opencode-slim) register **300+ MCP tools** and fire multiple hooks per message. Most tools are never called, but they still consume **~3000 tokens/session** just by existing.
 
-lean-flow extracts the **7 actually useful features** and implements them with native Claude Code capabilities — 3 MCP tools, 3 hooks, 5 agent definitions. Same workflow, 1/60th the token cost.
+lean-flow extracts the **7 actually useful features** and implements them with native Claude Code capabilities.
+
+| | ruflo | lean-flow |
+|:---|:---:|:---:|
+| MCP tools registered | 300+ | **3** |
+| Tokens/session overhead | ~3,000 | **~100** |
+| Tokens/message overhead | ~600 | **~50** |
+| Hooks per prompt | 5-8 | **1** |
+| Pattern memory | JSON files | **SQLite + FTS5** |
+| Agent orchestration | Custom swarm | **Native Agent tool** |
+
+---
+
+## Features
+
+### 🧠 Pattern Memory
+SQLite database with FTS5 full-text search. Save solved patterns, retrieve them before re-solving.
+
+| Tool | Purpose |
+|:-----|:--------|
+| `pattern_search` | Find previously solved patterns by keyword |
+| `pattern_store` | Save problem + solution pairs after success |
+| `project_context` | Store/retrieve project summary & conventions |
+
+### 🤖 Parallel Agents
+
+| Agent | Model | Role |
+|:------|:-----:|:-----|
+| **Oracle** | Opus | Architecture review, code review, stuck diagnosis |
+| **Fixer** | Sonnet | Implementation, bug fixes, tests |
+| **Librarian** | Sonnet | Docs lookup, web search, research |
+| **Designer** | Sonnet | UI/UX, frontend components |
+| **Explorer** | Haiku | File discovery, codebase navigation |
+
+### 🔒 Safety Hooks
+- **Block** direct push to `main` / `master` / `staging`
+- **Block** `--no-verify` flag on git commands
+- **Auto-allow** workflow tools (Agent, Tasks, PlanMode) — no permission prompts
+
+### 📊 Usage Monitor *(macOS)*
+SwiftBar menu bar plugin showing real-time Claude Code usage:
+- Session %, weekly %, sonnet % with reset countdown
+- Color-coded: 🟢 <50% · 🟡 50-80% · 🔴 >80%
+- Auto-refresh via launchd daemon (every 3 min)
+
+### 🎭 E2E Testing
+Auto-installs [Playwright MCP](https://github.com/anthropics/anthropic-quickstarts/tree/main/mcp-playwright) for browser automation testing.
+
+### 💤 Auto-Dream
+Background memory consolidation using Haiku. Runs every 5 sessions / 24 hours. Cleans up stale memories, merges duplicates, prunes outdated entries.
+
+---
 
 ## Workflow
 
@@ -15,64 +78,41 @@ flowchart TD
     USER(["User prompt"]) --> TRIAGE
 
     TRIAGE{"Orchestrator triages\ncomplexity"}
-    TRIAGE -->|"Simple (1-2 files)"| DIRECT["Orchestrator handles directly"]
+    TRIAGE -->|"Simple"| DIRECT["Handle directly"]
     TRIAGE -->|"Complex"| MEMORY
 
-    MEMORY["pattern_search\nCheck for solved patterns"] --> FOUND
+    MEMORY["pattern_search"] --> FOUND
 
-    FOUND{"Pattern found?"}
-    FOUND -->|"Strong match"| ADAPT["Apply known pattern\nSkip planning"]
-    FOUND -->|"No match"| PP
+    FOUND{"Match?"}
+    FOUND -->|"Yes"| ADAPT["Apply pattern"]
+    FOUND -->|"No"| PP
 
     ADAPT --> FIX
-    DIRECT --> DONE
+    DIRECT --> DONE(["Done"])
 
-    PP["plan-plus\nGenerate plan, break into steps"] --> REVIEW
+    PP["plan-plus"] --> REVIEW
 
-    REVIEW{"User reviews plan"}
-    REVIEW -->|"Changes needed"| PP
-    REVIEW -->|"Approved"| GROUP
+    REVIEW{"Approved?"}
+    REVIEW -->|"No"| PP
+    REVIEW -->|"Yes"| STEP
 
-    GROUP["Group independent steps\nfor parallel execution"] --> STEP
-
-    STEP{"Next step/batch?"}
-    STEP -->|"Yes"| RESEARCH{"Needs research?"}
+    STEP{"Next batch?"}
+    STEP -->|"Yes"| FIX
     STEP -->|"All done"| AUDIT
 
-    RESEARCH -->|"Unfamiliar code"| EXP["Explorer - haiku\nFind files, navigate codebase"]
-    RESEARCH -->|"External API/docs"| LIB["Librarian - sonnet\nDocs lookup, web search"]
-    RESEARCH -->|"No"| FIX
+    FIX["Fixer agents\n(parallel)"] --> TEST
 
-    EXP --> FIX
-    LIB --> FIX
-
-    FIX["Fixer - sonnet\nImplement step\n(parallel for independent steps)"] --> TEST
-
-    TEST["Tests\nrails test / npm test"]
-    TEST -->|"Fail"| RETRY{"Retry count?"}
-    RETRY -->|"1st-2nd"| FIX
-    RETRY -->|"3rd fail"| ESCALATE["Oracle - opus\nDiagnose root cause\nProvide fix guidance"]
-    ESCALATE --> FIX
+    TEST["Run tests"]
+    TEST -->|"Fail x3"| ORACLE["Oracle\ndiagnosis"]
+    ORACLE --> FIX
     TEST -->|"Pass"| STEP
 
-    AUDIT["Auditor - sonnet\nSecurity scan + diff risk\non FULL diff"] --> CLEAN
+    AUDIT["Security audit"] --> PR
+    PR["Create PR"] --> REVIEW_PR["Oracle\ncode review"]
+    REVIEW_PR -->|"Issues"| FIX
+    REVIEW_PR -->|"Approved"| LEARN
 
-    CLEAN{"Issues?"}
-    CLEAN -->|"Found"| FIX
-    CLEAN -->|"Clean"| PR
-
-    PR["Orchestrator creates PR\ngh pr create\nFollow PR template"] --> ORACLE
-
-    ORACLE["Oracle - opus\nCode review\nReview PR quality + description"]
-
-    ORACLE -->|"Issues"| FIXPR["Fixer - sonnet\nFix oracle feedback"]
-    ORACLE -->|"Approved"| LEARN
-
-    FIXPR --> ORACLE
-
-    LEARN["pattern_store\nSave successful patterns\nfor future sessions"] --> MERGE
-
-    MERGE(["Merge PR\ngh pr merge"])
+    LEARN["pattern_store"] --> MERGE(["Merge"])
 
     style USER fill:#34495E,color:#fff
     style TRIAGE fill:#8E44AD,color:#fff
@@ -82,37 +122,39 @@ flowchart TD
     style DIRECT fill:#27AE60,color:#fff
     style PP fill:#4A90D9,color:#fff
     style REVIEW fill:#F39C12,color:#fff
-    style GROUP fill:#8E44AD,color:#fff
     style FIX fill:#E67E22,color:#fff
-    style FIXPR fill:#E67E22,color:#fff
     style TEST fill:#7B68EE,color:#fff
     style AUDIT fill:#E74C3C,color:#fff
     style PR fill:#2ECC71,color:#fff
+    style REVIEW_PR fill:#9B59B6,color:#fff
     style ORACLE fill:#9B59B6,color:#fff
     style LEARN fill:#2980B9,color:#fff
     style MERGE fill:#27AE60,color:#fff
-    style EXP fill:#3498DB,color:#fff
-    style LIB fill:#3498DB,color:#fff
     style DONE fill:#27AE60,color:#fff
-    style RETRY fill:#E67E22,color:#fff
-    style ESCALATE fill:#9B59B6,color:#fff
-    style CLEAN fill:#F39C12,color:#fff
+    style STEP fill:#8E44AD,color:#fff
 ```
 
-## What it does
+<details>
+<summary><strong>Workflow steps explained</strong></summary>
 
-- **Pattern memory** — SQLite + FTS5 full-text search for solved patterns (3 MCP tools vs 300+)
-- **Parallel agents** — Oracle (review), Fixer (implement), Explorer (navigate), Librarian (research), Designer (UI)
-- **Session briefing** — Git state summary on session start
-- **Auto-dream** — Background memory consolidation every 5 sessions / 24 hours
-- **PR review hook** — Auto-reminds to dispatch oracle review after `gh pr create`
-- **Standard workflow** — plan-plus → parallel fixers → audit → oracle review → merge
+1. **Triage** — Simple tasks handled directly. Complex tasks go to pattern search.
+2. **Pattern Search** — Check if this problem was solved before. If yes, reuse the pattern.
+3. **Plan** — Generate structured plan via [plan-plus](https://github.com/RandyHaylor/plan-plus). User reviews and approves.
+4. **Execute** — Dispatch parallel Fixer agents for independent steps. Run tests after each batch.
+5. **Retry** — Failed tests retry twice. Third failure escalates to Oracle for diagnosis.
+6. **Audit** — Security scan + diff risk analysis on the full branch diff.
+7. **PR + Review** — Create PR, Oracle reviews code quality + description.
+8. **Learn** — Save successful patterns via `pattern_store` for future sessions.
 
-## Install
+</details>
 
-### 1. Add the plugin marketplace to your settings.json
+---
 
-Add this to `~/.claude/settings.json` under `extraKnownMarketplaces`:
+## Quick Start
+
+### 1. Enable the plugin
+
+Add to `~/.claude/settings.json`:
 
 ```json
 {
@@ -130,114 +172,85 @@ Add this to `~/.claude/settings.json` under `extraKnownMarketplaces`:
 }
 ```
 
-### 2. Permissions and safety hooks (auto-configured)
+### 2. Start a session
 
-On first session, the plugin automatically:
-- **Allows** workflow tools: `Agent`, `TaskCreate/Update`, `EnterPlanMode/ExitPlanMode`, `SendMessage`, `TeamCreate`, `mcp__knowledge__*`, `mcp__playwright__*`
-- **Blocks** protected branch pushes: `main`, `master`, `staging`
-- **Blocks** `--no-verify` on git commands
+Everything else is **automatic**. On first session, lean-flow will:
 
-This means the full workflow runs end-to-end without permission prompts, except for protected branch pushes.
+| Step | What gets installed | Time |
+|:-----|:-------------------|:----:|
+| 🧠 Knowledge MCP | SQLite + FTS5 pattern memory (3 tools) | ~10s |
+| 🔒 Permissions | Auto-allow workflow tools, block protected branches | ~1s |
+| 🎭 Playwright | `@playwright/mcp` + Chromium browser | ~30s |
+| 📊 Usage Monitor | SwiftBar + launchd fetcher *(macOS only)* | ~15s |
+| 📋 Session Briefing | Git state summary | ~1s |
 
-### 3. Claude Usage Monitor (auto-installed, macOS only)
-
-On first session, the plugin automatically:
-- Installs [SwiftBar](https://github.com/swiftbar/SwiftBar) via Homebrew (if not present)
-- Installs `jq` via Homebrew (if not present)
-- Sets up a SwiftBar plugin showing session/weekly usage percentages in the menu bar
-- Creates a launchd daemon that fetches usage data every 3 minutes
-- Color-coded: green (<50%), yellow (50-80%), red (>80%)
-
-![Usage Monitor](https://github.com/user-attachments/assets/placeholder-usage-monitor.png)
-
-### 4. Playwright MCP for E2E testing (auto-installed)
-
-On first session, the plugin automatically:
-- Installs `@playwright/mcp` (official Playwright MCP server)
-- Installs Chromium browser via `npx playwright install chromium`
-- Registers the `playwright` MCP server with Claude Code
-
-This gives you browser automation tools for E2E testing: `browser_navigate`, `browser_click`, `browser_fill_form`, `browser_snapshot`, `browser_take_screenshot`, and more.
-
-### 4. Knowledge MCP server (auto-installed)
-
-The knowledge MCP server (SQLite + FTS5, 3 tools) is **automatically installed on first session start**. The plugin:
-1. Copies the MCP server to `~/.claude/mcp-servers/knowledge/`
-2. Runs `npm install` for dependencies
-3. Registers it with `claude mcp add knowledge`
-4. Creates the database at `~/.claude/knowledge/patterns.db`
-
-No manual setup needed. You'll see a confirmation message on first session.
+> **Subsequent sessions:** All checks run but skip in <100ms total (idempotent).
 
 ### 3. (Recommended) Also install plan-plus
 
-Add to `extraKnownMarketplaces` in settings.json:
-
 ```json
 {
-  "plan-plus": {
-    "source": {
-      "source": "github",
-      "repo": "RandyHaylor/plan-plus"
+  "extraKnownMarketplaces": {
+    "plan-plus": {
+      "source": { "source": "github", "repo": "RandyHaylor/plan-plus" }
     }
+  },
+  "enabledPlugins": {
+    "plan-plus@plan-plus": true
   }
 }
 ```
 
-And enable: `"plan-plus@plan-plus": true` under `enabledPlugins`.
+---
 
-## Development flow
+## What's Inside
 
 ```
-User prompt
-  → Triage (simple → direct, complex → pattern search)
-  → pattern_search (found → apply, not found → plan-plus)
-  → plan-plus (generate plan → user approves)
-  → Parallel fixers (implement steps in batches)
-  → Tests (pass → next batch, 3 fails → oracle diagnosis)
-  → Audit (security scan on full diff)
-  → PR (create → oracle review → merge)
-  → pattern_store (save for future sessions)
-  → Auto-dream (consolidate memory on session end)
+lean-flow/
+├── .claude-plugin/
+│   └── plugin.json              # Plugin metadata
+├── agents/
+│   ├── oracle.md                # Opus — code review, architecture
+│   ├── fixer.md                 # Sonnet — implementation
+│   ├── librarian.md             # Sonnet — research, docs
+│   ├── designer.md              # Sonnet — UI/UX
+│   └── explorer.md              # Haiku — codebase navigation
+├── hooks/
+│   └── hooks.json               # SessionStart, PreToolUse, PostToolUse, Stop
+├── scripts/
+│   ├── ensure-knowledge-mcp.sh  # Auto-install SQLite pattern memory
+│   ├── ensure-permissions.sh    # Auto-configure workflow permissions
+│   ├── ensure-playwright-mcp.sh # Auto-install Playwright + Chromium
+│   ├── ensure-claude-monitor.sh # Auto-install SwiftBar usage monitor
+│   ├── block-protected-push.sh  # Block push to main/master/staging
+│   ├── block-no-verify.sh       # Block --no-verify bypass
+│   ├── session-briefing.sh      # Git state on session start
+│   ├── auto-dream.sh            # Memory consolidation (background)
+│   ├── auto-dream-prompt.md     # Dream agent instructions
+│   └── claude-monitor/          # SwiftBar plugin + fetcher daemon
+├── workflows/
+│   └── standard-development-flow.md
+├── mcp-servers/
+│   └── knowledge/               # SQLite + FTS5 MCP server
+│       ├── index.mjs
+│       └── package.json
+└── README.md
 ```
 
-## Agents
+---
 
-| Agent | Model | Role |
-|-------|-------|------|
-| **oracle** | opus | Code review, architecture, stuck diagnosis |
-| **fixer** | sonnet | Implementation, bug fixes, tests |
-| **librarian** | sonnet | Docs lookup, web search, research |
-| **designer** | sonnet | UI/UX, frontend components |
-| **explorer** | haiku | File discovery, codebase navigation |
+## Inspired By
 
-## Knowledge MCP (3 tools)
+> lean-flow stands on the shoulders of these projects — taking their best ideas and distilling them into a lightweight plugin.
 
-| Tool | Purpose |
-|------|---------|
-| `pattern_search` | Search solved patterns before re-solving |
-| `pattern_store` | Save problem/solution pairs after success |
-| `project_context` | Get/set project summary (tech stack, conventions) |
+- **[ruflo](https://github.com/ruvnet/ruflo)** — Enterprise AI agent orchestration with 60+ agent types
+- **[oh-my-opencode-slim](https://github.com/ruvnet/oh-my-opencode-slim)** — OpenCode/Claude Code enhancement framework
+- **[plan-plus](https://github.com/RandyHaylor/plan-plus)** — Plan mode optimizer (recommended companion)
 
-Data stored in `~/.claude/knowledge/patterns.db` (SQLite + FTS5).
+---
 
-## Token savings vs ruflo/claude-flow
+<div align="center">
 
-| | ruflo | lean-flow |
-|---|---|---|
-| MCP tools registered | 300+ | 3 |
-| Tokens/session overhead | ~3000 | ~100 |
-| Tokens/message overhead | ~600 | ~50 |
-| Hooks firing per prompt | 5-8 | 1 |
+**MIT License** · Made by [helmiatwork](https://github.com/helmiatwork)
 
-## Inspired by
-
-- [ruflo](https://github.com/ruvnet/ruflo) — Enterprise AI agent orchestration (300+ tools)
-- [oh-my-opencode-slim](https://github.com/ruvnet/oh-my-opencode-slim) — OpenCode/Claude Code enhancement framework
-- [plan-plus](https://github.com/RandyHaylor/plan-plus) — Plan mode optimizer (recommended companion plugin)
-
-lean-flow takes the useful patterns from these projects and reimplements them as a lightweight Claude Code plugin.
-
-## License
-
-MIT
+</div>
