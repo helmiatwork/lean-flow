@@ -312,6 +312,24 @@ const totalDone = plans.reduce((acc, p) => acc + p.steps.filter(s => s.done).len
 const totalSteps = plans.reduce((acc, p) => acc + p.steps.length, 0);
 const overallPct = totalSteps > 0 ? Math.round((totalDone / totalSteps) * 100) : 0;
 
+// Build JSON data for client-side rendering
+const plansData = JSON.stringify(Object.entries(plansByProject).map(([project, projectPlans]) => ({
+  project,
+  plans: projectPlans.map(p => ({
+    name: p.name,
+    file: p.file,
+    hasPlanPlus: p.hasPlanPlusDir,
+    mtime: (() => { try { return fs.statSync(path.join(p.scanDir, p.file)).mtimeMs; } catch { return 0; } })(),
+    steps: p.steps.map(s => ({
+      done: s.done,
+      text: s.text,
+      file: s.file ? path.basename(s.file) : null,
+      heading: s.detail?.heading || null,
+      paragraph: s.detail?.paragraph || null,
+    })),
+  })),
+})));
+
 const html = `<!DOCTYPE html>
 <html lang="en">
 <head>
@@ -320,41 +338,202 @@ const html = `<!DOCTYPE html>
   <title>lean-flow Plans</title>
   <style>
     * { margin: 0; padding: 0; box-sizing: border-box; }
-    body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; background: #0d1117; color: #c9d1d9; padding: 24px; }
-    .container { max-width: 900px; margin: 0 auto; }
-    h1 { color: #58a6ff; font-size: 28px; margin-bottom: 8px; }
-    .subtitle { color: #8b949e; font-size: 14px; margin-bottom: 8px; }
-    .overall-bar { background: #21262d; border-radius: 4px; height: 6px; margin-bottom: 32px; overflow: hidden; max-width: 300px; }
-    .overall-fill { background: #58a6ff; height: 100%; border-radius: 4px; }
-    .plan-card { background: #161b22; border: 1px solid #30363d; border-radius: 8px; padding: 20px; margin-bottom: 16px; }
-    .plan-name { color: #f0f6fc; font-size: 18px; font-weight: 600; }
-    .plan-meta { color: #8b949e; font-size: 12px; margin-bottom: 12px; font-family: 'SF Mono', 'Fira Code', monospace; }
-    .progress-bar { background: #21262d; border-radius: 4px; height: 6px; margin-bottom: 14px; overflow: hidden; }
-    .progress-fill { background: #238636; height: 100%; border-radius: 4px; transition: width 0.3s; }
-    .step { display: flex; align-items: flex-start; padding: 8px 0; border-bottom: 1px solid #21262d; }
-    .step:last-child { border-bottom: none; }
-    .step-checkbox { width: 24px; margin-right: 10px; margin-top: 1px; flex-shrink: 0; text-align: center; }
+    body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; background: #0d1117; color: #c9d1d9; display: flex; height: 100vh; overflow: hidden; }
+
+    /* Sidebar */
+    .sidebar { width: 260px; background: #161b22; border-right: 1px solid #30363d; overflow-y: auto; padding: 16px 0; flex-shrink: 0; }
+    .sidebar-header { padding: 0 16px 16px; border-bottom: 1px solid #21262d; margin-bottom: 8px; }
+    .sidebar-header h1 { color: #58a6ff; font-size: 18px; margin-bottom: 4px; }
+    .sidebar-header .stats { color: #8b949e; font-size: 12px; }
+    .repo-group { margin-bottom: 4px; }
+    .repo-header { display: flex; align-items: center; gap: 8px; padding: 8px 16px; cursor: pointer; color: #f0f6fc; font-size: 14px; font-weight: 600; }
+    .repo-header:hover { background: #1c2128; }
+    .repo-header .arrow { color: #484f58; font-size: 10px; transition: transform 0.2s; }
+    .repo-header .arrow.open { transform: rotate(90deg); }
+    .repo-badge { font-size: 10px; padding: 1px 6px; border-radius: 10px; font-weight: 600; }
+    .plan-item { display: flex; align-items: center; gap: 8px; padding: 6px 16px 6px 32px; cursor: pointer; font-size: 13px; color: #c9d1d9; }
+    .plan-item:hover { background: #1c2128; }
+    .plan-item.active { background: #1c2128; border-left: 2px solid #58a6ff; }
+    .plan-item .dot { width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0; }
+    .plan-item .plan-label { flex: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    .plan-item .plan-pct { color: #8b949e; font-size: 11px; }
+
+    /* Main */
+    .main { flex: 1; overflow-y: auto; padding: 24px 32px; }
+    .main-empty { display: flex; align-items: center; justify-content: center; height: 100%; color: #484f58; font-size: 16px; }
+    .plan-title { color: #f0f6fc; font-size: 22px; font-weight: 600; margin-bottom: 4px; }
+    .plan-meta { color: #8b949e; font-size: 12px; margin-bottom: 16px; font-family: 'SF Mono', monospace; }
+    .progress-bar { background: #21262d; border-radius: 4px; height: 8px; margin-bottom: 20px; overflow: hidden; }
+    .progress-fill { height: 100%; border-radius: 4px; transition: width 0.3s; }
+    .section-label { color: #8b949e; font-size: 11px; text-transform: uppercase; letter-spacing: 1px; margin: 20px 0 8px; }
+
+    .step { display: flex; align-items: flex-start; padding: 10px 12px; border-radius: 6px; margin-bottom: 2px; }
+    .step:hover { background: #161b22; }
+    .step-icon { width: 20px; height: 20px; margin-right: 12px; margin-top: 1px; flex-shrink: 0; text-align: center; font-size: 14px; }
     .step-done .step-text { color: #8b949e; text-decoration: line-through; }
     .step-text { font-size: 14px; line-height: 1.5; }
-    .step-detail { color: #8b949e; font-size: 12px; margin-top: 3px; line-height: 1.4; }
-    .badge { display: inline-block; padding: 2px 8px; border-radius: 12px; font-size: 11px; font-weight: 600; white-space: nowrap; }
-    .badge-done { background: #238636; color: #fff; }
-    .badge-pending { background: #30363d; color: #8b949e; }
-    .empty { text-align: center; padding: 64px 24px; color: #8b949e; }
-    .empty code { background: #161b22; padding: 2px 6px; border-radius: 4px; font-family: 'SF Mono', 'Fira Code', monospace; font-size: 12px; }
-    .timestamp { color: #484f58; font-size: 12px; text-align: center; margin-top: 32px; }
+    .step-file { color: #484f58; font-size: 11px; font-family: monospace; margin-left: 8px; }
+    .step-detail { margin-top: 6px; padding: 8px 12px; background: #0d1117; border-radius: 4px; border: 1px solid #21262d; }
+    .step-detail summary { cursor: pointer; color: #58a6ff; font-size: 12px; }
+    .step-detail-content { color: #8b949e; font-size: 12px; margin-top: 6px; line-height: 1.5; }
+    .timestamp { color: #484f58; font-size: 11px; margin-top: 32px; text-align: right; }
   </style>
 </head>
 <body>
-  <div class="container">
-    <h1>lean-flow Plans</h1>
-    <div class="subtitle">${totalPlans} plan${totalPlans !== 1 ? 's' : ''} &middot; ${totalDone}/${totalSteps} steps complete &middot; ${overallPct}% overall</div>
-    <div class="overall-bar"><div class="overall-fill" style="width:${overallPct}%"></div></div>
-    ${plansHtml}
-    <div class="timestamp">Generated ${esc(now)}</div>
+  <div class="sidebar">
+    <div class="sidebar-header">
+      <h1>lean-flow</h1>
+      <div class="stats" id="global-stats"></div>
+    </div>
+    <div id="repo-list"></div>
   </div>
+  <div class="main" id="main">
+    <div class="main-empty">Select a plan from the sidebar</div>
+  </div>
+
+  <script>
+    const data = ${plansData};
+    let activePlan = null;
+
+    function esc(s) { const d = document.createElement('div'); d.textContent = s; return d.innerHTML; }
+
+    // Compute stats
+    let totalSteps = 0, totalDone = 0, totalPlans = 0;
+    data.forEach(g => g.plans.forEach(p => {
+      totalPlans++;
+      p.doneCount = p.steps.filter(s => s.done).length;
+      p.totalCount = p.steps.length;
+      p.pct = p.totalCount > 0 ? Math.round((p.doneCount / p.totalCount) * 100) : 0;
+      p.isComplete = p.doneCount === p.totalCount && p.totalCount > 0;
+      totalSteps += p.totalCount;
+      totalDone += p.doneCount;
+    }));
+
+    // Sort plans: incomplete first (by pct asc), then complete (by mtime desc)
+    data.forEach(g => {
+      g.plans.sort((a, b) => {
+        if (a.isComplete !== b.isComplete) return a.isComplete ? 1 : -1;
+        if (!a.isComplete && !b.isComplete) return a.pct - b.pct;
+        return b.mtime - a.mtime;
+      });
+      g.doneCount = g.plans.reduce((a, p) => a + p.doneCount, 0);
+      g.totalCount = g.plans.reduce((a, p) => a + p.totalCount, 0);
+    });
+
+    // Sort repos: those with incomplete plans first
+    data.sort((a, b) => {
+      const aInc = a.plans.some(p => !p.isComplete);
+      const bInc = b.plans.some(p => !p.isComplete);
+      if (aInc !== bInc) return aInc ? -1 : 1;
+      return a.project.localeCompare(b.project);
+    });
+
+    const overallPct = totalSteps > 0 ? Math.round((totalDone / totalSteps) * 100) : 0;
+    document.getElementById('global-stats').textContent = totalPlans + ' plans · ' + totalDone + '/' + totalSteps + ' steps · ' + overallPct + '%';
+
+    // Render sidebar
+    const repoList = document.getElementById('repo-list');
+    data.forEach((group, gi) => {
+      const div = document.createElement('div');
+      div.className = 'repo-group';
+      const hasIncomplete = group.plans.some(p => !p.isComplete);
+
+      div.innerHTML = '<div class="repo-header" data-gi="' + gi + '">'
+        + '<span class="arrow open">▶</span>'
+        + '📁 ' + esc(group.project)
+        + ' <span class="repo-badge" style="background:' + (hasIncomplete ? '#30363d' : '#238636') + ';color:' + (hasIncomplete ? '#8b949e' : '#fff') + '">' + group.doneCount + '/' + group.totalCount + '</span>'
+        + '</div>';
+
+      const plansList = document.createElement('div');
+      plansList.className = 'plans-list';
+      group.plans.forEach((plan, pi) => {
+        const dotColor = plan.isComplete ? '#238636' : (plan.pct > 0 ? '#d29922' : '#484f58');
+        const item = document.createElement('div');
+        item.className = 'plan-item';
+        item.dataset.gi = gi;
+        item.dataset.pi = pi;
+        item.innerHTML = '<span class="dot" style="background:' + dotColor + '"></span>'
+          + '<span class="plan-label">' + esc(plan.name) + '</span>'
+          + '<span class="plan-pct">' + plan.pct + '%</span>';
+        item.onclick = () => selectPlan(gi, pi, item);
+        plansList.appendChild(item);
+      });
+
+      div.appendChild(plansList);
+      div.querySelector('.repo-header').onclick = () => {
+        const arrow = div.querySelector('.arrow');
+        const list = div.querySelector('.plans-list');
+        const open = arrow.classList.toggle('open');
+        list.style.display = open ? '' : 'none';
+      };
+      repoList.appendChild(div);
+    });
+
+    function selectPlan(gi, pi, el) {
+      document.querySelectorAll('.plan-item.active').forEach(e => e.classList.remove('active'));
+      el.classList.add('active');
+      const plan = data[gi].plans[pi];
+      renderPlan(plan, data[gi].project);
+    }
+
+    function renderPlan(plan, project) {
+      const main = document.getElementById('main');
+      const barColor = plan.isComplete ? '#238636' : '#d29922';
+      const date = plan.mtime ? new Date(plan.mtime).toLocaleString() : 'unknown';
+
+      const pendingSteps = plan.steps.filter(s => !s.done);
+      const doneSteps = plan.steps.filter(s => s.done);
+
+      let html = '<div class="plan-title">' + esc(plan.name) + '</div>'
+        + '<div class="plan-meta">' + esc(project) + ' · ' + esc(plan.file) + (plan.hasPlanPlus ? ' · <span style="color:#58a6ff">plan-plus</span>' : '') + ' · ' + esc(date) + '</div>'
+        + '<div class="progress-bar"><div class="progress-fill" style="width:' + plan.pct + '%;background:' + barColor + '"></div></div>';
+
+      if (pendingSteps.length > 0) {
+        html += '<div class="section-label">Pending (' + pendingSteps.length + ')</div>';
+        pendingSteps.forEach(s => { html += renderStep(s, false); });
+      }
+
+      if (doneSteps.length > 0) {
+        html += '<div class="section-label">Completed (' + doneSteps.length + ')</div>';
+        doneSteps.forEach(s => { html += renderStep(s, true); });
+      }
+
+      if (plan.steps.length === 0) {
+        html += '<div style="color:#484f58;padding:24px 0;text-align:center;">No steps in this plan</div>';
+      }
+
+      html += '<div class="timestamp">Last modified: ' + esc(date) + '</div>';
+      main.innerHTML = html;
+    }
+
+    function renderStep(s, done) {
+      const icon = done ? '<span style="color:#3fb950">✓</span>' : '<span style="color:#d29922">○</span>';
+      const cls = done ? ' step-done' : '';
+      const fileLabel = s.file ? '<span class="step-file">' + esc(s.file) + '</span>' : '';
+
+      let detail = '';
+      if (s.heading || s.paragraph) {
+        detail = '<details class="step-detail"><summary>Details</summary><div class="step-detail-content">'
+          + (s.heading ? '<strong>' + esc(s.heading) + '</strong>' : '')
+          + (s.paragraph ? '<div style="margin-top:4px">' + esc(s.paragraph) + '</div>' : '')
+          + '</div></details>';
+      }
+
+      return '<div class="step' + cls + '">'
+        + '<div class="step-icon">' + icon + '</div>'
+        + '<div style="flex:1">'
+        + '<div class="step-text">' + esc(s.text) + fileLabel + '</div>'
+        + detail
+        + '</div></div>';
+    }
+
+    // Auto-select first incomplete plan
+    const firstIncomplete = document.querySelector('.plan-item');
+    if (firstIncomplete) firstIncomplete.click();
+  </script>
 </body>
 </html>`;
+
 
 fs.writeFileSync(outputPath, html, 'utf8');
 console.log(`Plan viewer written to ${outputPath}`);
