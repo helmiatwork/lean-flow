@@ -8,6 +8,97 @@ Frameworks like [ruflo](https://github.com/ruvnet/ruflo) and [oh-my-opencode-sli
 
 lean-flow extracts the **7 actually useful features** and implements them with native Claude Code capabilities — 3 MCP tools, 3 hooks, 5 agent definitions. Same workflow, 1/60th the token cost.
 
+## Workflow
+
+```mermaid
+flowchart TD
+    USER(["User prompt"]) --> TRIAGE
+
+    TRIAGE{"Orchestrator triages\ncomplexity"}
+    TRIAGE -->|"Simple (1-2 files)"| DIRECT["Orchestrator handles directly"]
+    TRIAGE -->|"Complex"| MEMORY
+
+    MEMORY["pattern_search\nCheck for solved patterns"] --> FOUND
+
+    FOUND{"Pattern found?"}
+    FOUND -->|"Strong match"| ADAPT["Apply known pattern\nSkip planning"]
+    FOUND -->|"No match"| PP
+
+    ADAPT --> FIX
+    DIRECT --> DONE
+
+    PP["plan-plus\nGenerate plan, break into steps"] --> REVIEW
+
+    REVIEW{"User reviews plan"}
+    REVIEW -->|"Changes needed"| PP
+    REVIEW -->|"Approved"| GROUP
+
+    GROUP["Group independent steps\nfor parallel execution"] --> STEP
+
+    STEP{"Next step/batch?"}
+    STEP -->|"Yes"| RESEARCH{"Needs research?"}
+    STEP -->|"All done"| AUDIT
+
+    RESEARCH -->|"Unfamiliar code"| EXP["Explorer - haiku\nFind files, navigate codebase"]
+    RESEARCH -->|"External API/docs"| LIB["Librarian - sonnet\nDocs lookup, web search"]
+    RESEARCH -->|"No"| FIX
+
+    EXP --> FIX
+    LIB --> FIX
+
+    FIX["Fixer - sonnet\nImplement step\n(parallel for independent steps)"] --> TEST
+
+    TEST["Tests\nrails test / npm test"]
+    TEST -->|"Fail"| RETRY{"Retry count?"}
+    RETRY -->|"1st-2nd"| FIX
+    RETRY -->|"3rd fail"| ESCALATE["Oracle - opus\nDiagnose root cause\nProvide fix guidance"]
+    ESCALATE --> FIX
+    TEST -->|"Pass"| STEP
+
+    AUDIT["Auditor - sonnet\nSecurity scan + diff risk\non FULL diff"] --> CLEAN
+
+    CLEAN{"Issues?"}
+    CLEAN -->|"Found"| FIX
+    CLEAN -->|"Clean"| PR
+
+    PR["Orchestrator creates PR\ngh pr create\nFollow PR template"] --> ORACLE
+
+    ORACLE["Oracle - opus\nCode review\nReview PR quality + description"]
+
+    ORACLE -->|"Issues"| FIXPR["Fixer - sonnet\nFix oracle feedback"]
+    ORACLE -->|"Approved"| LEARN
+
+    FIXPR --> ORACLE
+
+    LEARN["pattern_store\nSave successful patterns\nfor future sessions"] --> MERGE
+
+    MERGE(["Merge PR\ngh pr merge"])
+
+    style USER fill:#34495E,color:#fff
+    style TRIAGE fill:#8E44AD,color:#fff
+    style MEMORY fill:#2980B9,color:#fff
+    style FOUND fill:#F39C12,color:#fff
+    style ADAPT fill:#2980B9,color:#fff
+    style DIRECT fill:#27AE60,color:#fff
+    style PP fill:#4A90D9,color:#fff
+    style REVIEW fill:#F39C12,color:#fff
+    style GROUP fill:#8E44AD,color:#fff
+    style FIX fill:#E67E22,color:#fff
+    style FIXPR fill:#E67E22,color:#fff
+    style TEST fill:#7B68EE,color:#fff
+    style AUDIT fill:#E74C3C,color:#fff
+    style PR fill:#2ECC71,color:#fff
+    style ORACLE fill:#9B59B6,color:#fff
+    style LEARN fill:#2980B9,color:#fff
+    style MERGE fill:#27AE60,color:#fff
+    style EXP fill:#3498DB,color:#fff
+    style LIB fill:#3498DB,color:#fff
+    style DONE fill:#27AE60,color:#fff
+    style RETRY fill:#E67E22,color:#fff
+    style ESCALATE fill:#9B59B6,color:#fff
+    style CLEAN fill:#F39C12,color:#fff
+```
+
 ## What it does
 
 - **Pattern memory** — SQLite + FTS5 full-text search for solved patterns (3 MCP tools vs 300+)
