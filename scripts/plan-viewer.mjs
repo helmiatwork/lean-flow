@@ -444,20 +444,40 @@ const html = `<!DOCTYPE html>
         + ' <span class="repo-badge" style="background:' + (hasIncomplete ? '#30363d' : '#238636') + ';color:' + (hasIncomplete ? '#8b949e' : '#fff') + '">' + group.doneCount + '/' + group.totalCount + '</span>'
         + '</div>';
 
+      const VISIBLE_LIMIT = 20;
       const plansList = document.createElement('div');
       plansList.className = 'plans-list';
+
       group.plans.forEach((plan, pi) => {
         const dotColor = plan.isComplete ? '#238636' : (plan.pct > 0 ? '#d29922' : '#484f58');
         const item = document.createElement('div');
         item.className = 'plan-item';
         item.dataset.gi = gi;
         item.dataset.pi = pi;
+        if (pi >= VISIBLE_LIMIT) item.style.display = 'none';
+        item.dataset.hidden = pi >= VISIBLE_LIMIT ? '1' : '0';
         item.innerHTML = '<span class="dot" style="background:' + dotColor + '"></span>'
           + '<span class="plan-label">' + esc(plan.name) + '</span>'
           + '<span class="plan-pct">' + plan.pct + '%</span>';
         item.onclick = () => selectPlan(gi, pi, item);
         plansList.appendChild(item);
       });
+
+      if (group.plans.length > VISIBLE_LIMIT) {
+        const more = document.createElement('div');
+        more.className = 'plan-item';
+        more.style.color = '#58a6ff';
+        more.style.justifyContent = 'center';
+        more.innerHTML = 'Show ' + (group.plans.length - VISIBLE_LIMIT) + ' more...';
+        more.onclick = () => {
+          plansList.querySelectorAll('[data-hidden="1"]').forEach(el => {
+            el.style.display = '';
+            el.dataset.hidden = '0';
+          });
+          more.remove();
+        };
+        plansList.appendChild(more);
+      }
 
       div.appendChild(plansList);
       div.querySelector('.repo-header').onclick = () => {
