@@ -139,7 +139,18 @@ On first session, the plugin automatically:
 
 This means the full workflow runs end-to-end without permission prompts, except for protected branch pushes.
 
-### 3. Playwright MCP for E2E testing (auto-installed)
+### 3. Claude Usage Monitor (auto-installed, macOS only)
+
+On first session, the plugin automatically:
+- Installs [SwiftBar](https://github.com/swiftbar/SwiftBar) via Homebrew (if not present)
+- Installs `jq` via Homebrew (if not present)
+- Sets up a SwiftBar plugin showing session/weekly usage percentages in the menu bar
+- Creates a launchd daemon that fetches usage data every 3 minutes
+- Color-coded: green (<50%), yellow (50-80%), red (>80%)
+
+![Usage Monitor](https://github.com/user-attachments/assets/placeholder-usage-monitor.png)
+
+### 4. Playwright MCP for E2E testing (auto-installed)
 
 On first session, the plugin automatically:
 - Installs `@playwright/mcp` (official Playwright MCP server)
