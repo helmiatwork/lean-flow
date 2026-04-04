@@ -175,9 +175,14 @@ flowchart TD
     EXPLORER --> STEPBR
     LIBRARIAN --> STEPBR
 
-    STEPBR["🌿 Step branch\nprefix/name/step-N"] --> FIX
+    STEPBR["🌿 Step branch\nprefix/name/step-N"] --> COMPLEXITY
 
-    FIX["🔧 Fixer\n(sonnet, parallel)"] --> TESTWRITE
+    COMPLEXITY{"Complex?"}
+    COMPLEXITY -->|"New logic"| CODER["👨‍💻 Coder\n(sonnet)"]
+    COMPLEXITY -->|"Mechanical"| FIXER["🔧 Fixer\n(haiku)"]
+
+    CODER --> TESTWRITE
+    FIXER --> TESTWRITE
 
     TESTWRITE["🧪 Tester\n(sonnet)\nWrite/verify tests"] --> TEST
 
@@ -227,6 +232,9 @@ flowchart TD
     style EXPLORER fill:#3498DB,color:#fff
     style LIBRARIAN fill:#3498DB,color:#fff
     style STEPBR fill:#1ABC9C,color:#fff
+    style COMPLEXITY fill:#F39C12,color:#fff
+    style CODER fill:#E67E22,color:#fff
+    style FIXER fill:#3498DB,color:#fff
     style FIX fill:#E67E22,color:#fff
     style TESTWRITE fill:#7B68EE,color:#fff
     style FIXAUDIT fill:#E67E22,color:#fff
@@ -257,7 +265,7 @@ flowchart TD
 5. **Branching** — Parent branch from main. Step branches from parent.
 6. **Execute Steps** — TDD optional. Fixer implements, tester verifies, oracle reviews each step PR.
 7. **Re-planning** — If a step reveals plan is wrong, revise remaining steps.
-8. **Agent Routing** — Explorer (haiku), Fixer/Tester/Auditor (sonnet), Oracle (opus, read-only).
+8. **Agent Routing** — Explorer/Fixer (haiku), Coder/Tester/Auditor (sonnet), Oracle (opus, read-only).
 9. **Test + Retry** — 3 failures → oracle escalation. 3 oracle rounds → human intervention.
 10. **Security Audit** — Once on full parent diff. Fixer fixes, oracle reviews. Max 3 rounds.
 11. **Commit & PR Style** — Two templates: step PR (technical) vs main PR (business + release notes).

@@ -70,10 +70,15 @@ flowchart TD
     STEPBR["🌿 Step branch\nprefix/name/step-N"] --> TESTFIRST
 
     TESTFIRST{"TDD?"}
-    TESTFIRST -->|"Yes"| TDDTEST["🧪 Tester writes\nfailing tests"] --> FIX
-    TESTFIRST -->|"No"| FIX
+    TESTFIRST -->|"Yes"| TDDTEST["🧪 Tester writes\nfailing tests"] --> COMPLEXITY
+    TESTFIRST -->|"No"| COMPLEXITY
 
-    FIX["🔧 Fixer\n(sonnet, parallel)"] --> TESTVERIFY
+    COMPLEXITY{"Complex?"}
+    COMPLEXITY -->|"New logic,\nfeatures"| CODER["👨‍💻 Coder\n(sonnet)"]
+    COMPLEXITY -->|"Copy pattern,\nrename, delete"| FIXER["🔧 Fixer\n(haiku)"]
+
+    CODER --> TESTVERIFY
+    FIXER --> TESTVERIFY
 
     TESTVERIFY["🧪 Tester\nverify + add tests"] --> TEST
 
@@ -125,6 +130,9 @@ flowchart TD
     style STEPBR fill:#1ABC9C,color:#fff
     style TESTFIRST fill:#F39C12,color:#fff
     style TDDTEST fill:#7B68EE,color:#fff
+    style COMPLEXITY fill:#F39C12,color:#fff
+    style CODER fill:#E67E22,color:#fff
+    style FIXER fill:#3498DB,color:#fff
     style FIX fill:#E67E22,color:#fff
     style FIXAUDIT fill:#E67E22,color:#fff
     style FIXFINAL fill:#E67E22,color:#fff
