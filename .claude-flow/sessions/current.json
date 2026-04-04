@@ -5,8 +5,7 @@
   "context": {
     "lastMatchedPatterns": [
       "mem-feedback_github_account----",
-      "mem-MEMORY----github-account--feedback-gi",
-      "mem-project_ichigo_crm-ichigo-crm---grin-replacement"
+      "mem-MEMORY----github-account--feedback-gi"
     ]
   },
   "metrics": {
@@ -15,5 +14,5 @@
     "tasks": 0,
     "errors": 0
   },
-  "updatedAt": "2026-04-04T00:43:41.398Z"
+  "updatedAt": "2026-04-04T00:47:27.210Z"
 }

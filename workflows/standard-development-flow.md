@@ -206,11 +206,13 @@ main
 - Explores user intent, requirements, and design before implementation
 - Output feeds into plan-plus
 
-### 4. Planning (plan-plus — ALWAYS for complex tasks)
-- Generate structured plan with skeleton + files format
+### 4. Planning (plan-plus + writing-plans quality)
+- `EnterPlanMode` — opens plan file at `~/.claude/plans/`
+- Invoke `writing-plans` skill for quality guidance (exact file paths, code blocks, TDD steps, no placeholders)
+- Write the plan to the plan mode file — NEVER save to `docs/superpowers/plans/`
 - User MUST review and approve before execution
-- Changes loop back to re-plan
-- Plan viewer opens at localhost:3456 after plan approved
+- `ExitPlanMode` — plan-plus restructures into skeleton + step files
+- Plan viewer opens at localhost:3456
 
 ### 5. Branching
 - Create parent branch: `<prefix>/<name>` from main

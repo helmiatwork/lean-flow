@@ -125,8 +125,8 @@
     "mem-feedback_always_create_todos----": {
       "id": "mem-feedback_always_create_todos----",
       "category": "feedback_always_create_todos",
-      "confidence": 0.5,
-      "accessCount": 0,
+      "confidence": 0.53,
+      "accessCount": 1,
       "createdAt": 1775262069558
     },
     "mem-feedback_mcp_global_only----": {
@@ -167,8 +167,8 @@
     "mem-MEMORY----github-account--feedback-gi": {
       "id": "mem-MEMORY----github-account--feedback-gi",
       "category": "core",
-      "confidence": 0.53,
-      "accessCount": 1,
+      "confidence": 0.56,
+      "accessCount": 2,
       "createdAt": 1775262069560
     },
     "mem-feedback_autonomous_execution----": {
@@ -181,8 +181,8 @@
     "mem-feedback_github_account----": {
       "id": "mem-feedback_github_account----",
       "category": "feedback_github_account",
-      "confidence": 0.53,
-      "accessCount": 1,
+      "confidence": 0.56,
+      "accessCount": 2,
       "createdAt": 1775262069561
     },
     "mem-feedback_planplus_workflow----": {
@@ -202,8 +202,8 @@
     "mem-feedback_boot_superpowers----": {
       "id": "mem-feedback_boot_superpowers----",
       "category": "feedback_boot_superpowers",
-      "confidence": 0.53,
-      "accessCount": 1,
+      "confidence": 0.56,
+      "accessCount": 2,
       "createdAt": 1775262069562
     },
     "mem-feedback_rtk_prefix----": {
@@ -223,8 +223,8 @@
     "mem-feedback_plan_plus----": {
       "id": "mem-feedback_plan_plus----",
       "category": "feedback_plan_plus",
-      "confidence": 0.5,
-      "accessCount": 0,
+      "confidence": 0.53,
+      "accessCount": 1,
       "createdAt": 1775262069563
     },
     "mem-project_cicd----": {
@@ -272,8 +272,8 @@
     "mem-project_oms_pundit-pundit-patterns": {
       "id": "mem-project_oms_pundit-pundit-patterns",
       "category": "project_oms_pundit",
-      "confidence": 0.5,
-      "accessCount": 0,
+      "confidence": 0.53,
+      "accessCount": 1,
       "createdAt": 1775262069564
     },
     "mem-project_oms_pundit-controller-usage": {
@@ -454,8 +454,8 @@
     "mem-i18n-patterns-vue-i18n-integration": {
       "id": "mem-i18n-patterns-vue-i18n-integration",
       "category": "i18n-patterns",
-      "confidence": 0.5,
-      "accessCount": 0,
+      "confidence": 0.53,
+      "accessCount": 1,
       "createdAt": 1775262069570
     },
     "mem-i18n-patterns-i18n-tasks-configuration": {
@@ -482,8 +482,8 @@
     "mem-project_ichigo_crm-ichigo-crm---grin-replacement": {
       "id": "mem-project_ichigo_crm-ichigo-crm---grin-replacement",
       "category": "project_ichigo_crm",
-      "confidence": 0.53,
-      "accessCount": 1,
+      "confidence": 0.56,
+      "accessCount": 2,
       "createdAt": 1775262069571
     },
     "mem-project_ichigo_crm-tech-stack": {

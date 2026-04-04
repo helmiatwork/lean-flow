@@ -310,10 +310,16 @@ lean-flow automatically enables these companion plugins on first session:
 | **superpowers** | [claude-plugins-official](https://github.com/anthropics/claude-code-plugins) | Skills & workflows (brainstorming, TDD, debugging, etc.) |
 | **plan-plus** | [RandyHaylor/plan-plus](https://github.com/RandyHaylor/plan-plus) | Structured planning with skeleton + step files |
 
-> **Important:** lean-flow uses **plan-plus** for planning (EnterPlanMode → ExitPlanMode), NOT the superpowers `writing-plans` skill. The `writing-plans` skill saves plans to `docs/superpowers/plans/` which the plan viewer cannot read. Add this to your CLAUDE.md:
+> **Important:** lean-flow uses **plan-plus** for planning. The flow is:
+> 1. `EnterPlanMode` — opens plan file at `~/.claude/plans/`
+> 2. Invoke `writing-plans` skill for quality guidance (how to write good plans)
+> 3. Write the plan to the plan mode file (NOT `docs/superpowers/plans/`)
+> 4. `ExitPlanMode` — plan-plus restructures into skeleton + steps, plan viewer opens
+>
+> Add this to your CLAUDE.md:
 > ```
-> DO NOT use the writing-plans skill. Use plan-plus (EnterPlanMode → ExitPlanMode) instead.
-> Plans go to ~/.claude/plans/, NOT docs/superpowers/plans/.
+> Plans go to ~/.claude/plans/ ONLY. Never save to docs/superpowers/plans/.
+> Use writing-plans skill for plan QUALITY, but save via plan mode (not the skill's default path).
 > ```
 
 > Restart session after first install to activate.
