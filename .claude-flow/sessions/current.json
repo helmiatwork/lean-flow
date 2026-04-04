@@ -1,0 +1,19 @@
+{
+  "id": "session-1775262069518",
+  "startedAt": "2026-04-04T00:21:09.518Z",
+  "cwd": "/private/tmp/lean-flow",
+  "context": {
+    "lastMatchedPatterns": [
+      "mem-feedback_github_account----",
+      "mem-MEMORY----github-account--feedback-gi",
+      "mem-project_ichigo_crm-ichigo-crm---grin-replacement"
+    ]
+  },
+  "metrics": {
+    "edits": 0,
+    "commands": 0,
+    "tasks": 0,
+    "errors": 0
+  },
+  "updatedAt": "2026-04-04T00:43:41.398Z"
+}

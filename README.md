@@ -292,6 +292,7 @@ Everything else is **automatic**. On first session, lean-flow will:
 |:-----|:-------------------|:----:|
 | 🧠 Knowledge MCP | SQLite + FTS5 pattern memory (6 tools) | ~10s |
 | 🔌 Companion Plugins | superpowers + plan-plus (auto-enabled) | ~1s |
+| ⚠️ Writing-Plans | Disables superpowers writing-plans skill (conflicts with plan-plus) | ~1s |
 | 🔒 Permissions | Auto-allow workflow tools, block protected branches | ~1s |
 | 🎭 Playwright | `@playwright/mcp` + Chromium browser | ~30s |
 | 📊 Usage Monitor | SwiftBar + launchd fetcher *(macOS only)* | ~15s |
@@ -309,7 +310,13 @@ lean-flow automatically enables these companion plugins on first session:
 | **superpowers** | [claude-plugins-official](https://github.com/anthropics/claude-code-plugins) | Skills & workflows (brainstorming, TDD, debugging, etc.) |
 | **plan-plus** | [RandyHaylor/plan-plus](https://github.com/RandyHaylor/plan-plus) | Structured planning with skeleton + step files |
 
-> No manual configuration needed. Restart session after first install to activate.
+> **Important:** lean-flow uses **plan-plus** for planning (EnterPlanMode → ExitPlanMode), NOT the superpowers `writing-plans` skill. The `writing-plans` skill saves plans to `docs/superpowers/plans/` which the plan viewer cannot read. Add this to your CLAUDE.md:
+> ```
+> DO NOT use the writing-plans skill. Use plan-plus (EnterPlanMode → ExitPlanMode) instead.
+> Plans go to ~/.claude/plans/, NOT docs/superpowers/plans/.
+> ```
+
+> Restart session after first install to activate.
 
 ---
 

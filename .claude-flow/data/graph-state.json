@@ -1,0 +1,985 @@
+{
+  "version": 1,
+  "updatedAt": 1775262069587,
+  "nodeCount": 85,
+  "nodes": {
+    "mem-MEMORY----geps-express-split-order-lo": {
+      "id": "mem-MEMORY----geps-express-split-order-lo",
+      "category": "core",
+      "confidence": 0.5,
+      "accessCount": 0,
+      "createdAt": 1775262069525
+    },
+    "mem-feedback_fixer_model----": {
+      "id": "mem-feedback_fixer_model----",
+      "category": "feedback_fixer_model",
+      "confidence": 0.5,
+      "accessCount": 0,
+      "createdAt": 1775262069567
+    },
+    "mem-feedback_skills_primary_source----": {
+      "id": "mem-feedback_skills_primary_source----",
+      "category": "feedback_skills_primary_source",
+      "confidence": 0.5,
+      "accessCount": 0,
+      "createdAt": 1775262069527
+    },
+    "mem-project_geps_express_split_orders----": {
+      "id": "mem-project_geps_express_split_orders----",
+      "category": "project_geps_express_split_orders",
+      "confidence": 0.5,
+      "accessCount": 0,
+      "createdAt": 1775262069528
+    },
+    "mem-MEMORY-memory-index": {
+      "id": "mem-MEMORY-memory-index",
+      "category": "core",
+      "confidence": 0.53,
+      "accessCount": 1,
+      "createdAt": 1775262069530
+    },
+    "mem-feedback_superpowers_push_main----": {
+      "id": "mem-feedback_superpowers_push_main----",
+      "category": "feedback_superpowers_push_main",
+      "confidence": 0.53,
+      "accessCount": 1,
+      "createdAt": 1775262069530
+    },
+    "mem-project_active_repos----": {
+      "id": "mem-project_active_repos----",
+      "category": "project_active_repos",
+      "confidence": 0.5,
+      "accessCount": 0,
+      "createdAt": 1775262069531
+    },
+    "mem-MEMORY----feedback-superpower-startup": {
+      "id": "mem-MEMORY----feedback-superpower-startup",
+      "category": "core",
+      "confidence": 0.53,
+      "accessCount": 1,
+      "createdAt": 1775262069532
+    },
+    "mem-feedback_check_codemap----": {
+      "id": "mem-feedback_check_codemap----",
+      "category": "feedback_check_codemap",
+      "confidence": 0.5,
+      "accessCount": 0,
+      "createdAt": 1775262069532
+    },
+    "mem-feedback_subagent_delegation----": {
+      "id": "mem-feedback_subagent_delegation----",
+      "category": "feedback_subagent_delegation",
+      "confidence": 0.5,
+      "accessCount": 0,
+      "createdAt": 1775262069532
+    },
+    "mem-feedback_superpower_startup----": {
+      "id": "mem-feedback_superpower_startup----",
+      "category": "feedback_superpower_startup",
+      "confidence": 0.5,
+      "accessCount": 0,
+      "createdAt": 1775262069533
+    },
+    "mem-feedback_superpowers_skills----": {
+      "id": "mem-feedback_superpowers_skills----",
+      "category": "feedback_superpowers_skills",
+      "confidence": 0.5,
+      "accessCount": 0,
+      "createdAt": 1775262069557
+    },
+    "mem-feedback_mermaid_colorful----": {
+      "id": "mem-feedback_mermaid_colorful----",
+      "category": "feedback_mermaid_colorful",
+      "confidence": 0.5,
+      "accessCount": 0,
+      "createdAt": 1775262069558
+    },
+    "mem-MEMORY-project": {
+      "id": "mem-MEMORY-project",
+      "category": "core",
+      "confidence": 0.5,
+      "accessCount": 0,
+      "createdAt": 1775262069558
+    },
+    "mem-MEMORY-user": {
+      "id": "mem-MEMORY-user",
+      "category": "core",
+      "confidence": 0.5,
+      "accessCount": 0,
+      "createdAt": 1775262069558
+    },
+    "mem-MEMORY-feedback": {
+      "id": "mem-MEMORY-feedback",
+      "category": "core",
+      "confidence": 0.5,
+      "accessCount": 0,
+      "createdAt": 1775262069565
+    },
+    "mem-MEMORY-references": {
+      "id": "mem-MEMORY-references",
+      "category": "core",
+      "confidence": 0.5,
+      "accessCount": 0,
+      "createdAt": 1775262069558
+    },
+    "mem-feedback_always_create_todos----": {
+      "id": "mem-feedback_always_create_todos----",
+      "category": "feedback_always_create_todos",
+      "confidence": 0.5,
+      "accessCount": 0,
+      "createdAt": 1775262069558
+    },
+    "mem-feedback_mcp_global_only----": {
+      "id": "mem-feedback_mcp_global_only----",
+      "category": "feedback_mcp_global_only",
+      "confidence": 0.5,
+      "accessCount": 0,
+      "createdAt": 1775262069558
+    },
+    "mem-feedback_never_merge_prs----": {
+      "id": "mem-feedback_never_merge_prs----",
+      "category": "feedback_never_merge_prs",
+      "confidence": 0.5,
+      "accessCount": 0,
+      "createdAt": 1775262069559
+    },
+    "mem-feedback_no_claude_identity----": {
+      "id": "mem-feedback_no_claude_identity----",
+      "category": "feedback_no_claude_identity",
+      "confidence": 0.5,
+      "accessCount": 0,
+      "createdAt": 1775262069559
+    },
+    "mem-feedback_no_n_plus_one----": {
+      "id": "mem-feedback_no_n_plus_one----",
+      "category": "feedback_no_n_plus_one",
+      "confidence": 0.5,
+      "accessCount": 0,
+      "createdAt": 1775262069559
+    },
+    "mem-project_overview----": {
+      "id": "mem-project_overview----",
+      "category": "project_overview",
+      "confidence": 0.5,
+      "accessCount": 0,
+      "createdAt": 1775262069559
+    },
+    "mem-MEMORY----github-account--feedback-gi": {
+      "id": "mem-MEMORY----github-account--feedback-gi",
+      "category": "core",
+      "confidence": 0.53,
+      "accessCount": 1,
+      "createdAt": 1775262069560
+    },
+    "mem-feedback_autonomous_execution----": {
+      "id": "mem-feedback_autonomous_execution----",
+      "category": "feedback_autonomous_execution",
+      "confidence": 0.5,
+      "accessCount": 0,
+      "createdAt": 1775262069561
+    },
+    "mem-feedback_github_account----": {
+      "id": "mem-feedback_github_account----",
+      "category": "feedback_github_account",
+      "confidence": 0.53,
+      "accessCount": 1,
+      "createdAt": 1775262069561
+    },
+    "mem-feedback_planplus_workflow----": {
+      "id": "mem-feedback_planplus_workflow----",
+      "category": "feedback_planplus_workflow",
+      "confidence": 0.5,
+      "accessCount": 0,
+      "createdAt": 1775262069561
+    },
+    "mem-MEMORY----feedback-rtk-prefix-md--fee": {
+      "id": "mem-MEMORY----feedback-rtk-prefix-md--fee",
+      "category": "core",
+      "confidence": 0.56,
+      "accessCount": 2,
+      "createdAt": 1775262069562
+    },
+    "mem-feedback_boot_superpowers----": {
+      "id": "mem-feedback_boot_superpowers----",
+      "category": "feedback_boot_superpowers",
+      "confidence": 0.53,
+      "accessCount": 1,
+      "createdAt": 1775262069562
+    },
+    "mem-feedback_rtk_prefix----": {
+      "id": "mem-feedback_rtk_prefix----",
+      "category": "feedback_rtk_prefix",
+      "confidence": 0.5,
+      "accessCount": 0,
+      "createdAt": 1775262069562
+    },
+    "mem-MEMORY-ichigo-crm-memory-index": {
+      "id": "mem-MEMORY-ichigo-crm-memory-index",
+      "category": "core",
+      "confidence": 0.5,
+      "accessCount": 0,
+      "createdAt": 1775262069563
+    },
+    "mem-feedback_plan_plus----": {
+      "id": "mem-feedback_plan_plus----",
+      "category": "feedback_plan_plus",
+      "confidence": 0.5,
+      "accessCount": 0,
+      "createdAt": 1775262069563
+    },
+    "mem-project_cicd----": {
+      "id": "mem-project_cicd----",
+      "category": "project_cicd",
+      "confidence": 0.5,
+      "accessCount": 0,
+      "createdAt": 1775262069564
+    },
+    "mem-project_cicd-oms-ci---oms--github-workflows": {
+      "id": "mem-project_cicd-oms-ci---oms--github-workflows",
+      "category": "project_cicd",
+      "confidence": 0.5,
+      "accessCount": 0,
+      "createdAt": 1775262069564
+    },
+    "mem-project_cicd-ichigo-crm-current-ci---ichigo": {
+      "id": "mem-project_cicd-ichigo-crm-current-ci---ichigo",
+      "category": "project_cicd",
+      "confidence": 0.56,
+      "accessCount": 2,
+      "createdAt": 1775262069564
+    },
+    "mem-project_oms_pundit----": {
+      "id": "mem-project_oms_pundit----",
+      "category": "project_oms_pundit",
+      "confidence": 0.5,
+      "accessCount": 0,
+      "createdAt": 1775262069564
+    },
+    "mem-project_oms_pundit-tables---models": {
+      "id": "mem-project_oms_pundit-tables---models",
+      "category": "project_oms_pundit",
+      "confidence": 0.5,
+      "accessCount": 0,
+      "createdAt": 1775262069564
+    },
+    "mem-project_oms_pundit-authorization-logic": {
+      "id": "mem-project_oms_pundit-authorization-logic",
+      "category": "project_oms_pundit",
+      "confidence": 0.5,
+      "accessCount": 0,
+      "createdAt": 1775262069564
+    },
+    "mem-project_oms_pundit-pundit-patterns": {
+      "id": "mem-project_oms_pundit-pundit-patterns",
+      "category": "project_oms_pundit",
+      "confidence": 0.5,
+      "accessCount": 0,
+      "createdAt": 1775262069564
+    },
+    "mem-project_oms_pundit-controller-usage": {
+      "id": "mem-project_oms_pundit-controller-usage",
+      "category": "project_oms_pundit",
+      "confidence": 0.5,
+      "accessCount": 0,
+      "createdAt": 1775262069564
+    },
+    "mem-project_oms_pundit-admin-ui": {
+      "id": "mem-project_oms_pundit-admin-ui",
+      "category": "project_oms_pundit",
+      "confidence": 0.5,
+      "accessCount": 0,
+      "createdAt": 1775262069564
+    },
+    "mem-MEMORY-git---pr-rules": {
+      "id": "mem-MEMORY-git---pr-rules",
+      "category": "core",
+      "confidence": 0.5,
+      "accessCount": 0,
+      "createdAt": 1775262069565
+    },
+    "mem-MEMORY-git-workflow": {
+      "id": "mem-MEMORY-git-workflow",
+      "category": "core",
+      "confidence": 0.53,
+      "accessCount": 1,
+      "createdAt": 1775262069565
+    },
+    "mem-MEMORY-oms-specific-patterns": {
+      "id": "mem-MEMORY-oms-specific-patterns",
+      "category": "core",
+      "confidence": 0.5,
+      "accessCount": 0,
+      "createdAt": 1775262069565
+    },
+    "mem-MEMORY-active-projects": {
+      "id": "mem-MEMORY-active-projects",
+      "category": "core",
+      "confidence": 0.5,
+      "accessCount": 0,
+      "createdAt": 1775262069565
+    },
+    "mem-MEMORY-key-technical-constraints": {
+      "id": "mem-MEMORY-key-technical-constraints",
+      "category": "core",
+      "confidence": 0.5,
+      "accessCount": 0,
+      "createdAt": 1775262069565
+    },
+    "mem-consolidation-plan----": {
+      "id": "mem-consolidation-plan----",
+      "category": "consolidation-plan",
+      "confidence": 0.5,
+      "accessCount": 0,
+      "createdAt": 1775262069565
+    },
+    "mem-consolidation-plan-completed": {
+      "id": "mem-consolidation-plan-completed",
+      "category": "consolidation-plan",
+      "confidence": 0.5,
+      "accessCount": 0,
+      "createdAt": 1775262069565
+    },
+    "mem-consolidation-plan-pending--requires-write-access": {
+      "id": "mem-consolidation-plan-pending--requires-write-access",
+      "category": "consolidation-plan",
+      "confidence": 0.5,
+      "accessCount": 0,
+      "createdAt": 1775262069565
+    },
+    "mem-consolidation-plan-notes": {
+      "id": "mem-consolidation-plan-notes",
+      "category": "consolidation-plan",
+      "confidence": 0.5,
+      "accessCount": 0,
+      "createdAt": 1775262069565
+    },
+    "mem-feedback_always_planplus----": {
+      "id": "mem-feedback_always_planplus----",
+      "category": "feedback_always_planplus",
+      "confidence": 0.5,
+      "accessCount": 0,
+      "createdAt": 1775262069566
+    },
+    "mem-feedback_confluence_draft----": {
+      "id": "mem-feedback_confluence_draft----",
+      "category": "feedback_confluence_draft",
+      "confidence": 0.5,
+      "accessCount": 0,
+      "createdAt": 1775262069566
+    },
+    "mem-feedback_no_remove_agents----": {
+      "id": "mem-feedback_no_remove_agents----",
+      "category": "feedback_no_remove_agents",
+      "confidence": 0.5,
+      "accessCount": 0,
+      "createdAt": 1775262069567
+    },
+    "mem-feedback_ruflo_workflow----": {
+      "id": "mem-feedback_ruflo_workflow----",
+      "category": "feedback_ruflo_workflow",
+      "confidence": 0.5,
+      "accessCount": 0,
+      "createdAt": 1775262069568
+    },
+    "mem-feedback_self_review----": {
+      "id": "mem-feedback_self_review----",
+      "category": "feedback_self_review",
+      "confidence": 0.5,
+      "accessCount": 0,
+      "createdAt": 1775262069568
+    },
+    "mem-feedback_stage_schema----": {
+      "id": "mem-feedback_stage_schema----",
+      "category": "feedback_stage_schema",
+      "confidence": 0.5,
+      "accessCount": 0,
+      "createdAt": 1775262069569
+    },
+    "mem-feedback_token_priority----": {
+      "id": "mem-feedback_token_priority----",
+      "category": "feedback_token_priority",
+      "confidence": 0.5,
+      "accessCount": 0,
+      "createdAt": 1775262069570
+    },
+    "mem-i18n-patterns-locale-file-structure": {
+      "id": "mem-i18n-patterns-locale-file-structure",
+      "category": "i18n-patterns",
+      "confidence": 0.5,
+      "accessCount": 0,
+      "createdAt": 1775262069570
+    },
+    "mem-i18n-patterns-key-naming-conventions": {
+      "id": "mem-i18n-patterns-key-naming-conventions",
+      "category": "i18n-patterns",
+      "confidence": 0.5,
+      "accessCount": 0,
+      "createdAt": 1775262069570
+    },
+    "mem-i18n-patterns-pattern--flash--domain---actio": {
+      "id": "mem-i18n-patterns-pattern--flash--domain---actio",
+      "category": "i18n-patterns",
+      "confidence": 0.5,
+      "accessCount": 0,
+      "createdAt": 1775262069570
+    },
+    "mem-i18n-patterns-haml-view-patterns": {
+      "id": "mem-i18n-patterns-haml-view-patterns",
+      "category": "i18n-patterns",
+      "confidence": 0.5,
+      "accessCount": 0,
+      "createdAt": 1775262069570
+    },
+    "mem-i18n-patterns-helper-pattern": {
+      "id": "mem-i18n-patterns-helper-pattern",
+      "category": "i18n-patterns",
+      "confidence": 0.5,
+      "accessCount": 0,
+      "createdAt": 1775262069570
+    },
+    "mem-i18n-patterns-app-helpers-coupon-helper-rb": {
+      "id": "mem-i18n-patterns-app-helpers-coupon-helper-rb",
+      "category": "i18n-patterns",
+      "confidence": 0.5,
+      "accessCount": 0,
+      "createdAt": 1775262069570
+    },
+    "mem-i18n-patterns-controller-flash-pattern": {
+      "id": "mem-i18n-patterns-controller-flash-pattern",
+      "category": "i18n-patterns",
+      "confidence": 0.5,
+      "accessCount": 0,
+      "createdAt": 1775262069570
+    },
+    "mem-i18n-patterns-vue-i18n-integration": {
+      "id": "mem-i18n-patterns-vue-i18n-integration",
+      "category": "i18n-patterns",
+      "confidence": 0.5,
+      "accessCount": 0,
+      "createdAt": 1775262069570
+    },
+    "mem-i18n-patterns-i18n-tasks-configuration": {
+      "id": "mem-i18n-patterns-i18n-tasks-configuration",
+      "category": "i18n-patterns",
+      "confidence": 0.5,
+      "accessCount": 0,
+      "createdAt": 1775262069570
+    },
+    "mem-i18n-patterns-export-pages-pattern": {
+      "id": "mem-i18n-patterns-export-pages-pattern",
+      "category": "i18n-patterns",
+      "confidence": 0.5,
+      "accessCount": 0,
+      "createdAt": 1775262069570
+    },
+    "mem-project_ichigo_crm----": {
+      "id": "mem-project_ichigo_crm----",
+      "category": "project_ichigo_crm",
+      "confidence": 0.5,
+      "accessCount": 0,
+      "createdAt": 1775262069571
+    },
+    "mem-project_ichigo_crm-ichigo-crm---grin-replacement": {
+      "id": "mem-project_ichigo_crm-ichigo-crm---grin-replacement",
+      "category": "project_ichigo_crm",
+      "confidence": 0.53,
+      "accessCount": 1,
+      "createdAt": 1775262069571
+    },
+    "mem-project_ichigo_crm-tech-stack": {
+      "id": "mem-project_ichigo_crm-tech-stack",
+      "category": "project_ichigo_crm",
+      "confidence": 0.5,
+      "accessCount": 0,
+      "createdAt": 1775262069571
+    },
+    "mem-project_ichigo_crm-how-inertia-works--no-api-laye": {
+      "id": "mem-project_ichigo_crm-how-inertia-works--no-api-laye",
+      "category": "project_ichigo_crm",
+      "confidence": 0.5,
+      "accessCount": 0,
+      "createdAt": 1775262069571
+    },
+    "mem-project_ichigo_crm-controller": {
+      "id": "mem-project_ichigo_crm-controller",
+      "category": "project_ichigo_crm",
+      "confidence": 0.5,
+      "accessCount": 0,
+      "createdAt": 1775262069571
+    },
+    "mem-project_ichigo_crm-scaffold-status--complete--": {
+      "id": "mem-project_ichigo_crm-scaffold-status--complete--",
+      "category": "project_ichigo_crm",
+      "confidence": 0.5,
+      "accessCount": 0,
+      "createdAt": 1775262069571
+    },
+    "mem-project_ichigo_crm-sidebar-navigation-structure": {
+      "id": "mem-project_ichigo_crm-sidebar-navigation-structure",
+      "category": "project_ichigo_crm",
+      "confidence": 0.5,
+      "accessCount": 0,
+      "createdAt": 1775262069571
+    },
+    "mem-project_ichigo_crm-key-technical-gotchas--must-re": {
+      "id": "mem-project_ichigo_crm-key-technical-gotchas--must-re",
+      "category": "project_ichigo_crm",
+      "confidence": 0.5,
+      "accessCount": 0,
+      "createdAt": 1775262069571
+    },
+    "mem-project_ichigo_crm-documentation-in-repo": {
+      "id": "mem-project_ichigo_crm-documentation-in-repo",
+      "category": "project_ichigo_crm",
+      "confidence": 0.5,
+      "accessCount": 0,
+      "createdAt": 1775262069571
+    },
+    "mem-project_ichigo_crm-modules-to-build--from-grin-re": {
+      "id": "mem-project_ichigo_crm-modules-to-build--from-grin-re",
+      "category": "project_ichigo_crm",
+      "confidence": 0.5,
+      "accessCount": 0,
+      "createdAt": 1775262069571
+    },
+    "mem-project_ichigo_crm-outline-docs--read-before-plan": {
+      "id": "mem-project_ichigo_crm-outline-docs--read-before-plan",
+      "category": "project_ichigo_crm",
+      "confidence": 0.5,
+      "accessCount": 0,
+      "createdAt": 1775262069571
+    },
+    "mem-reference_staging_urls----": {
+      "id": "mem-reference_staging_urls----",
+      "category": "reference_staging_urls",
+      "confidence": 0.5,
+      "accessCount": 0,
+      "createdAt": 1775262069571
+    },
+    "mem-shipping-finder-refactor-overview": {
+      "id": "mem-shipping-finder-refactor-overview",
+      "category": "shipping-finder-refactor",
+      "confidence": 0.5,
+      "accessCount": 0,
+      "createdAt": 1775262069571
+    },
+    "mem-shipping-finder-refactor-core-changes--pr--3091-": {
+      "id": "mem-shipping-finder-refactor-core-changes--pr--3091-",
+      "category": "shipping-finder-refactor",
+      "confidence": 0.5,
+      "accessCount": 0,
+      "createdAt": 1775262069571
+    },
+    "mem-shipping-finder-refactor-refactoring-patterns": {
+      "id": "mem-shipping-finder-refactor-refactoring-patterns",
+      "category": "shipping-finder-refactor",
+      "confidence": 0.5,
+      "accessCount": 0,
+      "createdAt": 1775262069571
+    },
+    "mem-shipping-finder-refactor-pr-scope-breakdown": {
+      "id": "mem-shipping-finder-refactor-pr-scope-breakdown",
+      "category": "shipping-finder-refactor",
+      "confidence": 0.5,
+      "accessCount": 0,
+      "createdAt": 1775262069571
+    },
+    "mem-shipping-finder-refactor-kounouhyou-generator-pattern--": {
+      "id": "mem-shipping-finder-refactor-kounouhyou-generator-pattern--",
+      "category": "shipping-finder-refactor",
+      "confidence": 0.5,
+      "accessCount": 0,
+      "createdAt": 1775262069571
+    },
+    "mem-shipping-finder-refactor-spec-updates": {
+      "id": "mem-shipping-finder-refactor-spec-updates",
+      "category": "shipping-finder-refactor",
+      "confidence": 0.5,
+      "accessCount": 0,
+      "createdAt": 1775262069571
+    }
+  },
+  "edges": [
+    {
+      "sourceId": "mem-MEMORY-project",
+      "targetId": "mem-MEMORY-user",
+      "type": "temporal",
+      "weight": 0.5
+    },
+    {
+      "sourceId": "mem-MEMORY-user",
+      "targetId": "mem-MEMORY-feedback",
+      "type": "temporal",
+      "weight": 0.5
+    },
+    {
+      "sourceId": "mem-MEMORY-feedback",
+      "targetId": "mem-MEMORY-references",
+      "type": "temporal",
+      "weight": 0.5
+    },
+    {
+      "sourceId": "mem-project_cicd----",
+      "targetId": "mem-project_cicd-oms-ci---oms--github-workflows",
+      "type": "temporal",
+      "weight": 0.5
+    },
+    {
+      "sourceId": "mem-project_cicd-oms-ci---oms--github-workflows",
+      "targetId": "mem-project_cicd-ichigo-crm-current-ci---ichigo",
+      "type": "temporal",
+      "weight": 0.5
+    },
+    {
+      "sourceId": "mem-project_oms_pundit----",
+      "targetId": "mem-project_oms_pundit-tables---models",
+      "type": "temporal",
+      "weight": 0.5
+    },
+    {
+      "sourceId": "mem-project_oms_pundit-tables---models",
+      "targetId": "mem-project_oms_pundit-authorization-logic",
+      "type": "temporal",
+      "weight": 0.5
+    },
+    {
+      "sourceId": "mem-project_oms_pundit-authorization-logic",
+      "targetId": "mem-project_oms_pundit-pundit-patterns",
+      "type": "temporal",
+      "weight": 0.5
+    },
+    {
+      "sourceId": "mem-project_oms_pundit-pundit-patterns",
+      "targetId": "mem-project_oms_pundit-controller-usage",
+      "type": "temporal",
+      "weight": 0.5
+    },
+    {
+      "sourceId": "mem-project_oms_pundit-controller-usage",
+      "targetId": "mem-project_oms_pundit-admin-ui",
+      "type": "temporal",
+      "weight": 0.5
+    },
+    {
+      "sourceId": "mem-MEMORY-feedback",
+      "targetId": "mem-MEMORY-git-workflow",
+      "type": "temporal",
+      "weight": 0.5
+    },
+    {
+      "sourceId": "mem-MEMORY-git-workflow",
+      "targetId": "mem-MEMORY-oms-specific-patterns",
+      "type": "temporal",
+      "weight": 0.5
+    },
+    {
+      "sourceId": "mem-MEMORY-oms-specific-patterns",
+      "targetId": "mem-MEMORY-active-projects",
+      "type": "temporal",
+      "weight": 0.5
+    },
+    {
+      "sourceId": "mem-MEMORY-active-projects",
+      "targetId": "mem-MEMORY-key-technical-constraints",
+      "type": "temporal",
+      "weight": 0.5
+    },
+    {
+      "sourceId": "mem-consolidation-plan----",
+      "targetId": "mem-consolidation-plan-completed",
+      "type": "temporal",
+      "weight": 0.5
+    },
+    {
+      "sourceId": "mem-consolidation-plan-completed",
+      "targetId": "mem-consolidation-plan-pending--requires-write-access",
+      "type": "temporal",
+      "weight": 0.5
+    },
+    {
+      "sourceId": "mem-consolidation-plan-pending--requires-write-access",
+      "targetId": "mem-consolidation-plan-notes",
+      "type": "temporal",
+      "weight": 0.5
+    },
+    {
+      "sourceId": "mem-i18n-patterns-locale-file-structure",
+      "targetId": "mem-i18n-patterns-key-naming-conventions",
+      "type": "temporal",
+      "weight": 0.5
+    },
+    {
+      "sourceId": "mem-i18n-patterns-key-naming-conventions",
+      "targetId": "mem-i18n-patterns-pattern--flash--domain---actio",
+      "type": "temporal",
+      "weight": 0.5
+    },
+    {
+      "sourceId": "mem-i18n-patterns-pattern--flash--domain---actio",
+      "targetId": "mem-i18n-patterns-haml-view-patterns",
+      "type": "temporal",
+      "weight": 0.5
+    },
+    {
+      "sourceId": "mem-i18n-patterns-haml-view-patterns",
+      "targetId": "mem-i18n-patterns-helper-pattern",
+      "type": "temporal",
+      "weight": 0.5
+    },
+    {
+      "sourceId": "mem-i18n-patterns-helper-pattern",
+      "targetId": "mem-i18n-patterns-app-helpers-coupon-helper-rb",
+      "type": "temporal",
+      "weight": 0.5
+    },
+    {
+      "sourceId": "mem-i18n-patterns-app-helpers-coupon-helper-rb",
+      "targetId": "mem-i18n-patterns-controller-flash-pattern",
+      "type": "temporal",
+      "weight": 0.5
+    },
+    {
+      "sourceId": "mem-i18n-patterns-controller-flash-pattern",
+      "targetId": "mem-i18n-patterns-vue-i18n-integration",
+      "type": "temporal",
+      "weight": 0.5
+    },
+    {
+      "sourceId": "mem-i18n-patterns-vue-i18n-integration",
+      "targetId": "mem-i18n-patterns-i18n-tasks-configuration",
+      "type": "temporal",
+      "weight": 0.5
+    },
+    {
+      "sourceId": "mem-i18n-patterns-i18n-tasks-configuration",
+      "targetId": "mem-i18n-patterns-export-pages-pattern",
+      "type": "temporal",
+      "weight": 0.5
+    },
+    {
+      "sourceId": "mem-project_ichigo_crm----",
+      "targetId": "mem-project_ichigo_crm-ichigo-crm---grin-replacement",
+      "type": "temporal",
+      "weight": 0.5
+    },
+    {
+      "sourceId": "mem-project_ichigo_crm-ichigo-crm---grin-replacement",
+      "targetId": "mem-project_ichigo_crm-tech-stack",
+      "type": "temporal",
+      "weight": 0.5
+    },
+    {
+      "sourceId": "mem-project_ichigo_crm-tech-stack",
+      "targetId": "mem-project_ichigo_crm-how-inertia-works--no-api-laye",
+      "type": "temporal",
+      "weight": 0.5
+    },
+    {
+      "sourceId": "mem-project_ichigo_crm-how-inertia-works--no-api-laye",
+      "targetId": "mem-project_ichigo_crm-controller",
+      "type": "temporal",
+      "weight": 0.5
+    },
+    {
+      "sourceId": "mem-project_ichigo_crm-controller",
+      "targetId": "mem-project_ichigo_crm-scaffold-status--complete--",
+      "type": "temporal",
+      "weight": 0.5
+    },
+    {
+      "sourceId": "mem-project_ichigo_crm-scaffold-status--complete--",
+      "targetId": "mem-project_ichigo_crm-sidebar-navigation-structure",
+      "type": "temporal",
+      "weight": 0.5
+    },
+    {
+      "sourceId": "mem-project_ichigo_crm-sidebar-navigation-structure",
+      "targetId": "mem-project_ichigo_crm-key-technical-gotchas--must-re",
+      "type": "temporal",
+      "weight": 0.5
+    },
+    {
+      "sourceId": "mem-project_ichigo_crm-key-technical-gotchas--must-re",
+      "targetId": "mem-project_ichigo_crm-documentation-in-repo",
+      "type": "temporal",
+      "weight": 0.5
+    },
+    {
+      "sourceId": "mem-project_ichigo_crm-documentation-in-repo",
+      "targetId": "mem-project_ichigo_crm-modules-to-build--from-grin-re",
+      "type": "temporal",
+      "weight": 0.5
+    },
+    {
+      "sourceId": "mem-project_ichigo_crm-modules-to-build--from-grin-re",
+      "targetId": "mem-project_ichigo_crm-outline-docs--read-before-plan",
+      "type": "temporal",
+      "weight": 0.5
+    },
+    {
+      "sourceId": "mem-shipping-finder-refactor-overview",
+      "targetId": "mem-shipping-finder-refactor-core-changes--pr--3091-",
+      "type": "temporal",
+      "weight": 0.5
+    },
+    {
+      "sourceId": "mem-shipping-finder-refactor-core-changes--pr--3091-",
+      "targetId": "mem-shipping-finder-refactor-refactoring-patterns",
+      "type": "temporal",
+      "weight": 0.5
+    },
+    {
+      "sourceId": "mem-shipping-finder-refactor-refactoring-patterns",
+      "targetId": "mem-shipping-finder-refactor-pr-scope-breakdown",
+      "type": "temporal",
+      "weight": 0.5
+    },
+    {
+      "sourceId": "mem-shipping-finder-refactor-pr-scope-breakdown",
+      "targetId": "mem-shipping-finder-refactor-kounouhyou-generator-pattern--",
+      "type": "temporal",
+      "weight": 0.5
+    },
+    {
+      "sourceId": "mem-shipping-finder-refactor-kounouhyou-generator-pattern--",
+      "targetId": "mem-shipping-finder-refactor-spec-updates",
+      "type": "temporal",
+      "weight": 0.5
+    },
+    {
+      "sourceId": "mem-MEMORY-user",
+      "targetId": "mem-MEMORY-references",
+      "type": "similar",
+      "weight": 1
+    },
+    {
+      "sourceId": "mem-MEMORY-git---pr-rules",
+      "targetId": "mem-MEMORY-git-workflow",
+      "type": "similar",
+      "weight": 0.445
+    },
+    {
+      "sourceId": "mem-project_oms_pundit----",
+      "targetId": "mem-project_oms_pundit-admin-ui",
+      "type": "similar",
+      "weight": 0.31958762886597936
+    },
+    {
+      "sourceId": "mem-i18n-patterns-locale-file-structure",
+      "targetId": "mem-i18n-patterns-i18n-tasks-configuration",
+      "type": "similar",
+      "weight": 0.3231707317073171
+    },
+    {
+      "sourceId": "mem-i18n-patterns-key-naming-conventions",
+      "targetId": "mem-i18n-patterns-app-helpers-coupon-helper-rb",
+      "type": "similar",
+      "weight": 0.3148148148148148
+    },
+    {
+      "sourceId": "mem-i18n-patterns-haml-view-patterns",
+      "targetId": "mem-i18n-patterns-app-helpers-coupon-helper-rb",
+      "type": "similar",
+      "weight": 0.3148148148148148
+    },
+    {
+      "sourceId": "mem-project_ichigo_crm-sidebar-navigation-structure",
+      "targetId": "mem-project_ichigo_crm-modules-to-build--from-grin-re",
+      "type": "similar",
+      "weight": 0.5387755102040817
+    },
+    {
+      "sourceId": "mem-shipping-finder-refactor-core-changes--pr--3091-",
+      "targetId": "mem-shipping-finder-refactor-refactoring-patterns",
+      "type": "similar",
+      "weight": 0.3150684931506849
+    }
+  ],
+  "pageRanks": {
+    "mem-MEMORY----geps-express-split-order-lo": 0.005654768251342149,
+    "mem-feedback_fixer_model----": 0.005654768251342149,
+    "mem-feedback_skills_primary_source----": 0.005654768251342149,
+    "mem-project_geps_express_split_orders----": 0.005654768251342149,
+    "mem-MEMORY-memory-index": 0.005654768251342149,
+    "mem-feedback_superpowers_push_main----": 0.005654768251342149,
+    "mem-project_active_repos----": 0.005654768251342149,
+    "mem-MEMORY----feedback-superpower-startup": 0.005654768251342149,
+    "mem-feedback_check_codemap----": 0.005654768251342149,
+    "mem-feedback_subagent_delegation----": 0.005654768251342149,
+    "mem-feedback_superpower_startup----": 0.005654768251342149,
+    "mem-feedback_superpowers_skills----": 0.005654768251342149,
+    "mem-feedback_mermaid_colorful----": 0.005654768251342149,
+    "mem-MEMORY-project": 0.005654768251342149,
+    "mem-MEMORY-user": 0.010461323314660416,
+    "mem-MEMORY-feedback": 0.010100832544947654,
+    "mem-MEMORY-references": 0.014393688670209357,
+    "mem-feedback_always_create_todos----": 0.005654768251342149,
+    "mem-feedback_mcp_global_only----": 0.005654768251342149,
+    "mem-feedback_never_merge_prs----": 0.005654768251342149,
+    "mem-feedback_no_claude_identity----": 0.005654768251342149,
+    "mem-feedback_no_n_plus_one----": 0.005654768251342149,
+    "mem-project_overview----": 0.005654768251342149,
+    "mem-MEMORY----github-account--feedback-gi": 0.005654768251342149,
+    "mem-feedback_autonomous_execution----": 0.005654768251342149,
+    "mem-feedback_github_account----": 0.005654768251342149,
+    "mem-feedback_planplus_workflow----": 0.005654768251342149,
+    "mem-MEMORY----feedback-rtk-prefix-md--fee": 0.005654768251342149,
+    "mem-feedback_boot_superpowers----": 0.005654768251342149,
+    "mem-feedback_rtk_prefix----": 0.005654768251342149,
+    "mem-MEMORY-ichigo-crm-memory-index": 0.005654768251342149,
+    "mem-feedback_plan_plus----": 0.005654768251342149,
+    "mem-project_cicd----": 0.005654768251342149,
+    "mem-project_cicd-oms-ci---oms--github-workflows": 0.010461323314660416,
+    "mem-project_cicd-ichigo-crm-current-ci---ichigo": 0.01454689683855316,
+    "mem-project_oms_pundit----": 0.005654768251342149,
+    "mem-project_oms_pundit-tables---models": 0.008058045783001282,
+    "mem-project_oms_pundit-authorization-logic": 0.012504110076606784,
+    "mem-project_oms_pundit-pundit-patterns": 0.016283267263811924,
+    "mem-project_oms_pundit-controller-usage": 0.019495552927747958,
+    "mem-project_oms_pundit-admin-ui": 0.02462927614435951,
+    "mem-MEMORY-git---pr-rules": 0.005654768251342149,
+    "mem-MEMORY-git-workflow": 0.014754179439922117,
+    "mem-MEMORY-oms-specific-patterns": 0.018195826432467546,
+    "mem-MEMORY-active-projects": 0.021121230956805664,
+    "mem-MEMORY-key-technical-constraints": 0.023607823511454903,
+    "mem-consolidation-plan----": 0.005654768251342149,
+    "mem-consolidation-plan-completed": 0.010461323314660416,
+    "mem-consolidation-plan-pending--requires-write-access": 0.01454689683855316,
+    "mem-consolidation-plan-notes": 0.01801963768907069,
+    "mem-feedback_always_planplus----": 0.005654768251342149,
+    "mem-feedback_confluence_draft----": 0.005654768251342149,
+    "mem-feedback_no_remove_agents----": 0.005654768251342149,
+    "mem-feedback_ruflo_workflow----": 0.005654768251342149,
+    "mem-feedback_self_review----": 0.005654768251342149,
+    "mem-feedback_stage_schema----": 0.005654768251342149,
+    "mem-feedback_token_priority----": 0.005654768251342149,
+    "mem-i18n-patterns-locale-file-structure": 0.005654768251342149,
+    "mem-i18n-patterns-key-naming-conventions": 0.008058045783001282,
+    "mem-i18n-patterns-pattern--flash--domain---actio": 0.009079439163974466,
+    "mem-i18n-patterns-haml-view-patterns": 0.013372295289236169,
+    "mem-i18n-patterns-helper-pattern": 0.011337996567246352,
+    "mem-i18n-patterns-app-helpers-coupon-helper-rb": 0.024399969961309498,
+    "mem-i18n-patterns-controller-flash-pattern": 0.026394754559922493,
+    "mem-i18n-patterns-vue-i18n-integration": 0.028090320141285065,
+    "mem-i18n-patterns-i18n-tasks-configuration": 0.031934813730827585,
+    "mem-i18n-patterns-export-pages-pattern": 0.032799327203830934,
+    "mem-project_ichigo_crm----": 0.005654768251342149,
+    "mem-project_ichigo_crm-ichigo-crm---grin-replacement": 0.010461323314660416,
+    "mem-project_ichigo_crm-tech-stack": 0.01454689683855316,
+    "mem-project_ichigo_crm-how-inertia-works--no-api-laye": 0.01801963768907069,
+    "mem-project_ichigo_crm-controller": 0.020971468166425224,
+    "mem-project_ichigo_crm-scaffold-status--complete--": 0.023480529058975526,
+    "mem-project_ichigo_crm-sidebar-navigation-structure": 0.025613228591834868,
+    "mem-project_ichigo_crm-key-technical-gotchas--must-re": 0.016540380464663305,
+    "mem-project_ichigo_crm-documentation-in-repo": 0.019714059027323302,
+    "mem-project_ichigo_crm-modules-to-build--from-grin-re": 0.03329726694827771,
+    "mem-project_ichigo_crm-outline-docs--read-before-plan": 0.0339573543113494,
+    "mem-reference_staging_urls----": 0.005654768251342149,
+    "mem-shipping-finder-refactor-overview": 0.005654768251342149,
+    "mem-shipping-finder-refactor-core-changes--pr--3091-": 0.010461323314660416,
+    "mem-shipping-finder-refactor-refactoring-patterns": 0.01454689683855316,
+    "mem-shipping-finder-refactor-pr-scope-breakdown": 0.01801963768907069,
+    "mem-shipping-finder-refactor-kounouhyou-generator-pattern--": 0.020971468166425224,
+    "mem-shipping-finder-refactor-spec-updates": 0.023480529058975526
+  }
+}
