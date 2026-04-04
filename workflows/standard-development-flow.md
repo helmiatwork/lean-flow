@@ -88,7 +88,7 @@ flowchart TD
     TESTVERIFY["🧪 Tester\nverify + add tests"] --> TEST
 
     TEST["Run tests"]
-    TEST -->|"Fail x3"| ORACLE_ESC["🔮 Oracle\n(opus)\nDiagnosis"]
+    TEST -->|"Fail x3"| ORACLE_ESC["🔮 Oracle\n(sonnet)\nDiagnosis"]
     ORACLE_ESC --> FIX
     TEST -->|"Pass"| STEPPR
 
@@ -106,7 +106,7 @@ flowchart TD
 
     MAINPR["PR parent → main\n+ release notes"] --> FINAL
 
-    FINAL["🔮 Oracle\n(opus)\nFinal review"]
+    FINAL["🔮 Oracle\n(sonnet)\nFinal review"]
     FINAL -->|"Issues"| FIXFINAL["🔧 Fixer\nfix on parent"]
     FINAL -->|"Approved"| LEARN
 
@@ -300,7 +300,7 @@ When working solo (no team reviewers, no CI per step), per-step PRs are pure ove
 | Fixer | haiku | Simple/mechanical: copy patterns, rename, delete, add types |
 | Tester | sonnet | Write tests (TDD or verification), improve coverage |
 | Auditor | sonnet | Security scan, diff risk analysis |
-| Oracle | opus | Code review, stuck diagnosis, architecture decisions (read-only) |
+| Oracle | sonnet | Code review, stuck diagnosis, architecture decisions (read-only) |
 | Orchestrator | opus | Triage, PR creation, reviews auditor fixes (no agent cost) |
 
 > **Oracle is read-only.** Oracle diagnoses issues and reviews code but never edits files. When the audit finds issues, **fixer** implements the fix and **oracle** reviews it.
@@ -308,7 +308,7 @@ When working solo (no team reviewers, no CI per step), per-step PRs are pure ove
 ### 9. Test + Retry
 - Run tests after each step
 - Retry fixer up to 2x on failure
-- 3rd failure: escalate to Oracle (opus) for root cause diagnosis
+- 3rd failure: escalate to Oracle (sonnet) for root cause diagnosis
 - Oracle provides guidance → Fixer implements fix
 - After 3 oracle escalations on the same step: flag for human intervention
 

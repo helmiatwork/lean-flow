@@ -13,6 +13,7 @@ LEAN_FLOW_DREAM_HOURS=24
 LEAN_FLOW_ENABLE_PLAYWRIGHT=true
 LEAN_FLOW_ENABLE_MONITOR=true
 LEAN_FLOW_ENABLE_KNOWLEDGE=true
+LEAN_FLOW_ENABLE_RTK=true
 LEAN_FLOW_BRANCH_PREFIXES="feature fix improvement security test docs chore hotfix"
 
 # --- User overrides ---
@@ -48,6 +49,9 @@ if [ -f "$CONFIG_FILE" ] && command -v jq &>/dev/null; then
   val=$(_val '.enable.knowledge')
   [ -n "$val" ] && LEAN_FLOW_ENABLE_KNOWLEDGE="$val"
 
+  val=$(_val '.enable.rtk')
+  [ -n "$val" ] && LEAN_FLOW_ENABLE_RTK="$val"
+
   val=$(_val '.branchPrefixes | if type == "array" then join(" ") else . end')
   [ -n "$val" ] && LEAN_FLOW_BRANCH_PREFIXES="$val"
 
@@ -63,4 +67,5 @@ export LEAN_FLOW_DREAM_HOURS
 export LEAN_FLOW_ENABLE_PLAYWRIGHT
 export LEAN_FLOW_ENABLE_MONITOR
 export LEAN_FLOW_ENABLE_KNOWLEDGE
+export LEAN_FLOW_ENABLE_RTK
 export LEAN_FLOW_BRANCH_PREFIXES
