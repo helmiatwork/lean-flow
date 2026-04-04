@@ -1,30 +1,56 @@
 #!/usr/bin/env bash
-# Remind orchestrator to mark completed plan steps [x] in the skeleton.
-# Fires on SubagentStop — checks if any plan skeleton has unchecked steps.
+# After subagent completes:
+# - If unchecked steps exist → remind to mark [x]
+# - If ALL steps checked → congratulate + remind to proceed to audit/PR
 
 PLANS_DIR="${HOME}/.claude/plans"
 
-# Skip if no plans directory
 if [ ! -d "$PLANS_DIR" ]; then
   exit 0
 fi
 
-# Check if any skeleton has unchecked steps
-unchecked=0
+# Find the most recently modified skeleton with steps
+latest=""
+latest_mtime=0
 for f in "$PLANS_DIR"/*.md; do
   [ -f "$f" ] || continue
-  if grep -qE '^\s*\d+\.\s+\[ \]' "$f" 2>/dev/null; then
-    unchecked=1
-    break
+  # Only consider files with step checkboxes
+  if grep -qE '^\s*\d+\.\s+\[[ xX]\]' "$f" 2>/dev/null; then
+    if [ "$(uname)" = "Darwin" ]; then
+      mtime=$(stat -f%m "$f" 2>/dev/null || echo 0)
+    else
+      mtime=$(stat -c%Y "$f" 2>/dev/null || echo 0)
+    fi
+    if [ "$mtime" -gt "$latest_mtime" ]; then
+      latest="$f"
+      latest_mtime="$mtime"
+    fi
   fi
 done
 
-if [ "$unchecked" -eq 1 ]; then
-  cat <<'EOF'
+[ -z "$latest" ] && exit 0
+
+# Count checked and unchecked
+total=$(grep -cE '^\s*\d+\.\s+\[[ xX]\]' "$latest" 2>/dev/null || echo 0)
+checked=$(grep -cE '^\s*\d+\.\s+\[[xX]\]' "$latest" 2>/dev/null || echo 0)
+unchecked=$((total - checked))
+plan_name=$(basename "$latest" .md)
+
+if [ "$unchecked" -gt 0 ]; then
+  cat <<EOF
 {
   "hookSpecificOutput": {
     "hookEventName": "SubagentStop",
-    "additionalContext": "📋 REMINDER: If this subagent completed a plan step, mark it [x] in the skeleton file (~/.claude/plans/*.md) now. The plan viewer updates live."
+    "additionalContext": "📋 Plan '${plan_name}': ${checked}/${total} steps done. Mark completed step [x] in skeleton now."
+  }
+}
+EOF
+elif [ "$total" -gt 0 ]; then
+  cat <<EOF
+{
+  "hookSpecificOutput": {
+    "hookEventName": "SubagentStop",
+    "additionalContext": "✅ Plan '${plan_name}': ALL ${total} steps complete! Proceed to: security audit → PR parent → main (with release notes) → oracle final review → merge."
   }
 }
 EOF
