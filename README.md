@@ -138,20 +138,26 @@ flowchart TD
 
     FOUND{"Match?"}
     FOUND -->|"Yes"| ADAPT["Apply pattern"]
-    FOUND -->|"No"| PP
+    FOUND -->|"No"| BRAINSTORM
 
     ADAPT --> BRANCH
     DIRECT --> DONE(["✅ Done"])
 
-    PP["📋 plan-plus\nWrite plan"] --> REVIEW
+    BRAINSTORM["💡 Brainstorming"] --> PLANMODE
+
+    PLANMODE["📋 EnterPlanMode"] --> QUALITY
+
+    QUALITY["✍️ writing-plans\nquality guidance"] --> WRITE
+
+    WRITE["Write plan"] --> REVIEW
 
     REVIEW{"Approved?"}
-    REVIEW -->|"No"| PP
-    REVIEW -->|"Yes"| RESTRUCTURE
+    REVIEW -->|"No"| WRITE
+    REVIEW -->|"Yes"| EXITPLAN
 
-    RESTRUCTURE["📋 plan-plus\nSplit into skeleton\n+ step files"] --> VIEWER
+    EXITPLAN["📋 ExitPlanMode\nplan-plus → steps"] --> VIEWER
 
-    VIEWER["📺 Plan viewer\nOpens localhost:3456"] --> BRANCH
+    VIEWER["📺 Plan viewer\nlocalhost:3456"] --> BRANCH
 
     BRANCH["🌿 Create parent branch"] --> STEP
 
@@ -209,9 +215,12 @@ flowchart TD
     style FOUND fill:#F39C12,color:#fff
     style ADAPT fill:#2980B9,color:#fff
     style DIRECT fill:#27AE60,color:#fff
-    style PP fill:#4A90D9,color:#fff
     style REVIEW fill:#F39C12,color:#fff
-    style RESTRUCTURE fill:#4A90D9,color:#fff
+    style BRAINSTORM fill:#E91E63,color:#fff
+    style PLANMODE fill:#4A90D9,color:#fff
+    style QUALITY fill:#E91E63,color:#fff
+    style WRITE fill:#4A90D9,color:#fff
+    style EXITPLAN fill:#4A90D9,color:#fff
     style VIEWER fill:#2980B9,color:#fff
     style BRANCH fill:#1ABC9C,color:#fff
     style STEP fill:#8E44AD,color:#fff
