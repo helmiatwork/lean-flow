@@ -134,6 +134,11 @@ flowchart TD
     TRIAGE{"🎯 Orchestrator\ntriages complexity"}
     TRIAGE -->|"Simple"| DIRECT["Orchestrator\nhandles directly"]
     TRIAGE -->|"Complex"| MEMORY
+    TRIAGE -->|"Greenfield 🌱"| GREENFIELD
+
+    %% === GREENFIELD PATH ===
+    GREENFIELD["🌱 Brainstorm\nproduct concept"] --> GENDOCS
+    GENDOCS["📄 Generate docs\n(PRD, HLA, TRD, DB, API)"] --> PLANMODE
 
     MEMORY["🧠 pattern_search\nKnowledge MCP"] --> FOUND
 
@@ -253,17 +258,21 @@ flowchart TD
     style DONE fill:#27AE60,color:#fff
     style CLEAN fill:#F39C12,color:#fff
     style AUDITREV fill:#8E44AD,color:#fff
+    style GREENFIELD fill:#16A085,color:#fff
+    style GENDOCS fill:#1ABC9C,color:#fff
 ```
 
 <details>
 <summary><strong>Workflow steps explained (16 steps)</strong></summary>
 
-1. **Triage** — Simple → fixer + test + PR. Complex → pattern search. Hotfix → fast path.
+1. **Triage** — Simple → fixer + test + PR. Complex → pattern search. Greenfield → doc-first. Hotfix → fast path.
 2. **Pattern Search** — Check knowledge MCP. Match → fixer applies. No match → brainstorm.
 3. **Brainstorming** — Explore requirements and design before planning.
+3a. **Greenfield: Doc-First** — For new projects: brainstorm → generate docs (PRD, HLA, TRD, DB, API) → plan from docs.
 4. **Planning** — plan-plus generates skeleton + step files. User approves.
-5. **Branching** — Parent branch from main. Step branches from parent.
-6. **Execute Steps** — TDD optional. Fixer implements, tester verifies, oracle reviews each step PR.
+5. **Branching** — Parent branch from main. Step branches from parent (skip step branches when solo).
+6. **Execute Steps** — TDD optional. Fixer/coder implements, tester verifies. Parallel independent steps.
+6a. **Solo Dev** — Skip step PRs. Commit on parent. Use plan-plus-executor agents per step.
 7. **Re-planning** — If a step reveals plan is wrong, revise remaining steps.
 8. **Agent Routing** — Explorer/Fixer (haiku), Coder/Tester/Auditor (sonnet), Oracle (opus, read-only).
 9. **Test + Retry** — 3 failures → oracle escalation. 3 oracle rounds → human intervention.

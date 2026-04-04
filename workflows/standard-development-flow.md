@@ -9,7 +9,12 @@ flowchart TD
     TRIAGE{"🎯 Orchestrator\ntriages complexity"}
     TRIAGE -->|"Simple"| DIRECTFIX
     TRIAGE -->|"Complex"| MEMORY
+    TRIAGE -->|"Greenfield 🌱"| GREENFIELD
     TRIAGE -->|"Hotfix 🔥"| HOTFIX
+
+    %% === GREENFIELD PATH ===
+    GREENFIELD["🌱 Brainstorm\nproduct concept"] --> GENDOCS
+    GENDOCS["📄 Generate docs\n(parallel sonnet agents)\nPRD, HLA, TRD, DB, API"] --> PLANMODE
 
     %% === SIMPLE PATH ===
     DIRECTFIX["🔧 Fixer\nImplement fix"] --> DIRECTTEST["Run tests"]
@@ -158,6 +163,8 @@ flowchart TD
     style HOTFIXTEST fill:#7B68EE,color:#fff
     style HOTFIXPR fill:#2ECC71,color:#fff
     style HOTFIXMERGE fill:#27AE60,color:#fff
+    style GREENFIELD fill:#16A085,color:#fff
+    style GENDOCS fill:#1ABC9C,color:#fff
 ```
 
 ## Branch Naming Convention
@@ -207,6 +214,7 @@ main
 ### 1. Triage (Orchestrator — no agent cost)
 - **Simple** tasks (1-2 files, clear change): fixer implements → tests → PR to main
 - **Complex** tasks: continue to pattern search + planning
+- **Greenfield** (new project, empty repo): doc-first path → brainstorm → generate docs → plan → build
 - **Hotfix** (production emergency): fast path — skip planning, minimal review
 
 ### 2. Pattern Search (knowledge MCP)
@@ -218,6 +226,22 @@ main
 - Auto-invoked before planning for complex tasks
 - Explores user intent, requirements, and design before implementation
 - Output feeds into plan-plus
+
+### 3a. Greenfield: Doc-First Development
+For new projects (empty repos), generate project documentation **before** planning code:
+
+1. **Brainstorm** — discuss product concept, target users, core features, tech stack
+2. **Generate docs** — spawn parallel sonnet agents to create:
+   - **PRD** — product requirements, user stories, MVP scope
+   - **HLA** — high-level architecture, system diagram, component breakdown
+   - **TRD** — technical requirements, API specs, database schema, Go structs
+   - **Architecture** — ADRs, DDD bounded contexts, migration path
+   - **Database Design** — full DDL, indexes, spatial queries, seed data
+   - **API Design** — all endpoints with request/response contracts
+3. **Split TRD per repo** — in multi-repo projects, keep docs scoped per repo to avoid token bloat
+4. **Plan from docs** — use generated docs as the reference for implementation planning
+
+> **Why docs first?** Generated docs become the single source of truth for all agents. The TRD feeds directly into plan-plus steps. Without docs, each agent re-derives requirements from scratch — wasting tokens and introducing inconsistencies.
 
 ### 4. Planning (plan-plus + writing-plans quality)
 - `EnterPlanMode` — opens plan file at `~/.claude/plans/`
@@ -232,6 +256,7 @@ main
 - Each step gets its own branch: `<prefix>/<name>/step-N` from parent
 - Steps are sequential — step-2 branch created after step-1 PR is merged into parent
 - If step branch has conflicts with parent: rebase step branch onto parent
+- **Solo dev exception:** skip step branches, commit directly on parent (see §6a)
 
 ### 6. Execute Steps (sequential, parallel fixers within)
 - For each step:
@@ -244,6 +269,20 @@ main
   7. Merge step PR into parent (no oracle review — saves tokens)
      Oracle only reviews the final parent→main PR
   9. Loop to next step
+
+### 6a. Solo Dev: Skip Step Branches
+When working solo (no team reviewers, no CI per step), per-step PRs are pure overhead:
+
+- **Commit directly on parent branch** — one commit per feature, not per step
+- **Still use plan-plus steps** — steps structure the work, but don't need separate branches
+- **Run plan-plus-executor agents per step** — each step dispatched as an agent call
+- **Parallel independent steps** — steps with no dependency can run as parallel agents
+- **Single PR: parent → main** — oracle review + audit on the final diff
+
+**When to use per-step PRs instead:**
+- Team with reviewers needs to approve each step
+- CI/CD runs per PR (integration tests, deploy preview)
+- Steps are large enough to warrant isolated review
 
 ### 7. Re-planning (mid-execution escape hatch)
 - If a step reveals the plan is wrong (assumptions broken, scope changed):
