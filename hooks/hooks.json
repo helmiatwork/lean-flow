@@ -96,6 +96,17 @@
         ]
       }
     ],
+    "SubagentStop": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "bash ${CLAUDE_PLUGIN_ROOT}/scripts/remind-check-step.sh",
+            "timeout": 3000
+          }
+        ]
+      }
+    ],
     "Stop": [
       {
         "hooks": [
