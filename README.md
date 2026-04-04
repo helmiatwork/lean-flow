@@ -94,6 +94,18 @@ SwiftBar menu bar plugin showing real-time Claude Code usage:
 
 > **Note:** The usage monitor requires macOS + SwiftBar. On Linux, you can manually check usage with `claude /usage` or read `/tmp/claude-usage-cache.json` if the fetcher is running.
 
+### 🗺️ Cartography (Repository Mapping)
+Generate hierarchical codemaps for fast agent orientation. Instead of explorer agents scanning file-by-file (~3K tokens), agents read `codemap.md` (~200 tokens).
+
+- **`/cartography`** — invoke the skill to map a repo
+- `cartographer.py init` — scan repo, create `.slim/cartography.json` + empty `codemap.md` per folder
+- `cartographer.py changes` — detect what changed since last mapping
+- `cartographer.py update` — refresh hashes after codemaps are updated
+- Auto-detects changes on session start and prompts to update affected codemaps
+- Root `codemap.md` serves as the **Repository Atlas** — master entry point for all agents
+
+> Inspired by [oh-my-opencode-slim cartography](https://github.com/alvinunreal/oh-my-opencode-slim/blob/master/docs/cartography.md). Requires `python3`.
+
 ### 🎭 E2E Testing
 Auto-installs [Playwright MCP](https://github.com/anthropics/anthropic-quickstarts/tree/main/mcp-playwright) for browser automation testing.
 
@@ -103,6 +115,7 @@ lean-flow auto-enables the [superpowers](https://github.com/anthropics/claude-co
 
 | Skill | When it's used |
 |:------|:---------------|
+| `cartography` | Map a codebase — generates per-folder `codemap.md` for fast agent orientation |
 | `brainstorming` | Before any creative/feature work — explores intent and design |
 | `writing-plans` | When creating implementation plans (feeds into plan-plus) |
 | `test-driven-development` | Before writing implementation code |
@@ -347,6 +360,7 @@ Everything else is **automatic**. On first session, lean-flow will:
 | 🎭 Playwright | `@playwright/mcp` + Chromium browser | ~30s |
 | 📊 Usage Monitor | SwiftBar + launchd fetcher *(macOS only)* | ~15s |
 | ⚡ RTK | Rust tool rewrites for faster Bash commands ([rtk-ai.app](https://www.rtk-ai.app)) | ~5s |
+| 🗺️ Cartography | Detect codemap changes, prompt updates | ~2s |
 | 📺 Plan Viewer | Live dashboard at localhost:3456 (on ExitPlanMode) | ~1s |
 | 📋 Session Briefing | Git state summary | ~1s |
 
@@ -445,6 +459,8 @@ lean-flow/
 │   ├── librarian.md             # Sonnet — research, docs
 │   ├── designer.md              # Sonnet — UI/UX
 │   └── explorer.md              # Haiku — codebase navigation
+├── skills/
+│   └── cartography.md           # Repository mapping skill definition
 ├── hooks/
 │   └── hooks.json               # SessionStart, PreToolUse, PostToolUse, Stop
 ├── scripts/
@@ -460,6 +476,8 @@ lean-flow/
 │   ├── block-claude-identity.sh # Block Claude attribution in commits/PRs
 │   ├── block-wrong-plan-dir.sh  # Block plans saved outside ~/.claude/plans/
 │   ├── session-briefing.sh      # Git state on session start
+│   ├── cartographer.py           # Repository mapping + change detection (python3)
+│   ├── ensure-cartography.sh    # Auto-detect codemap changes on session start
 │   ├── auto-dream.sh            # Memory consolidation (background)
 │   ├── auto-dream-prompt.md     # Dream agent instructions
 │   ├── uninstall.sh             # Remove all lean-flow components

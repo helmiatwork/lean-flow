@@ -212,6 +212,7 @@ main
 ## Flow Rules
 
 ### 1. Triage (Orchestrator — no agent cost)
+- **First**: Check if `codemap.md` exists at repo root. If not, run `/cartography` to map the repo before starting work.
 - **Simple** tasks (1-2 files, clear change): fixer implements → tests → PR to main
 - **Complex** tasks: continue to pattern search + planning
 - **Greenfield** (new project, empty repo): doc-first path → brainstorm → generate docs → plan → build
