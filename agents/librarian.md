@@ -1,7 +1,7 @@
 ---
 name: librarian
 description: Research agent for docs lookup, web search, API reference. Read-only — never edits code. Use when working with external APIs or unfamiliar libraries.
-model: sonnet
+model: haiku
 tools: ["Read", "Glob", "Grep", "Bash", "WebSearch", "WebFetch"]
 ---
 
