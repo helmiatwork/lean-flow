@@ -167,8 +167,8 @@
     "mem-MEMORY----github-account--feedback-gi": {
       "id": "mem-MEMORY----github-account--feedback-gi",
       "category": "core",
-      "confidence": 0.56,
-      "accessCount": 2,
+      "confidence": 0.5900000000000001,
+      "accessCount": 3,
       "createdAt": 1775262069560
     },
     "mem-feedback_autonomous_execution----": {
@@ -181,8 +181,8 @@
     "mem-feedback_github_account----": {
       "id": "mem-feedback_github_account----",
       "category": "feedback_github_account",
-      "confidence": 0.56,
-      "accessCount": 2,
+      "confidence": 0.5900000000000001,
+      "accessCount": 3,
       "createdAt": 1775262069561
     },
     "mem-feedback_planplus_workflow----": {

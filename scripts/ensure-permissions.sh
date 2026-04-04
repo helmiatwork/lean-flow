@@ -28,6 +28,7 @@ REQUIRED_ALLOW=(
   "TeamCreate"
   "mcp__knowledge__*"
   "mcp__playwright__*"
+  "Edit(~/.claude/plans/*)"
 )
 
 # Protected branches — deny direct push

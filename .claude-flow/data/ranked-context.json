@@ -3399,9 +3399,9 @@
       "content": "- [Plan-plus workflow](feedback_planplus_workflow.md) — Full pipeline: plan-plus → explorer/librarian → fixer → tests → security scan → diff risk → PR → oracle → merge → loop\n- [Autonomous execution](feedback_autonomous_execution.md) — Full autonomy for git push, PR create/merge on non-main branches, no approval needed",
       "summary": "- [GitHub account](feedback_github_account.md) — Always use helmiatwork for grewme, never helmiattokyotreat",
       "category": "core",
-      "confidence": 0.56,
+      "confidence": 0.5900000000000001,
       "pageRank": 0.005654768251342149,
-      "accessCount": 2,
+      "accessCount": 3,
       "words": [
         "plan-plus",
         "workflow",
@@ -3519,9 +3519,9 @@
       "content": "name: grewme-github-account\ndescription: Always use helmiatwork GitHub account for the grewme project, never helmiattokyotreat\ntype: feedback\n---\n\nNever use helmiattokyotreat for the grewme project or any helmiatwork repos. Always use helmiatwork.\n\n**Why:** User has separate GitHub accounts for different projects:\n- **Global git config**: `helmi@tokyotreat.com` (helmiattokyotreat) — default for tokyotreat repos\n- **helmiatwork repos**: must use local config `helmi.workspace@gmail.com` + `helmiat",
       "summary": "---",
       "category": "feedback_github_account",
-      "confidence": 0.56,
+      "confidence": 0.5900000000000001,
       "pageRank": 0.005654768251342149,
-      "accessCount": 2,
+      "accessCount": 3,
       "words": [
         "name",
         "grewme-github-account",

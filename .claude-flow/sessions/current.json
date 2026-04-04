@@ -4,8 +4,11 @@
   "cwd": "/private/tmp/lean-flow",
   "context": {
     "lastMatchedPatterns": [
-      "mem-feedback_github_account----",
-      "mem-MEMORY----github-account--feedback-gi"
+      "mem-project_oms_pundit-controller-usage",
+      "mem-shipping-finder-refactor-spec-updates",
+      "mem-project_oms_pundit-pundit-patterns",
+      "mem-MEMORY-key-technical-constraints",
+      "mem-project_oms_pundit-authorization-logic"
     ]
   },
   "metrics": {
@@ -14,5 +17,5 @@
     "tasks": 0,
     "errors": 0
   },
-  "updatedAt": "2026-04-04T00:47:27.210Z"
+  "updatedAt": "2026-04-04T01:22:42.336Z"
 }
