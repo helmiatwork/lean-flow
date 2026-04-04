@@ -49,12 +49,9 @@ SQLite database with FTS5 full-text search. Save solved patterns, retrieve them 
 
 | Agent | Model | Role |
 |:------|:-----:|:-----|
-| **Oracle** | Sonnet | Architecture review, code review, stuck diagnosis |
-| **Coder** | Sonnet | Complex features, logic, new patterns |
-| **Fixer** | Haiku | Simple/mechanical: copy patterns, rename, delete dead code |
-| **Auditor** | Sonnet | Security scan, diff risk, vulnerability detection |
-| **Tester** | Sonnet | Dedicated test writer, coverage improvement |
-| **Librarian** | Sonnet | Docs lookup, web search, research |
+| **Oracle** | Sonnet | Architecture review, code review, stuck diagnosis, security audit |
+| **Fixer** | Haiku | All implementation: features, bug fixes, refactors, tests, mechanical changes |
+| **Librarian** | Haiku | Docs lookup, web search, research |
 | **Designer** | Sonnet | UI/UX, frontend components |
 | **Explorer** | Haiku | File discovery, codebase navigation |
 
@@ -209,22 +206,15 @@ flowchart TD
 
     RESEARCH{"Needs research?"}
     RESEARCH -->|"Unfamiliar code"| EXPLORER["🔍 Explorer\n(haiku)"]
-    RESEARCH -->|"Need docs"| LIBRARIAN["📚 Librarian\n(sonnet)"]
+    RESEARCH -->|"Need docs"| LIBRARIAN["📚 Librarian\n(haiku)"]
     RESEARCH -->|"No"| STEPBR
 
     EXPLORER --> STEPBR
     LIBRARIAN --> STEPBR
 
-    STEPBR["🌿 Step branch\nprefix/name/step-N"] --> COMPLEXITY
+    STEPBR["🌿 Step branch\nprefix/name/step-N"] --> IMPLEMENT
 
-    COMPLEXITY{"Complex?"}
-    COMPLEXITY -->|"New logic"| CODER["👨‍💻 Coder\n(sonnet)"]
-    COMPLEXITY -->|"Mechanical"| FIXER["🔧 Fixer\n(haiku)"]
-
-    CODER --> TESTWRITE
-    FIXER --> TESTWRITE
-
-    TESTWRITE["🧪 Tester\n(sonnet)\nWrite/verify tests"] --> TEST
+    IMPLEMENT["🔧 Fixer\n(haiku)\nImplement + tests"] --> TEST
 
     TEST["Run tests"]
     TEST -->|"Fail x3"| ORACLE_ESC["🔮 Oracle\n(sonnet)\nDiagnosis"]
@@ -235,7 +225,7 @@ flowchart TD
     MERGE_STEP --> CHECKBOX["☑️ Mark step [x]"]
     CHECKBOX --> STEP
 
-    AUDIT["🔒 Auditor\n(sonnet)\nSecurity scan\nfull parent diff"] --> CLEAN
+    AUDIT["🔮 Oracle\n(sonnet)\nSecurity audit\nfull parent diff"] --> CLEAN
 
     CLEAN{"Issues?"}
     CLEAN -->|"Found"| FIXAUDIT["🔮 Oracle creates\nfix PR → parent"]
@@ -272,15 +262,12 @@ flowchart TD
     style EXPLORER fill:#3498DB,color:#fff
     style LIBRARIAN fill:#3498DB,color:#fff
     style STEPBR fill:#1ABC9C,color:#fff
-    style COMPLEXITY fill:#F39C12,color:#fff
-    style CODER fill:#E67E22,color:#fff
-    style FIXER fill:#3498DB,color:#fff
+    style IMPLEMENT fill:#3498DB,color:#fff
     style FIX fill:#E67E22,color:#fff
-    style TESTWRITE fill:#7B68EE,color:#fff
     style FIXAUDIT fill:#E67E22,color:#fff
     style FIXFINAL fill:#E67E22,color:#fff
     style TEST fill:#7B68EE,color:#fff
-    style AUDIT fill:#E74C3C,color:#fff
+    style AUDIT fill:#9B59B6,color:#fff
     style MAINPR fill:#2ECC71,color:#fff
     style ORACLE_ESC fill:#9B59B6,color:#fff
     style FINAL fill:#9B59B6,color:#fff
@@ -310,12 +297,12 @@ flowchart TD
 3a. **Greenfield: Doc-First** — For new projects: brainstorm → generate docs (PRD, HLA, TRD, DB, API) → plan from docs.
 4. **Planning** — plan-plus generates skeleton + step files. User approves.
 5. **Branching** — Parent branch from main. Step branches from parent (skip step branches when solo).
-6. **Execute Steps** — TDD optional. Fixer/coder implements, tester verifies. Parallel independent steps.
+6. **Execute Steps** — TDD optional. Fixer implements + writes tests. Parallel independent steps.
 6a. **Solo Dev** — Skip step PRs. Commit on parent. Use plan-plus-executor agents per step.
 7. **Re-planning** — If a step reveals plan is wrong, revise remaining steps.
-8. **Agent Routing** — Explorer/Fixer (haiku), Coder/Tester/Auditor/Oracle (sonnet, oracle read-only).
+8. **Agent Routing** — Explorer/Fixer/Librarian (haiku), Oracle/Designer (sonnet, oracle read-only).
 9. **Test + Retry** — 3 failures → oracle escalation. 3 oracle rounds → human intervention.
-10. **Security Audit** — Once on full parent diff. Fixer fixes, oracle reviews. Max 3 rounds.
+10. **Security Audit** — Oracle scans full parent diff. Fixer fixes, oracle reviews. Max 3 rounds.
 11. **Commit & PR Style** — Two templates: step PR (technical) vs main PR (business + release notes).
 12. **Final PR** — Parent → main with release notes. Oracle final review.
 13. **Hotfix** 🔥 — Branch from main, skip planning, inline oracle review, fast merge.
@@ -453,12 +440,9 @@ lean-flow/
 ├── .claude-plugin/
 │   └── plugin.json              # Plugin metadata
 ├── agents/
-│   ├── oracle.md                # Sonnet — code review, architecture
-│   ├── coder.md                 # Sonnet — complex features, logic
-│   ├── fixer.md                 # Haiku — simple/mechanical changes
-│   ├── auditor.md               # Sonnet — security scan, diff risk
-│   ├── tester.md                # Sonnet — dedicated test writer
-│   ├── librarian.md             # Sonnet — research, docs
+│   ├── oracle.md                # Sonnet — code review, architecture, security audit
+│   ├── fixer.md                 # Haiku — all implementation, tests, mechanical changes
+│   ├── librarian.md             # Haiku — research, docs
 │   ├── designer.md              # Sonnet — UI/UX
 │   └── explorer.md              # Haiku — codebase navigation
 ├── skills/
@@ -511,12 +495,10 @@ lean-flow/
 
 | Role | ruflo agent | lean-flow agent | Difference |
 |:-----|:-----------|:----------------|:-----------|
-| Architecture & review | `architect.yaml` (tags only) | **oracle.md** (sonnet) | Full instructions, severity levels, PR quality review |
-| Implementation | `coder.yaml` (tags only) | **fixer.md** (sonnet) | Retry behavior, test rules, clear spec execution |
-| Code review | `reviewer.yaml` (tags only) | **oracle.md** (sonnet) | Same agent handles review + architecture (saves sonnet calls) |
-| Security | `security-architect.yaml` (tags only) | **auditor.md** (sonnet) | Specific tools (brakeman, npm audit), PII checks, structured reports |
-| Testing | `tester.yaml` (tags only) | **tester.md** (sonnet) | Framework-specific rules (Minitest, Jest, Playwright), coverage focus |
-| Research | *(none)* | **librarian.md** (sonnet) | Docs lookup, web search, API reference |
+| Architecture, review & security | `architect.yaml` + `security-architect.yaml` (tags only) | **oracle.md** (sonnet) | Full instructions, severity levels, PR review, security audit, PII checks |
+| Implementation & testing | `coder.yaml` + `tester.yaml` (tags only) | **fixer.md** (haiku) | All code changes + test writing in one agent, retry behavior |
+| Code review | `reviewer.yaml` (tags only) | **oracle.md** (sonnet) | Same agent handles review + architecture + security (saves sonnet calls) |
+| Research | *(none)* | **librarian.md** (haiku) | Docs lookup, web search, API reference |
 | UI/UX | *(none)* | **designer.md** (sonnet) | Frontend components, accessibility, responsive design |
 | Navigation | *(none)* | **explorer.md** (haiku) | Fast file discovery, codebase structure |
 
