@@ -75,17 +75,10 @@ flowchart TD
     STEPBR["🌿 Step branch\nprefix/name/step-N"] --> TESTFIRST
 
     TESTFIRST{"TDD?"}
-    TESTFIRST -->|"Yes"| TDDTEST["🧪 Tester writes\nfailing tests"] --> COMPLEXITY
-    TESTFIRST -->|"No"| COMPLEXITY
+    TESTFIRST -->|"Yes"| TDDTEST["🔧 Fixer writes\nfailing tests"] --> IMPLEMENT
+    TESTFIRST -->|"No"| IMPLEMENT
 
-    COMPLEXITY{"Complex?"}
-    COMPLEXITY -->|"New logic,\nfeatures"| CODER["👨‍💻 Coder\n(sonnet)"]
-    COMPLEXITY -->|"Copy pattern,\nrename, delete"| FIXER["🔧 Fixer\n(haiku)"]
-
-    CODER --> TESTVERIFY
-    FIXER --> TESTVERIFY
-
-    TESTVERIFY["🧪 Tester\nverify + add tests"] --> TEST
+    IMPLEMENT["🔧 Fixer\n(haiku)\nImplement + tests"] --> TEST
 
     TEST["Run tests"]
     TEST -->|"Fail x3"| ORACLE_ESC["🔮 Oracle\n(sonnet)\nDiagnosis"]
@@ -134,15 +127,12 @@ flowchart TD
     style REPLAN fill:#4A90D9,color:#fff
     style STEPBR fill:#1ABC9C,color:#fff
     style TESTFIRST fill:#F39C12,color:#fff
-    style TDDTEST fill:#7B68EE,color:#fff
-    style COMPLEXITY fill:#F39C12,color:#fff
-    style CODER fill:#E67E22,color:#fff
-    style FIXER fill:#3498DB,color:#fff
+    style IMPLEMENT fill:#3498DB,color:#fff
     style FIX fill:#E67E22,color:#fff
     style FIXAUDIT fill:#E67E22,color:#fff
     style FIXFINAL fill:#E67E22,color:#fff
     style TEST fill:#7B68EE,color:#fff
-    style TESTVERIFY fill:#7B68EE,color:#fff
+    style TDDTEST fill:#3498DB,color:#fff
     style AUDIT fill:#E74C3C,color:#fff
     style MAINPR fill:#2ECC71,color:#fff
     style RESEARCH fill:#F39C12,color:#fff
@@ -262,9 +252,9 @@ For new projects (empty repos), generate project documentation **before** planni
 ### 6. Execute Steps (sequential, parallel fixers within)
 - For each step:
   1. Create step branch from parent
-  2. **TDD mode** (if applicable): tester writes failing tests first
+  2. **TDD mode** (if applicable): fixer writes failing tests first
   3. Dispatch fixer(s) — parallel for independent sub-tasks within the step
-  4. Tester verifies + adds additional tests
+  4. Fixer implements + writes tests
   5. Run tests
   6. Create PR: step branch → parent branch
   7. Merge step PR into parent (no oracle review — saves tokens)
@@ -297,11 +287,10 @@ When working solo (no team reviewers, no CI per step), per-step PRs are pure ove
 |-------|-------|------|
 | Explorer | haiku | File discovery, codebase navigation |
 | Librarian | sonnet | Docs, API lookup, web search |
-| Coder | sonnet | Complex features, logic, new patterns, refactors |
-| Fixer | haiku | Simple/mechanical: copy patterns, rename, delete, add types |
-| Tester | sonnet | Write tests (TDD or verification), improve coverage |
+| Fixer | haiku | All implementation: features, bug fixes, refactors, tests, mechanical changes |
 | Auditor | sonnet | Security scan, diff risk analysis |
 | Oracle | sonnet | Code review, stuck diagnosis, architecture decisions (read-only) |
+| Designer | sonnet | UI/UX, frontend components |
 | Orchestrator | opus | Triage, PR creation, reviews auditor fixes (no agent cost) |
 
 > **Oracle is read-only.** Oracle diagnoses issues and reviews code but never edits files. When the audit finds issues, **fixer** implements the fix and **oracle** reviews it.
