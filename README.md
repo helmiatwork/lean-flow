@@ -140,6 +140,12 @@ flowchart TD
     GREENFIELD["🌱 Brainstorm\nproduct concept"] --> GENDOCS
     GENDOCS["📄 Generate docs\n(PRD, HLA, TRD, DB, API)"] --> PLANMODE
 
+    %% === HOTFIX PATH ===
+    TRIAGE -->|"Hotfix 🔥"| HOTFIX
+    HOTFIX["🔥 hotfix/ branch\nfrom main"] --> HOTFIXFIX["🔧 Fixer\nMinimal fix + test"]
+    HOTFIXFIX --> HOTFIXPR["PR hotfix → main\n🔮 Oracle inline review"]
+    HOTFIXPR --> HOTFIXDONE(["✅ Merge"])
+
     MEMORY["🧠 pattern_search\nKnowledge MCP"] --> FOUND
 
     FOUND{"Match?"}
@@ -260,10 +266,14 @@ flowchart TD
     style AUDITREV fill:#8E44AD,color:#fff
     style GREENFIELD fill:#16A085,color:#fff
     style GENDOCS fill:#1ABC9C,color:#fff
+    style HOTFIX fill:#E74C3C,color:#fff
+    style HOTFIXFIX fill:#E67E22,color:#fff
+    style HOTFIXPR fill:#2ECC71,color:#fff
+    style HOTFIXDONE fill:#27AE60,color:#fff
 ```
 
 <details>
-<summary><strong>Workflow steps explained (16 steps)</strong></summary>
+<summary><strong>Workflow steps explained (18 steps)</strong></summary>
 
 1. **Triage** — Simple → fixer + test + PR. Complex → pattern search. Greenfield → doc-first. Hotfix → fast path.
 2. **Pattern Search** — Check knowledge MCP. Match → fixer applies. No match → brainstorm.

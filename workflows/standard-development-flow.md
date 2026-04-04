@@ -234,10 +234,10 @@ For new projects (empty repos), generate project documentation **before** planni
 2. **Generate docs** — spawn parallel sonnet agents to create:
    - **PRD** — product requirements, user stories, MVP scope
    - **HLA** — high-level architecture, system diagram, component breakdown
-   - **TRD** — technical requirements, API specs, database schema, Go structs
+   - **TRD** — technical requirements, data models, implementation specs (umbrella for below)
+   - **Database Design** — detailed TRD spec: full DDL, indexes, spatial queries, seed data
+   - **API Design** — detailed TRD spec: all endpoints with request/response contracts
    - **Architecture** — ADRs, DDD bounded contexts, migration path
-   - **Database Design** — full DDL, indexes, spatial queries, seed data
-   - **API Design** — all endpoints with request/response contracts
 3. **Split TRD per repo** — in multi-repo projects, keep docs scoped per repo to avoid token bloat
 4. **Plan from docs** — use generated docs as the reference for implementation planning
 
@@ -273,7 +273,7 @@ For new projects (empty repos), generate project documentation **before** planni
 ### 6a. Solo Dev: Skip Step Branches
 When working solo (no team reviewers, no CI per step), per-step PRs are pure overhead:
 
-- **Commit directly on parent branch** — one commit per feature, not per step
+- **Work on parent branch** — no step branches, no per-step PRs. Commit once at the end or per logical group
 - **Still use plan-plus steps** — steps structure the work, but don't need separate branches
 - **Run plan-plus-executor agents per step** — each step dispatched as an agent call
 - **Parallel independent steps** — steps with no dependency can run as parallel agents
