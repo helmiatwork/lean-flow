@@ -54,6 +54,21 @@
             "type": "command",
             "command": "bash ${CLAUDE_PLUGIN_ROOT}/scripts/block-no-verify.sh",
             "if": "Bash(git *--no-verify*)"
+          },
+          {
+            "type": "command",
+            "command": "bash ${CLAUDE_PLUGIN_ROOT}/scripts/block-secret-commits.sh",
+            "if": "Bash(git add *)"
+          },
+          {
+            "type": "command",
+            "command": "bash ${CLAUDE_PLUGIN_ROOT}/scripts/block-claude-identity.sh",
+            "if": "Bash(git commit *)"
+          },
+          {
+            "type": "command",
+            "command": "bash ${CLAUDE_PLUGIN_ROOT}/scripts/block-claude-identity.sh",
+            "if": "Bash(gh pr create*)"
           }
         ]
       },
@@ -63,6 +78,11 @@
           {
             "type": "command",
             "command": "bash ${CLAUDE_PLUGIN_ROOT}/scripts/warn-secret-files.sh",
+            "timeout": 3000
+          },
+          {
+            "type": "command",
+            "command": "bash ${CLAUDE_PLUGIN_ROOT}/scripts/block-wrong-plan-dir.sh",
             "timeout": 3000
           }
         ]

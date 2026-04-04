@@ -78,8 +78,13 @@ Steps append `/step-N`: `feature/onboarding/step-1`
 
 ### 🔒 Safety Hooks
 - **Block** direct push to `main` / `master` / `staging`
-- **Block** `--no-verify` flag on git commands
+- **Block** `--no-verify` and `--no-gpg-sign` flags on git commands
+- **Block** staging secret files (`.env`, credentials) — warns on `git add .`
+- **Block** Claude identity in commits and PRs (Co-Authored-By, attribution)
+- **Block** saving plans to wrong directory (`docs/superpowers/plans/`)
 - **Auto-allow** workflow tools (Agent, Tasks, PlanMode) — no permission prompts
+
+> These hooks enforce rules at the shell level (exit code 2 = block). Zero token cost — no prompt instructions needed.
 
 ### 📊 Usage Monitor *(macOS)*
 SwiftBar menu bar plugin showing real-time Claude Code usage:
@@ -349,14 +354,8 @@ lean-flow automatically enables these companion plugins on first session:
 > **Important:** lean-flow uses **plan-plus** for planning. The flow is:
 > 1. `EnterPlanMode` — opens plan file at `~/.claude/plans/`
 > 2. Invoke `writing-plans` skill for quality guidance (how to write good plans)
-> 3. Write the plan to the plan mode file (NOT `docs/superpowers/plans/`)
+> 3. Write the plan to the plan mode file (wrong directory blocked by hook)
 > 4. `ExitPlanMode` — plan-plus restructures into skeleton + steps, plan viewer opens
->
-> Add this to your CLAUDE.md:
-> ```
-> Plans go to ~/.claude/plans/ ONLY. Never save to docs/superpowers/plans/.
-> Use writing-plans skill for plan QUALITY, but save via plan mode (not the skill's default path).
-> ```
 
 > Restart session after first install to activate.
 
@@ -444,7 +443,10 @@ lean-flow/
 │   ├── ensure-playwright-mcp.sh # Auto-install Playwright + Chromium
 │   ├── ensure-claude-monitor.sh # Auto-install SwiftBar usage monitor
 │   ├── block-protected-push.sh  # Block push to main/master/staging
-│   ├── block-no-verify.sh       # Block --no-verify bypass
+│   ├── block-no-verify.sh       # Block --no-verify/--no-gpg-sign bypass
+│   ├── block-secret-commits.sh  # Block staging .env/credentials files
+│   ├── block-claude-identity.sh # Block Claude attribution in commits/PRs
+│   ├── block-wrong-plan-dir.sh  # Block plans saved outside ~/.claude/plans/
 │   ├── session-briefing.sh      # Git state on session start
 │   ├── auto-dream.sh            # Memory consolidation (background)
 │   ├── auto-dream-prompt.md     # Dream agent instructions

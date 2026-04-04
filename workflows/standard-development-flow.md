@@ -246,7 +246,7 @@ For new projects (empty repos), generate project documentation **before** planni
 ### 4. Planning (plan-plus + writing-plans quality)
 - `EnterPlanMode` — opens plan file at `~/.claude/plans/`
 - Invoke `writing-plans` skill for quality guidance (exact file paths, code blocks, TDD steps, no placeholders)
-- Write the plan to the plan mode file — NEVER save to `docs/superpowers/plans/`
+- Write the plan to the plan mode file (wrong directory blocked by `block-wrong-plan-dir.sh` hook)
 - User MUST review and approve before execution
 - `ExitPlanMode` — plan-plus restructures into skeleton + step files
 - Plan viewer opens at localhost:3456
