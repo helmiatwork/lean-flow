@@ -93,6 +93,8 @@ SwiftBar menu bar plugin showing real-time Claude Code usage:
 - Auto-refresh via launchd daemon (every 3 min)
 
 > **Note:** The usage monitor requires macOS + SwiftBar. On Linux, you can manually check usage with `claude /usage` or read `/tmp/claude-usage-cache.json` if the fetcher is running.
+>
+> **macOS permission:** The fetcher daemon runs `node` to access Claude's usage data. If you see a *"node would like to access data from other apps"* dialog, go to **System Settings → Privacy & Security → App Management** and toggle **Allow** for `node`. If `node` isn't listed, click **+** and navigate to `/opt/homebrew/bin/node` (or wherever `which node` points). This is a one-time setup.
 
 ### 🗺️ Cartography (Repository Mapping)
 Generate hierarchical codemaps for fast agent orientation. Instead of explorer agents scanning file-by-file (~3K tokens), agents read `codemap.md` (~200 tokens).
