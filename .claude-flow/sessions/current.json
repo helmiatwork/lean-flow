@@ -4,7 +4,9 @@
   "cwd": "/private/tmp/lean-flow",
   "context": {
     "lastMatchedPatterns": [
-      "mem-MEMORY-feedback"
+      "mem-feedback_skills_primary_source----",
+      "mem-project_ichigo_crm-documentation-in-repo",
+      "mem-shipping-finder-refactor-spec-updates"
     ]
   },
   "metrics": {
@@ -13,5 +15,5 @@
     "tasks": 0,
     "errors": 0
   },
-  "updatedAt": "2026-04-04T02:39:27.862Z"
+  "updatedAt": "2026-04-04T05:14:21.818Z"
 }

@@ -111,8 +111,8 @@
     "mem-MEMORY-feedback": {
       "id": "mem-MEMORY-feedback",
       "category": "core",
-      "confidence": 0.5,
-      "accessCount": 0,
+      "confidence": 0.53,
+      "accessCount": 1,
       "createdAt": 1775262069565
     },
     "mem-MEMORY-references": {
@@ -195,8 +195,8 @@
     "mem-MEMORY----feedback-rtk-prefix-md--fee": {
       "id": "mem-MEMORY----feedback-rtk-prefix-md--fee",
       "category": "core",
-      "confidence": 0.56,
-      "accessCount": 2,
+      "confidence": 0.5900000000000001,
+      "accessCount": 3,
       "createdAt": 1775262069562
     },
     "mem-feedback_boot_superpowers----": {

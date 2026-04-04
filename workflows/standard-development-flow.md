@@ -249,7 +249,8 @@ main
 |-------|-------|------|
 | Explorer | haiku | File discovery, codebase navigation |
 | Librarian | sonnet | Docs, API lookup, web search |
-| Fixer | sonnet | All implementation work (including security fixes from audit) |
+| Coder | sonnet | Complex features, logic, new patterns, refactors |
+| Fixer | haiku | Simple/mechanical: copy patterns, rename, delete, add types |
 | Tester | sonnet | Write tests (TDD or verification), improve coverage |
 | Auditor | sonnet | Security scan, diff risk analysis |
 | Oracle | opus | Code review, stuck diagnosis, architecture decisions (read-only) |
