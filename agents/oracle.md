@@ -1,7 +1,7 @@
 ---
 name: oracle
 description: Architecture review, complex debugging, code review. Read-only — never edits code directly. Use for high-stakes decisions, PR review, and stuck diagnosis after 3 fixer failures.
-model: opus
+model: sonnet
 tools: ["Read", "Glob", "Grep", "Bash", "WebSearch", "WebFetch"]
 ---
 

@@ -49,7 +49,7 @@ SQLite database with FTS5 full-text search. Save solved patterns, retrieve them 
 
 | Agent | Model | Role |
 |:------|:-----:|:-----|
-| **Oracle** | Opus | Architecture review, code review, stuck diagnosis |
+| **Oracle** | Sonnet | Architecture review, code review, stuck diagnosis |
 | **Coder** | Sonnet | Complex features, logic, new patterns |
 | **Fixer** | Haiku | Simple/mechanical: copy patterns, rename, delete dead code |
 | **Auditor** | Sonnet | Security scan, diff risk, vulnerability detection |
@@ -124,6 +124,15 @@ Auto-opens a browser dashboard at `localhost:3456` when you exit plan mode. Show
 - **Status indicators** — 🟢 complete, 🟡 in progress, ⚫ not started
 
 The viewer runs as a background server. Starts automatically on first plan exit, reuses existing server on subsequent exits.
+
+### ⚡ RTK (Rust Token Killer)
+Auto-installs [RTK](https://www.rtk-ai.app) — a Rust CLI proxy that rewrites Bash commands to token-optimized equivalents. Typical savings: **40-90% fewer output tokens** on dev operations.
+
+- `git status`, `ls`, `find`, `grep`, `diff` → compact RTK output
+- Transparent — no prompt changes needed, works via PreToolUse hook
+- Check savings anytime: `rtk gain`
+
+> RTK is auto-installed on first session (via brew or curl fallback). Disable with `"enable": { "rtk": false }` in `~/.claude/lean-flow.json`.
 
 ### 💤 Auto-Dream
 Background memory consolidation using Haiku. Runs every 5 sessions / 24 hours. Cleans up stale memories, merges duplicates, prunes outdated entries.
@@ -203,7 +212,7 @@ flowchart TD
     TESTWRITE["🧪 Tester\n(sonnet)\nWrite/verify tests"] --> TEST
 
     TEST["Run tests"]
-    TEST -->|"Fail x3"| ORACLE_ESC["🔮 Oracle\n(opus)\nDiagnosis"]
+    TEST -->|"Fail x3"| ORACLE_ESC["🔮 Oracle\n(sonnet)\nDiagnosis"]
     ORACLE_ESC --> FIX
     TEST -->|"Pass"| STEPPR
 
@@ -222,7 +231,7 @@ flowchart TD
 
     MAINPR["PR parent → main"] --> FINAL
 
-    FINAL["🔮 Oracle\n(opus)\nFinal review"]
+    FINAL["🔮 Oracle\n(sonnet)\nFinal review"]
     FINAL -->|"Issues"| FIXFINAL["🔧 Fixer\nfix on parent"]
     FINAL -->|"Approved"| LEARN
 
@@ -289,7 +298,7 @@ flowchart TD
 6. **Execute Steps** — TDD optional. Fixer/coder implements, tester verifies. Parallel independent steps.
 6a. **Solo Dev** — Skip step PRs. Commit on parent. Use plan-plus-executor agents per step.
 7. **Re-planning** — If a step reveals plan is wrong, revise remaining steps.
-8. **Agent Routing** — Explorer/Fixer (haiku), Coder/Tester/Auditor (sonnet), Oracle (opus, read-only).
+8. **Agent Routing** — Explorer/Fixer (haiku), Coder/Tester/Auditor/Oracle (sonnet, oracle read-only).
 9. **Test + Retry** — 3 failures → oracle escalation. 3 oracle rounds → human intervention.
 10. **Security Audit** — Once on full parent diff. Fixer fixes, oracle reviews. Max 3 rounds.
 11. **Commit & PR Style** — Two templates: step PR (technical) vs main PR (business + release notes).
@@ -337,6 +346,7 @@ Everything else is **automatic**. On first session, lean-flow will:
 | 🔒 Permissions | Auto-allow workflow tools, block protected branches | ~1s |
 | 🎭 Playwright | `@playwright/mcp` + Chromium browser | ~30s |
 | 📊 Usage Monitor | SwiftBar + launchd fetcher *(macOS only)* | ~15s |
+| ⚡ RTK | Rust tool rewrites for faster Bash commands ([rtk-ai.app](https://www.rtk-ai.app)) | ~5s |
 | 📺 Plan Viewer | Live dashboard at localhost:3456 (on ExitPlanMode) | ~1s |
 | 📋 Session Briefing | Git state summary | ~1s |
 
@@ -387,7 +397,7 @@ Customize lean-flow by creating `~/.claude/lean-flow.json`:
   "protectedBranches": ["main", "master", "staging", "production"],
   "models": {
     "fixer": "sonnet",
-    "oracle": "opus",
+    "oracle": "sonnet",
     "explorer": "haiku"
   },
   "dream": {
@@ -397,7 +407,8 @@ Customize lean-flow by creating `~/.claude/lean-flow.json`:
   "enable": {
     "playwright": true,
     "monitor": true,
-    "knowledge": true
+    "knowledge": true,
+    "rtk": true
   },
   "branchPrefixes": ["feature", "fix", "improvement", "security", "test", "docs", "chore", "hotfix"]
 }
@@ -426,7 +437,7 @@ lean-flow/
 ├── .claude-plugin/
 │   └── plugin.json              # Plugin metadata
 ├── agents/
-│   ├── oracle.md                # Opus — code review, architecture
+│   ├── oracle.md                # Sonnet — code review, architecture
 │   ├── coder.md                 # Sonnet — complex features, logic
 │   ├── fixer.md                 # Haiku — simple/mechanical changes
 │   ├── auditor.md               # Sonnet — security scan, diff risk
@@ -442,6 +453,7 @@ lean-flow/
 │   ├── ensure-plugins.sh        # Auto-enable superpowers + plan-plus
 │   ├── ensure-playwright-mcp.sh # Auto-install Playwright + Chromium
 │   ├── ensure-claude-monitor.sh # Auto-install SwiftBar usage monitor
+│   ├── ensure-rtk.sh           # Auto-install RTK (Rust tool rewrites)
 │   ├── block-protected-push.sh  # Block push to main/master/staging
 │   ├── block-no-verify.sh       # Block --no-verify/--no-gpg-sign bypass
 │   ├── block-secret-commits.sh  # Block staging .env/credentials files
@@ -479,9 +491,9 @@ lean-flow/
 
 | Role | ruflo agent | lean-flow agent | Difference |
 |:-----|:-----------|:----------------|:-----------|
-| Architecture & review | `architect.yaml` (tags only) | **oracle.md** (opus) | Full instructions, severity levels, PR quality review |
+| Architecture & review | `architect.yaml` (tags only) | **oracle.md** (sonnet) | Full instructions, severity levels, PR quality review |
 | Implementation | `coder.yaml` (tags only) | **fixer.md** (sonnet) | Retry behavior, test rules, clear spec execution |
-| Code review | `reviewer.yaml` (tags only) | **oracle.md** (opus) | Same agent handles review + architecture (saves opus calls) |
+| Code review | `reviewer.yaml` (tags only) | **oracle.md** (sonnet) | Same agent handles review + architecture (saves sonnet calls) |
 | Security | `security-architect.yaml` (tags only) | **auditor.md** (sonnet) | Specific tools (brakeman, npm audit), PII checks, structured reports |
 | Testing | `tester.yaml` (tags only) | **tester.md** (sonnet) | Framework-specific rules (Minitest, Jest, Playwright), coverage focus |
 | Research | *(none)* | **librarian.md** (sonnet) | Docs lookup, web search, API reference |

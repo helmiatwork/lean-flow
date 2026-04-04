@@ -11,7 +11,7 @@ if echo "$OUTPUT" | grep -qiE '(FAIL|FAILED|failures?:|errors?:)\s*[1-9]|tests?\
   echo "$count" > "$COUNTER_FILE"
 
   if [ "$count" -ge 3 ]; then
-    echo "{\"hookSpecificOutput\":{\"hookEventName\":\"PostToolUse\",\"additionalContext\":\"⚠️ Test failure #${count}. ESCALATE TO ORACLE — fixer has failed 3+ times. Dispatch oracle (opus) for root cause diagnosis before retrying.\"}}"
+    echo "{\"hookSpecificOutput\":{\"hookEventName\":\"PostToolUse\",\"additionalContext\":\"⚠️ Test failure #${count}. ESCALATE TO ORACLE — fixer has failed 3+ times. Dispatch oracle (sonnet) for root cause diagnosis before retrying.\"}}"
     echo "0" > "$COUNTER_FILE"
   elif [ "$count" -ge 2 ]; then
     echo "{\"hookSpecificOutput\":{\"hookEventName\":\"PostToolUse\",\"additionalContext\":\"⚠️ Test failure #${count} of 3. One more failure triggers Oracle escalation.\"}}"
