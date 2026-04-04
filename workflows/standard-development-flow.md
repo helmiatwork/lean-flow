@@ -66,7 +66,7 @@ flowchart TD
 
     RESEARCH{"Needs research?"}
     RESEARCH -->|"Unfamiliar code"| EXPLORER["🔍 Explorer\n(haiku)"]
-    RESEARCH -->|"Need docs"| LIBRARIAN["📚 Librarian\n(sonnet)"]
+    RESEARCH -->|"Need docs"| LIBRARIAN["📚 Librarian\n(haiku)"]
     RESEARCH -->|"No"| STEPBR
 
     EXPLORER --> STEPBR
@@ -286,7 +286,7 @@ When working solo (no team reviewers, no CI per step), per-step PRs are pure ove
 | Agent | Model | When |
 |-------|-------|------|
 | Explorer | haiku | File discovery, codebase navigation |
-| Librarian | sonnet | Docs, API lookup, web search |
+| Librarian | haiku | Docs, API lookup, web search |
 | Fixer | haiku | All implementation: features, bug fixes, refactors, tests, mechanical changes |
 | Oracle | sonnet | Code review, stuck diagnosis, architecture decisions, security audit (read-only) |
 | Designer | sonnet | UI/UX, frontend components |
