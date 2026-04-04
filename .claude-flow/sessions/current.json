@@ -4,11 +4,7 @@
   "cwd": "/private/tmp/lean-flow",
   "context": {
     "lastMatchedPatterns": [
-      "mem-project_oms_pundit-controller-usage",
-      "mem-shipping-finder-refactor-spec-updates",
-      "mem-project_oms_pundit-pundit-patterns",
-      "mem-MEMORY-key-technical-constraints",
-      "mem-project_oms_pundit-authorization-logic"
+      "mem-MEMORY-feedback"
     ]
   },
   "metrics": {
@@ -17,5 +13,5 @@
     "tasks": 0,
     "errors": 0
   },
-  "updatedAt": "2026-04-04T01:22:42.336Z"
+  "updatedAt": "2026-04-04T02:39:27.862Z"
 }

@@ -6,15 +6,15 @@
     "mem-MEMORY----geps-express-split-order-lo": {
       "id": "mem-MEMORY----geps-express-split-order-lo",
       "category": "core",
-      "confidence": 0.5,
-      "accessCount": 0,
+      "confidence": 0.53,
+      "accessCount": 1,
       "createdAt": 1775262069525
     },
     "mem-feedback_fixer_model----": {
       "id": "mem-feedback_fixer_model----",
       "category": "feedback_fixer_model",
-      "confidence": 0.5,
-      "accessCount": 0,
+      "confidence": 0.53,
+      "accessCount": 1,
       "createdAt": 1775262069567
     },
     "mem-feedback_skills_primary_source----": {
@@ -62,15 +62,15 @@
     "mem-feedback_check_codemap----": {
       "id": "mem-feedback_check_codemap----",
       "category": "feedback_check_codemap",
-      "confidence": 0.5,
-      "accessCount": 0,
+      "confidence": 0.53,
+      "accessCount": 1,
       "createdAt": 1775262069532
     },
     "mem-feedback_subagent_delegation----": {
       "id": "mem-feedback_subagent_delegation----",
       "category": "feedback_subagent_delegation",
-      "confidence": 0.5,
-      "accessCount": 0,
+      "confidence": 0.53,
+      "accessCount": 1,
       "createdAt": 1775262069532
     },
     "mem-feedback_superpower_startup----": {
@@ -104,8 +104,8 @@
     "mem-MEMORY-user": {
       "id": "mem-MEMORY-user",
       "category": "core",
-      "confidence": 0.5,
-      "accessCount": 0,
+      "confidence": 0.53,
+      "accessCount": 1,
       "createdAt": 1775262069558
     },
     "mem-MEMORY-feedback": {
@@ -125,8 +125,8 @@
     "mem-feedback_always_create_todos----": {
       "id": "mem-feedback_always_create_todos----",
       "category": "feedback_always_create_todos",
-      "confidence": 0.53,
-      "accessCount": 1,
+      "confidence": 0.5900000000000001,
+      "accessCount": 3,
       "createdAt": 1775262069558
     },
     "mem-feedback_mcp_global_only----": {
@@ -230,8 +230,8 @@
     "mem-project_cicd----": {
       "id": "mem-project_cicd----",
       "category": "project_cicd",
-      "confidence": 0.5,
-      "accessCount": 0,
+      "confidence": 0.53,
+      "accessCount": 1,
       "createdAt": 1775262069564
     },
     "mem-project_cicd-oms-ci---oms--github-workflows": {
@@ -265,22 +265,22 @@
     "mem-project_oms_pundit-authorization-logic": {
       "id": "mem-project_oms_pundit-authorization-logic",
       "category": "project_oms_pundit",
-      "confidence": 0.5,
-      "accessCount": 0,
+      "confidence": 0.53,
+      "accessCount": 1,
       "createdAt": 1775262069564
     },
     "mem-project_oms_pundit-pundit-patterns": {
       "id": "mem-project_oms_pundit-pundit-patterns",
       "category": "project_oms_pundit",
-      "confidence": 0.53,
-      "accessCount": 1,
+      "confidence": 0.56,
+      "accessCount": 2,
       "createdAt": 1775262069564
     },
     "mem-project_oms_pundit-controller-usage": {
       "id": "mem-project_oms_pundit-controller-usage",
       "category": "project_oms_pundit",
-      "confidence": 0.5,
-      "accessCount": 0,
+      "confidence": 0.53,
+      "accessCount": 1,
       "createdAt": 1775262069564
     },
     "mem-project_oms_pundit-admin-ui": {
@@ -314,15 +314,15 @@
     "mem-MEMORY-active-projects": {
       "id": "mem-MEMORY-active-projects",
       "category": "core",
-      "confidence": 0.5,
-      "accessCount": 0,
+      "confidence": 0.53,
+      "accessCount": 1,
       "createdAt": 1775262069565
     },
     "mem-MEMORY-key-technical-constraints": {
       "id": "mem-MEMORY-key-technical-constraints",
       "category": "core",
-      "confidence": 0.5,
-      "accessCount": 0,
+      "confidence": 0.53,
+      "accessCount": 1,
       "createdAt": 1775262069565
     },
     "mem-consolidation-plan----": {
@@ -342,8 +342,8 @@
     "mem-consolidation-plan-pending--requires-write-access": {
       "id": "mem-consolidation-plan-pending--requires-write-access",
       "category": "consolidation-plan",
-      "confidence": 0.5,
-      "accessCount": 0,
+      "confidence": 0.53,
+      "accessCount": 1,
       "createdAt": 1775262069565
     },
     "mem-consolidation-plan-notes": {
@@ -594,8 +594,8 @@
     "mem-shipping-finder-refactor-spec-updates": {
       "id": "mem-shipping-finder-refactor-spec-updates",
       "category": "shipping-finder-refactor",
-      "confidence": 0.5,
-      "accessCount": 0,
+      "confidence": 0.53,
+      "accessCount": 1,
       "createdAt": 1775262069571
     }
   },

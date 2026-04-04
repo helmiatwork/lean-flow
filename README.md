@@ -185,11 +185,7 @@ flowchart TD
     ORACLE_ESC --> FIX
     TEST -->|"Pass"| STEPPR
 
-    STEPPR["PR step → parent"] --> STEPREV
-
-    STEPREV["🔮 Oracle\n(opus)\nReview step PR"]
-    STEPREV -->|"Issues"| FIX
-    STEPREV -->|"Approved"| MERGE_STEP["Merge to parent"]
+    STEPPR["PR step → parent\n(auto-merge)"] --> MERGE_STEP["Merge to parent"]
     MERGE_STEP --> CHECKBOX["☑️ Mark step [x]"]
     CHECKBOX --> STEP
 
@@ -240,7 +236,6 @@ flowchart TD
     style ORACLE_ESC fill:#9B59B6,color:#fff
     style FINAL fill:#9B59B6,color:#fff
     style STEPPR fill:#2ECC71,color:#fff
-    style STEPREV fill:#9B59B6,color:#fff
     style MERGE_STEP fill:#27AE60,color:#fff
     style CHECKBOX fill:#2980B9,color:#fff
     style PLANCOMPLETE fill:#27AE60,color:#fff

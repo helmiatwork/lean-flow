@@ -82,11 +82,7 @@ flowchart TD
     ORACLE_ESC --> FIX
     TEST -->|"Pass"| STEPPR
 
-    STEPPR["PR step → parent"] --> STEPREV
-
-    STEPREV["🔮 Oracle\n(opus)\nReview step PR"]
-    STEPREV -->|"Issues"| FIX
-    STEPREV -->|"Approved"| MERGE_STEP["Merge to parent"]
+    STEPPR["PR step → parent\n(auto-merge, no oracle)"] --> MERGE_STEP["Merge to parent"]
     MERGE_STEP --> CHECKBOX["☑️ Mark step [x]\nin skeleton"]
     CHECKBOX --> STEP
 
@@ -142,7 +138,6 @@ flowchart TD
     style ORACLE_ESC fill:#9B59B6,color:#fff
     style FINAL fill:#9B59B6,color:#fff
     style STEPPR fill:#2ECC71,color:#fff
-    style STEPREV fill:#9B59B6,color:#fff
     style MERGE_STEP fill:#27AE60,color:#fff
     style CHECKBOX fill:#2980B9,color:#fff
     style PLANCOMPLETE fill:#27AE60,color:#fff
@@ -238,8 +233,8 @@ main
   4. Tester verifies + adds additional tests
   5. Run tests
   6. Create PR: step branch → parent branch
-  7. Oracle reviews step PR
-  8. Merge step PR into parent
+  7. Merge step PR into parent (no oracle review — saves tokens)
+     Oracle only reviews the final parent→main PR
   9. Loop to next step
 
 ### 7. Re-planning (mid-execution escape hatch)
