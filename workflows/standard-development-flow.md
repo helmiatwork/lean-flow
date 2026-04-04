@@ -89,7 +89,7 @@ flowchart TD
     MERGE_STEP --> CHECKBOX["☑️ Mark step [x]\nin skeleton"]
     CHECKBOX --> STEP
 
-    AUDIT["🔒 Auditor\n(sonnet)\nSecurity scan\nfull parent diff"] --> CLEAN
+    AUDIT["🔮 Oracle\n(sonnet)\nSecurity audit\nfull parent diff"] --> CLEAN
 
     CLEAN{"Issues?"}
     CLEAN -->|"Found"| FIXAUDIT["🔧 Fixer implements\n🔮 Oracle reviews fix"]
@@ -133,7 +133,7 @@ flowchart TD
     style FIXFINAL fill:#E67E22,color:#fff
     style TEST fill:#7B68EE,color:#fff
     style TDDTEST fill:#3498DB,color:#fff
-    style AUDIT fill:#E74C3C,color:#fff
+    style AUDIT fill:#9B59B6,color:#fff
     style MAINPR fill:#2ECC71,color:#fff
     style RESEARCH fill:#F39C12,color:#fff
     style EXPLORER fill:#3498DB,color:#fff
@@ -288,12 +288,11 @@ When working solo (no team reviewers, no CI per step), per-step PRs are pure ove
 | Explorer | haiku | File discovery, codebase navigation |
 | Librarian | sonnet | Docs, API lookup, web search |
 | Fixer | haiku | All implementation: features, bug fixes, refactors, tests, mechanical changes |
-| Auditor | sonnet | Security scan, diff risk analysis |
-| Oracle | sonnet | Code review, stuck diagnosis, architecture decisions (read-only) |
+| Oracle | sonnet | Code review, stuck diagnosis, architecture decisions, security audit (read-only) |
 | Designer | sonnet | UI/UX, frontend components |
 | Orchestrator | opus | Triage, PR creation, reviews auditor fixes (no agent cost) |
 
-> **Oracle is read-only.** Oracle diagnoses issues and reviews code but never edits files. When the audit finds issues, **fixer** implements the fix and **oracle** reviews it.
+> **Oracle is read-only.** Oracle diagnoses issues, reviews code, and runs security audits but never edits files. When the audit finds issues, **fixer** implements the fix and **oracle** reviews it.
 
 ### 9. Test + Retry
 - Run tests after each step
@@ -304,7 +303,7 @@ When working solo (no team reviewers, no CI per step), per-step PRs are pure ove
 
 ### 10. Security Audit (once, after ALL steps merged into parent)
 - Run on the full parent branch diff vs main
-- Auditor (sonnet) scans for security issues, N+1, diff risk
+- Oracle (sonnet) scans for security issues, N+1, diff risk
 - **Special attention:** database migrations (table locks, backward compat, reversibility)
 - If issues found: **Fixer** implements fix on parent, **Oracle** reviews the fix
 - Re-audit until clean (max 3 rounds, then escalate to human)
