@@ -214,7 +214,9 @@ flowchart TD
 
     STEPBR["🌿 Step branch\nprefix/name/step-N"] --> IMPLEMENT
 
-    IMPLEMENT["🔧 Fixer\n(haiku)\nImplement + tests"] --> TEST
+    IMPLEMENT["🔧 Fixer\n(haiku)\nImplement + tests"] --> FIXCHECK
+
+    FIXCHECK["✅ Fixer checklist\n(self-verify)"] --> TEST
 
     TEST["Run tests"]
     TEST -->|"Fail x3"| ORACLE_ESC["🔮 Oracle\n(sonnet)\nDiagnosis"]
@@ -236,7 +238,7 @@ flowchart TD
 
     MAINPR["PR parent → main"] --> FINAL
 
-    FINAL["🔮 Oracle\n(sonnet)\nFinal review"]
+    FINAL["🔮 Oracle\n(sonnet)\nReview checklist"]
     FINAL -->|"Issues"| FIXFINAL["🔧 Fixer\nfix on parent"]
     FINAL -->|"Approved"| LEARN
 
@@ -263,6 +265,7 @@ flowchart TD
     style LIBRARIAN fill:#3498DB,color:#fff
     style STEPBR fill:#1ABC9C,color:#fff
     style IMPLEMENT fill:#3498DB,color:#fff
+    style FIXCHECK fill:#2ECC71,color:#fff
     style FIX fill:#E67E22,color:#fff
     style FIXAUDIT fill:#E67E22,color:#fff
     style FIXFINAL fill:#E67E22,color:#fff

@@ -78,7 +78,9 @@ flowchart TD
     TESTFIRST -->|"Yes"| TDDTEST["🔧 Fixer writes\nfailing tests"] --> IMPLEMENT
     TESTFIRST -->|"No"| IMPLEMENT
 
-    IMPLEMENT["🔧 Fixer\n(haiku)\nImplement + tests"] --> TEST
+    IMPLEMENT["🔧 Fixer\n(haiku)\nImplement + tests"] --> FIXCHECK
+
+    FIXCHECK["✅ Fixer checklist\n(self-verify)"] --> TEST
 
     TEST["Run tests"]
     TEST -->|"Fail x3"| ORACLE_ESC["🔮 Oracle\n(sonnet)\nDiagnosis"]
@@ -99,7 +101,7 @@ flowchart TD
 
     MAINPR["PR parent → main\n+ release notes"] --> FINAL
 
-    FINAL["🔮 Oracle\n(sonnet)\nFinal review"]
+    FINAL["🔮 Oracle\n(sonnet)\nReview checklist"]
     FINAL -->|"Issues"| FIXFINAL["🔧 Fixer\nfix on parent"]
     FINAL -->|"Approved"| LEARN
 
@@ -128,6 +130,7 @@ flowchart TD
     style STEPBR fill:#1ABC9C,color:#fff
     style TESTFIRST fill:#F39C12,color:#fff
     style IMPLEMENT fill:#3498DB,color:#fff
+    style FIXCHECK fill:#2ECC71,color:#fff
     style FIX fill:#E67E22,color:#fff
     style FIXAUDIT fill:#E67E22,color:#fff
     style FIXFINAL fill:#E67E22,color:#fff
@@ -255,9 +258,10 @@ For new projects (empty repos), generate project documentation **before** planni
   2. **TDD mode** (if applicable): fixer writes failing tests first
   3. Dispatch fixer(s) — parallel for independent sub-tasks within the step
   4. Fixer implements + writes tests
-  5. Run tests
-  6. Create PR: step branch → parent branch
-  7. Merge step PR into parent (no oracle review — saves tokens)
+  5. **Fixer self-verify** — run done checklist (always + conditional items)
+  6. Run tests
+  7. Create PR: step branch → parent branch
+  8. Merge step PR into parent (no oracle review — saves tokens)
      Oracle only reviews the final parent→main PR
   9. Loop to next step
 
@@ -293,6 +297,38 @@ When working solo (no team reviewers, no CI per step), per-step PRs are pure ove
 | Orchestrator | opus | Triage, PR creation, reviews auditor fixes (no agent cost) |
 
 > **Oracle is read-only.** Oracle diagnoses issues, reviews code, and runs security audits but never edits files. When the audit finds issues, **fixer** implements the fix and **oracle** reviews it.
+
+### 8a. Fixer Done Checklist
+Fixer self-verifies before reporting back:
+
+**Always:**
+- Tests pass, deterministic, cover error/edge cases
+- No debug artifacts, secrets, or sensitive data in logs
+- No N+1, unbatched loops, or injection vectors
+- No over-engineering, no duplicate logic
+- Naming consistent, files <500 lines, matches existing patterns
+- Errors actionable and traceable (context IDs, not sensitive data)
+- Release notes accurate for user-facing changes
+
+**If touching DB/API:** migrations reversible, indexes, no breaking changes, pagination, input validated
+**If async/jobs:** idempotent, retry-safe, race conditions handled, dead-letter/failure handling
+**If risky/new:** feature flags, safe env defaults, dependencies justified, logs for critical flows
+
+### 8b. Oracle Review Checklist
+Oracle verifies before returning APPROVED:
+
+- PR description matches actual changes, scoped to request
+- Architecture fits system, follows domain boundaries
+- No unintended behavior changes beyond what was requested
+- Simplicity vs flexibility balanced, no over-abstraction
+- Impact to other services analyzed, rollback strategy exists
+- Safe to deploy gradually, no downtime risk
+- Compatible with current infra
+- Hot paths reviewed, cache strategy considered
+- API contracts consistent, versioned if behavior changes
+- Third-party limits/rate limits considered
+- Matches business intent, edge cases align with real user behavior
+- Error handling aligns with UX expectations
 
 ### 9. Test + Retry
 - Run tests after each step
