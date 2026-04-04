@@ -163,7 +163,8 @@ flowchart TD
 
     STEP{"Next step?"}
     STEP -->|"Yes"| RESEARCH
-    STEP -->|"All done"| AUDIT
+    STEP -->|"All done"| PLANCOMPLETE["✅ All complete"]
+    PLANCOMPLETE --> AUDIT
 
     RESEARCH{"Needs research?"}
     RESEARCH -->|"Unfamiliar code"| EXPLORER["🔍 Explorer\n(haiku)"]
@@ -189,7 +190,8 @@ flowchart TD
     STEPREV["🔮 Oracle\n(opus)\nReview step PR"]
     STEPREV -->|"Issues"| FIX
     STEPREV -->|"Approved"| MERGE_STEP["Merge to parent"]
-    MERGE_STEP --> STEP
+    MERGE_STEP --> CHECKBOX["☑️ Mark step [x]"]
+    CHECKBOX --> STEP
 
     AUDIT["🔒 Auditor\n(sonnet)\nSecurity scan\nfull parent diff"] --> CLEAN
 
@@ -240,6 +242,8 @@ flowchart TD
     style STEPPR fill:#2ECC71,color:#fff
     style STEPREV fill:#9B59B6,color:#fff
     style MERGE_STEP fill:#27AE60,color:#fff
+    style CHECKBOX fill:#2980B9,color:#fff
+    style PLANCOMPLETE fill:#27AE60,color:#fff
     style LEARN fill:#2980B9,color:#fff
     style MERGE fill:#27AE60,color:#fff
     style DONE fill:#27AE60,color:#fff
