@@ -56,5 +56,5 @@ Flag `docs/CODEBASE_MAP.md` for update ONLY if the PR introduced:
 - [ ] Removed or renamed directories
 - [ ] Changed entry points, data flow, or architecture
 
-If flagged: Sonnet subagents re-analyze changed modules → update relevant sections of `docs/CODEBASE_MAP.md`.
+If flagged: Sonnet subagents re-analyze changed modules → **Fixer** (haiku) writes updated sections to `docs/CODEBASE_MAP.md`.
 If not flagged: skip — Tier 1 stays as-is.
