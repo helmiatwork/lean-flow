@@ -155,38 +155,167 @@ Background memory consolidation using Haiku. Runs every 5 sessions / 24 hours. C
 
 ```mermaid
 flowchart TD
-    USER([User prompt]) --> TRIAGE
+    USER(["👤 User prompt"]) --> TRIAGE
 
-    TRIAGE{Orchestrator triages}
-    TRIAGE -->|Simple| DIRECT[Handle directly] --> DONE([Done])
-    TRIAGE -->|Greenfield| GENDOCS[Generate docs] --> PLAN
-    TRIAGE -->|Hotfix| HOTFIX[Hotfix branch] --> HOTFIXPR[PR to main] --> DONE
-    TRIAGE -->|Complex| MEMORY[Pattern search]
+    TRIAGE{"🎯 Orchestrator\ntriages complexity"}
+    TRIAGE -->|"Simple"| DIRECTFIX
+    TRIAGE -->|"Complex"| MEMORY
+    TRIAGE -->|"Greenfield 🌱"| GREENFIELD
+    TRIAGE -->|"Hotfix 🔥"| HOTFIX
 
-    MEMORY --> FOUND{Match?}
-    FOUND -->|Yes| BRANCH
-    FOUND -->|No| PLAN[Plan and approve]
+    %% === GREENFIELD PATH ===
+    GREENFIELD["🌱 Brainstorm\nproduct concept"] --> GENDOCS
+    GENDOCS["📄 Generate docs\n(parallel sonnet agents)\nPRD, HLA, TRD, DB, API"] --> PLANMODE
 
-    PLAN --> BRANCH[Create parent branch]
-    BRANCH --> STEP
+    %% === SIMPLE PATH ===
+    DIRECTFIX["🔧 Fixer\nImplement fix"] --> DIRECTTEST["Run tests"]
+    DIRECTTEST -->|"Pass"| DIRECTPR["PR → main\n(with release notes)"]
+    DIRECTTEST -->|"Fail"| DIRECTFIX
+    DIRECTPR --> DONE(["✅ Done"])
 
-    subgraph Step Loop
-        STEP{Next step?} -->|Yes| RESEARCH{Research?}
-        RESEARCH -->|Yes| AGENTS[Explorer / Librarian] --> IMPL
-        RESEARCH -->|No| IMPL[Fixer implements + tests]
-        IMPL --> TEST{Tests pass?}
-        TEST -->|Fail x3| ORACLE_ESC[Oracle diagnoses] --> IMPL
-        TEST -->|Pass| STEPPR[PR step to parent] --> STEP
-    end
+    %% === HOTFIX PATH ===
+    HOTFIX["🔥 hotfix/ branch\nfrom main"] --> HOTFIXFIXER["🔧 Fixer\nMinimal fix"]
+    HOTFIXFIXER --> HOTFIXTEST["Run tests"]
+    HOTFIXTEST -->|"Fail"| HOTFIXFIXER
+    HOTFIXTEST -->|"Pass"| HOTFIXPR["PR hotfix → main\n🔮 Oracle inline review\n+ release notes"]
+    HOTFIXPR --> HOTFIXMERGE(["✅ Merge + cherry-pick\nto in-flight branches"])
 
-    STEP -->|All done| AUDIT[Oracle security audit]
+    %% === COMPLEX PATH ===
+    MEMORY["🧠 pattern_search\nKnowledge MCP"] --> FOUND
 
-    AUDIT --> CLEAN{Issues?}
-    CLEAN -->|Found| FIX[Fix issues] --> AUDIT
-    CLEAN -->|Clean| FINAL[Oracle final review]
+    FOUND{"Match?"}
+    FOUND -->|"Yes"| ADAPT["Apply pattern\n🔧 Fixer implements"]
+    FOUND -->|"No"| BRAINSTORM
 
-    FINAL -->|Issues| FIXFINAL[Fixer fixes] --> FINAL
-    FINAL -->|Approved| LEARN[Save patterns] --> MERGE([Merge to main])
+    BRAINSTORM["💡 Brainstorming skill\nExplore requirements"] --> PLANMODE
+
+    PLANMODE["📋 EnterPlanMode"] --> QUALITY
+
+    QUALITY["✍️ writing-plans skill\nQuality guidance\n(file paths, code, TDD)"] --> WRITE
+
+    WRITE["Write plan to\n~/.claude/plans/"] --> REVIEW
+
+    REVIEW{"Approved?"}
+    REVIEW -->|"No"| WRITE
+    REVIEW -->|"Yes"| EXITPLAN
+
+    EXITPLAN["📋 ExitPlanMode\nplan-plus restructures\ninto skeleton + steps"] --> VIEWER
+
+    VIEWER["📺 Plan viewer\nlocalhost:3456"] --> BRANCH
+
+    ADAPT --> BRANCH
+
+    BRANCH["🌿 Create parent branch"] --> STEP
+
+    STEP{"Next step?"}
+    STEP -->|"Yes"| RESEARCH
+    STEP -->|"All done"| PLANCOMPLETE["✅ All steps complete!\nProceed to audit"]
+    PLANCOMPLETE --> AUDIT
+    STEP -->|"Plan invalid"| REPLAN
+
+    REPLAN["📋 Revise remaining\nsteps in plan-plus"] --> STEP
+
+    RESEARCH{"Needs research?"}
+    RESEARCH -->|"Unfamiliar code"| EXPLORER["🔍 Explorer\n(haiku)"]
+    RESEARCH -->|"Need docs"| LIBRARIAN["📚 Librarian\n(haiku)"]
+    RESEARCH -->|"No"| STEPBR
+
+    EXPLORER --> STEPBR
+    LIBRARIAN --> STEPBR
+
+    STEPBR["🌿 Step branch\nprefix/name/step-N"] --> TESTFIRST
+
+    TESTFIRST{"TDD?"}
+    TESTFIRST -->|"Yes"| TDDTEST["🔧 Fixer writes\nfailing tests"] --> IMPLEMENT
+    TESTFIRST -->|"No"| IMPLEMENT
+
+    IMPLEMENT["🔧 Fixer\n(haiku)\nImplement + tests"] --> FIXCHECK
+
+    FIXCHECK["✅ Fixer checklist\n(self-verify)"] --> TEST
+
+    TEST["Run tests"]
+    TEST -->|"Fail x3"| ORACLE_ESC["🔮 Oracle\n(sonnet)\nDiagnosis"]
+    ORACLE_ESC --> FIX
+    TEST -->|"Pass"| STEPPR
+
+    STEPPR["PR step → parent\n(auto-merge, no oracle)"] --> MERGE_STEP["Merge to parent"]
+    MERGE_STEP --> CHECKBOX["☑️ Mark step [x]\nin skeleton"]
+    CHECKBOX --> STEP
+
+    AUDIT["🔮 Oracle\n(sonnet)\nSecurity audit\nfull parent diff"] --> CLEAN
+
+    CLEAN{"Issues?"}
+    CLEAN -->|"Found"| FIXAUDIT["🔧 Fixer implements\n🔮 Oracle reviews fix"]
+    CLEAN -->|"Clean"| MAINPR
+
+    FIXAUDIT --> AUDIT
+
+    MAINPR["PR parent → main\n+ release notes"] --> FINAL
+
+    FINAL["🔮 Oracle\n(sonnet)\nReview checklist"]
+    FINAL -->|"Issues"| FIXFINAL["🔧 Fixer\nfix on parent"]
+    FINAL -->|"Approved"| CODEMAP
+
+    FIXFINAL --> FINAL
+
+    CODEMAP{"🗺️ Oracle\nCodemap check"}
+    CODEMAP -->|"Missing/outdated"| FIXMAP["🔧 Fixer\nCreate/update codemap"]
+    CODEMAP -->|"Up to date"| LEARN
+    FIXMAP --> LEARN
+
+    LEARN["🧠 pattern_store\nSave patterns"] --> MERGE_MAIN(["✅ Merge to main"])
+
+    style USER fill:#34495E,color:#fff
+    style TRIAGE fill:#8E44AD,color:#fff
+    style MEMORY fill:#2980B9,color:#fff
+    style FOUND fill:#F39C12,color:#fff
+    style ADAPT fill:#2980B9,color:#fff
+    style BRAINSTORM fill:#E91E63,color:#fff
+    style DIRECTFIX fill:#E67E22,color:#fff
+    style DIRECTTEST fill:#7B68EE,color:#fff
+    style DIRECTPR fill:#2ECC71,color:#fff
+    style REVIEW fill:#F39C12,color:#fff
+    style PLANMODE fill:#4A90D9,color:#fff
+    style QUALITY fill:#E91E63,color:#fff
+    style WRITE fill:#4A90D9,color:#fff
+    style EXITPLAN fill:#4A90D9,color:#fff
+    style VIEWER fill:#2980B9,color:#fff
+    style BRANCH fill:#1ABC9C,color:#fff
+    style STEP fill:#8E44AD,color:#fff
+    style REPLAN fill:#4A90D9,color:#fff
+    style STEPBR fill:#1ABC9C,color:#fff
+    style TESTFIRST fill:#F39C12,color:#fff
+    style IMPLEMENT fill:#3498DB,color:#fff
+    style FIXCHECK fill:#2ECC71,color:#fff
+    style FIX fill:#E67E22,color:#fff
+    style FIXAUDIT fill:#E67E22,color:#fff
+    style FIXFINAL fill:#E67E22,color:#fff
+    style TEST fill:#7B68EE,color:#fff
+    style TDDTEST fill:#3498DB,color:#fff
+    style AUDIT fill:#9B59B6,color:#fff
+    style MAINPR fill:#2ECC71,color:#fff
+    style RESEARCH fill:#F39C12,color:#fff
+    style EXPLORER fill:#3498DB,color:#fff
+    style LIBRARIAN fill:#3498DB,color:#fff
+    style ORACLE_ESC fill:#9B59B6,color:#fff
+    style FINAL fill:#9B59B6,color:#fff
+    style STEPPR fill:#2ECC71,color:#fff
+    style MERGE_STEP fill:#27AE60,color:#fff
+    style CHECKBOX fill:#2980B9,color:#fff
+    style PLANCOMPLETE fill:#27AE60,color:#fff
+    style CODEMAP fill:#F39C12,color:#fff
+    style FIXMAP fill:#E67E22,color:#fff
+    style LEARN fill:#2980B9,color:#fff
+    style MERGE_MAIN fill:#27AE60,color:#fff
+    style DONE fill:#27AE60,color:#fff
+    style CLEAN fill:#F39C12,color:#fff
+    style HOTFIX fill:#E74C3C,color:#fff
+    style HOTFIXFIXER fill:#E67E22,color:#fff
+    style HOTFIXTEST fill:#7B68EE,color:#fff
+    style HOTFIXPR fill:#2ECC71,color:#fff
+    style HOTFIXMERGE fill:#27AE60,color:#fff
+    style GREENFIELD fill:#16A085,color:#fff
+    style GENDOCS fill:#1ABC9C,color:#fff
 ```
 
 <details>
@@ -206,6 +335,7 @@ flowchart TD
 10. **Security Audit** — Oracle scans full parent diff. Fixer fixes, oracle reviews. Max 3 rounds.
 11. **Commit & PR Style** — Two templates: step PR (technical) vs main PR (business + release notes).
 12. **Final PR** — Parent → main with release notes. Oracle final review.
+12a. **Codemap Maintenance** — After approval, Oracle checks touched directories for missing/outdated codemaps. Fixer creates or updates as needed.
 13. **Hotfix** 🔥 — Branch from main, skip planning, inline oracle review, fast merge.
 14. **Post-Merge** — Monitor. Rollback via hotfix path if broken.
 15. **Learn** — Save patterns for future sessions.
