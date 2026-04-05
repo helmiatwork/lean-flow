@@ -29,6 +29,7 @@ REQUIRED_ALLOW=(
   "mcp__knowledge__*"
   "mcp__playwright__*"
   "Edit(~/.claude/plans/*)"
+  "Write(~/.claude/plans/*)"
 )
 
 # Protected branches — deny direct push
