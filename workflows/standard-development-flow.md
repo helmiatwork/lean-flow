@@ -103,9 +103,15 @@ flowchart TD
 
     FINAL["🔮 Oracle\n(sonnet)\nReview checklist"]
     FINAL -->|"Issues"| FIXFINAL["🔧 Fixer\nfix on parent"]
-    FINAL -->|"Approved"| LEARN
+    FINAL -->|"Approved"| CODEMAP
 
     FIXFINAL --> FINAL
+
+    CODEMAP{"🗺️ Oracle\nCodemap check"}
+    CODEMAP -->|"Missing/outdated"| FIXMAP["🔧 Fixer\nCreate/update codemap"]
+    CODEMAP -->|"Up to date"| LEARN
+    FIXMAP --> LEARN
+
     LEARN["🧠 pattern_store\nSave patterns"] --> MERGE_MAIN(["✅ Merge to main"])
 
     style USER fill:#34495E,color:#fff
@@ -147,6 +153,8 @@ flowchart TD
     style MERGE_STEP fill:#27AE60,color:#fff
     style CHECKBOX fill:#2980B9,color:#fff
     style PLANCOMPLETE fill:#27AE60,color:#fff
+    style CODEMAP fill:#F39C12,color:#fff
+    style FIXMAP fill:#E67E22,color:#fff
     style LEARN fill:#2980B9,color:#fff
     style MERGE_MAIN fill:#27AE60,color:#fff
     style DONE fill:#27AE60,color:#fff
@@ -330,6 +338,8 @@ Oracle verifies before returning APPROVED:
 - Matches business intent, edge cases align with real user behavior
 - Error handling aligns with UX expectations
 
+**Post-approval:** check if touched directories have up-to-date `codemap.md` — flag missing/outdated for fixer
+
 ### 9. Test + Retry
 - Run tests after each step
 - Retry fixer up to 2x on failure
@@ -365,7 +375,15 @@ Types: `feat`, `fix`, `test`, `docs`, `chore`, `refactor`, `perf`, `security`
 - Oracle does final review on the complete feature diff
 - Reviews: code quality, PR title/description, architecture, test coverage
 - Issues → fix on parent → re-review
-- Approved → learn + merge
+- Approved → codemap check → learn + merge
+
+### 12a. Codemap Maintenance (after Oracle approval)
+After approving a PR, Oracle checks codemap status:
+- **Missing codemap:** if any directory touched by the PR lacks a `codemap.md`, Oracle flags it and fixer creates one
+- **Outdated codemap:** if code changes added/removed/renamed files or changed directory purpose, Oracle flags it and fixer updates the relevant `codemap.md`
+- **Up to date:** no action needed, proceed to learn + merge
+
+> **Why?** Codemaps are the primary navigation aid for all agents. Stale or missing codemaps cause agents to waste tokens re-discovering structure. Keeping them current at merge time is cheaper than fixing them later.
 
 ### 13. Hotfix Fast Path 🔥
 - For production emergencies only (critical bugs, security vulnerabilities)
