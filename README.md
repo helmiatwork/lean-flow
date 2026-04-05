@@ -47,13 +47,15 @@ SQLite database with FTS5 full-text search. Save solved patterns, retrieve them 
 
 ### 🤖 Parallel Agents
 
-| Agent | Model | Role |
-|:------|:-----:|:-----|
-| **Oracle** | Sonnet | Architecture review, code review, stuck diagnosis, security audit |
-| **Fixer** | Haiku | All implementation: features, bug fixes, refactors, tests, mechanical changes |
-| **Librarian** | Haiku | Docs lookup, web search, research |
-| **Designer** | Sonnet | UI/UX, frontend components |
-| **Explorer** | Haiku | File discovery, codebase navigation |
+| Agent | Model | Reads? | Writes? | Role |
+|:------|:-----:|:------:|:-------:|:-----|
+| **Oracle** | Sonnet | **No** | **No** | Think-only: architecture review, code review, synthesis, decisions |
+| **Fixer** | Haiku | Yes | Yes | All implementation: features, bug fixes, refactors, tests, mechanical changes |
+| **Librarian** | Haiku | Yes | No | Docs lookup, web search, research |
+| **Designer** | Sonnet | Yes | Yes | UI/UX, frontend components |
+| **Explorer** | Haiku | Yes | No | File discovery, codebase navigation, codemap scanning, pre-oracle diff reading |
+
+> **Oracle is think-only.** It never reads files or writes code. Explorer reads files/diffs → orchestrator passes summaries → Oracle thinks and decides. This keeps expensive sonnet tokens minimal.
 
 ### 🌿 Branch Naming Convention
 
@@ -210,7 +212,7 @@ flowchart TD
     STEP{"Next step?"}
     STEP -->|"Yes"| RESEARCH
     STEP -->|"All done"| PLANCOMPLETE["✅ All steps complete!\nProceed to audit"]
-    PLANCOMPLETE --> AUDIT
+    PLANCOMPLETE --> AUDITSCAN
     STEP -->|"Plan invalid"| REPLAN
 
     REPLAN["📋 Revise remaining\nsteps in plan-plus"] --> STEP
@@ -234,7 +236,7 @@ flowchart TD
     FIXCHECK["✅ Fixer checklist\n(self-verify)"] --> TEST
 
     TEST["Run tests"]
-    TEST -->|"Fail x3"| ORACLE_ESC["🔮 Oracle\n(sonnet)\nDiagnosis"]
+    TEST -->|"Fail x3"| ORACLE_SCAN["🔍 Explorer\nreads error context"] --> ORACLE_ESC["🔮 Oracle\n(think-only)\nDiagnosis"]
     ORACLE_ESC --> FIX
     TEST -->|"Pass"| STEPPR
 
@@ -242,26 +244,32 @@ flowchart TD
     MERGE_STEP --> CHECKBOX["☑️ Mark step [x]\nin skeleton"]
     CHECKBOX --> STEP
 
-    AUDIT["🔮 Oracle\n(sonnet)\nSecurity audit\nfull parent diff"] --> CLEAN
+    AUDITSCAN["🔍 Explorer\n(haiku)\nRead full parent diff\n→ structured summary"] --> AUDIT
+
+    AUDIT["🔮 Oracle\n(think-only)\nSecurity audit\nfrom explorer summary"] --> CLEAN
 
     CLEAN{"Issues?"}
-    CLEAN -->|"Found"| FIXAUDIT["🔧 Fixer implements\n🔮 Oracle reviews fix"]
+    CLEAN -->|"Found"| FIXAUDIT["🔧 Fixer implements\n🔍 Explorer re-reads\n🔮 Oracle reviews"]
     CLEAN -->|"Clean"| MAINPR
 
-    FIXAUDIT --> AUDIT
+    FIXAUDIT --> AUDITSCAN
 
-    MAINPR["PR parent → main\n+ release notes"] --> FINAL
+    MAINPR["PR parent → main\n+ release notes"] --> FINALSCAN
 
-    FINAL["🔮 Oracle\n(sonnet)\nReview checklist"]
+    FINALSCAN["🔍 Explorer\n(haiku)\nScan PR diff\n→ summary"] --> FINAL
+
+    FINAL["🔮 Oracle\n(think-only)\nReview checklist\nfrom explorer summary"]
     FINAL -->|"Issues"| FIXFINAL["🔧 Fixer\nfix on parent"]
-    FINAL -->|"Approved"| CODEMAP
+    FINAL -->|"Approved"| CMAPSCAN
 
-    FIXFINAL --> FINAL
+    FIXFINAL --> FINALSCAN
 
-    CODEMAP{"🗺️ Oracle\nCodemap check"}
-    CODEMAP -->|"Missing/outdated"| FIXMAP["🔧 Fixer\nCreate/update codemap"]
+    CMAPSCAN["🔍 Explorer\n(haiku)\nScan touched dirs\n→ structure summary"] --> CODEMAP
+
+    CODEMAP{"🔮 Oracle\n(think-only)\nCodemap decision"}
+    CODEMAP -->|"Missing/outdated"| CMAPSYNTH["🔮 Oracle synthesizes\ncodemap from summary\n→ 🔧 Fixer writes file"]
     CODEMAP -->|"Up to date"| LEARN
-    FIXMAP --> LEARN
+    CMAPSYNTH --> LEARN
 
     LEARN["🧠 pattern_store\nSave patterns"] --> MERGE_MAIN(["✅ Merge to main"])
 
@@ -293,6 +301,11 @@ flowchart TD
     style TEST fill:#7B68EE,color:#fff
     style TDDTEST fill:#3498DB,color:#fff
     style AUDIT fill:#9B59B6,color:#fff
+    style AUDITSCAN fill:#3498DB,color:#fff
+    style FINALSCAN fill:#3498DB,color:#fff
+    style CMAPSCAN fill:#3498DB,color:#fff
+    style CMAPSYNTH fill:#9B59B6,color:#fff
+    style ORACLE_SCAN fill:#3498DB,color:#fff
     style MAINPR fill:#2ECC71,color:#fff
     style RESEARCH fill:#F39C12,color:#fff
     style EXPLORER fill:#3498DB,color:#fff
@@ -304,7 +317,6 @@ flowchart TD
     style CHECKBOX fill:#2980B9,color:#fff
     style PLANCOMPLETE fill:#27AE60,color:#fff
     style CODEMAP fill:#F39C12,color:#fff
-    style FIXMAP fill:#E67E22,color:#fff
     style LEARN fill:#2980B9,color:#fff
     style MERGE_MAIN fill:#27AE60,color:#fff
     style DONE fill:#27AE60,color:#fff
@@ -330,12 +342,12 @@ flowchart TD
 6. **Execute Steps** — TDD optional. Fixer implements + writes tests. Parallel independent steps.
 6a. **Solo Dev** — Skip step PRs. Commit on parent. Use plan-plus-executor agents per step.
 7. **Re-planning** — If a step reveals plan is wrong, revise remaining steps.
-8. **Agent Routing** — Explorer/Fixer/Librarian (haiku), Oracle/Designer (sonnet, oracle read-only).
-9. **Test + Retry** — 3 failures → oracle escalation. 3 oracle rounds → human intervention.
-10. **Security Audit** — Oracle scans full parent diff. Fixer fixes, oracle reviews. Max 3 rounds.
+8. **Agent Routing** — Explorer/Fixer/Librarian (haiku), Oracle/Designer (sonnet). Oracle is think-only (no file access).
+9. **Test + Retry** — 3 failures → explorer reads context → oracle diagnoses. 3 oracle rounds → human intervention.
+10. **Security Audit** — Explorer reads full parent diff → Oracle audits from summary. Fixer fixes, explorer re-reads, oracle reviews. Max 3 rounds.
 11. **Commit & PR Style** — Two templates: step PR (technical) vs main PR (business + release notes).
-12. **Final PR** — Parent → main with release notes. Oracle final review.
-12a. **Codemap Maintenance** — After approval, Oracle checks touched directories for missing/outdated codemaps. Fixer creates or updates as needed.
+12. **Final PR** — Parent → main with release notes. Explorer scans diff → Oracle final review.
+12a. **Codemap Maintenance** — After approval, Explorer scans touched dirs → Oracle decides → Oracle synthesizes codemap → Fixer writes file.
 13. **Hotfix** 🔥 — Branch from main, skip planning, inline oracle review, fast merge.
 14. **Post-Merge** — Monitor. Rollback via hotfix path if broken.
 15. **Learn** — Save patterns for future sessions.
@@ -471,11 +483,11 @@ lean-flow/
 ├── .claude-plugin/
 │   └── plugin.json              # Plugin metadata
 ├── agents/
-│   ├── oracle.md                # Sonnet — code review, architecture, security audit
+│   ├── oracle.md                # Sonnet — think-only: review, architecture, security (no file access)
 │   ├── fixer.md                 # Haiku — all implementation, tests, mechanical changes
 │   ├── librarian.md             # Haiku — research, docs
 │   ├── designer.md              # Sonnet — UI/UX
-│   └── explorer.md              # Haiku — codebase navigation
+│   └── explorer.md              # Haiku — codebase navigation, codemap scanning, pre-oracle reads
 ├── skills/
 │   └── cartography.md           # Repository mapping skill definition
 ├── hooks/
@@ -526,12 +538,12 @@ lean-flow/
 
 | Role | ruflo agent | lean-flow agent | Difference |
 |:-----|:-----------|:----------------|:-----------|
-| Architecture, review & security | `architect.yaml` + `security-architect.yaml` (tags only) | **oracle.md** (sonnet) | Full instructions, severity levels, PR review, security audit, PII checks |
+| Architecture, review & security | `architect.yaml` + `security-architect.yaml` (tags only) | **oracle.md** (sonnet, think-only) | Full instructions, severity levels, PR review, security audit, PII checks. Never reads files — receives summaries from explorer |
 | Implementation & testing | `coder.yaml` + `tester.yaml` (tags only) | **fixer.md** (haiku) | All code changes + test writing in one agent, retry behavior |
 | Code review | `reviewer.yaml` (tags only) | **oracle.md** (sonnet) | Same agent handles review + architecture + security (saves sonnet calls) |
 | Research | *(none)* | **librarian.md** (haiku) | Docs lookup, web search, API reference |
 | UI/UX | *(none)* | **designer.md** (sonnet) | Frontend components, accessibility, responsive design |
-| Navigation | *(none)* | **explorer.md** (haiku) | Fast file discovery, codebase structure |
+| Navigation | *(none)* | **explorer.md** (haiku) | Fast file discovery, codebase structure, codemap scanning, pre-oracle diff reading |
 
 > ruflo agents are YAML stubs (~5 lines each, no instructions). lean-flow agents are full markdown definitions with role, rules, tools, and behavioral constraints.
 
