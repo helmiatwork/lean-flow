@@ -111,12 +111,17 @@ flowchart TD
 
     FIXFINAL --> FINALSCAN
 
-    CMAPSCAN["🔍 Explorer\n(haiku)\nScan touched dirs\n→ structure summary"] --> CODEMAP
+    CMAPSCAN["📋 cartographer.py changes\n→ list affected folders"] --> CODEMAP
 
-    CODEMAP{"🔮 Oracle\n(think-only)\nCodemap decision"}
-    CODEMAP -->|"Missing/outdated"| CMAPSYNTH["🔮 Oracle synthesizes\ncodemap from summary\n→ 🔧 Fixer writes file"]
-    CODEMAP -->|"Up to date"| LEARN
-    CMAPSYNTH --> LEARN
+    CODEMAP{"Affected\ncodemap.md files?"}
+    CODEMAP -->|"Yes"| CMAPSYNTH["🔍 Explorer fills\naffected codemap.md\n→ 🔧 Fixer writes\n→ cartographer.py update"]
+    CODEMAP -->|"No changes"| T1CHECK
+    CMAPSYNTH --> T1CHECK
+
+    T1CHECK{"Major structural\nchanges?"}
+    T1CHECK -->|"New/removed modules\nrenamed dirs"| T1UPDATE["🔍 Sonnet subagents\nregenerate relevant sections\nof docs/CODEBASE_MAP.md"]
+    T1CHECK -->|"No"| LEARN
+    T1UPDATE --> LEARN
 
     LEARN["🧠 pattern_store\nSave patterns"] --> MERGE_MAIN(["✅ Merge to main"])
 
@@ -223,7 +228,7 @@ main
 ## Flow Rules
 
 ### 1. Triage (Orchestrator — no agent cost)
-- **First**: Check if `codemap.md` exists at repo root. If not, run `/cartography` to map the repo before starting work.
+- **First**: Check if `docs/CODEBASE_MAP.md` exists. If not, run `/cartographer` to map the repo before starting work.
 - **Simple** tasks (1-2 files, clear change): fixer implements → tests → PR to main
 - **Complex** tasks: continue to pattern search + planning
 - **Greenfield** (new project, empty repo): doc-first path → brainstorm → generate docs → plan → build
@@ -307,10 +312,10 @@ When working solo (no team reviewers, no CI per step), per-step PRs are pure ove
 ### 8. Agent Model Routing
 | Agent | Model | Reads files? | Writes files? | When |
 |-------|-------|-------------|---------------|------|
-| Explorer | haiku | Yes | No | File discovery, codebase navigation, codemap scanning, pre-oracle diff reading |
+| Explorer | haiku | Yes | No | File discovery, codebase navigation, codebase map scanning, pre-oracle diff reading |
 | Librarian | haiku | Yes | No | Docs, API lookup, web search |
 | Fixer | haiku | Yes | Yes | All implementation: features, bug fixes, refactors, tests, mechanical changes |
-| Oracle | sonnet | **No** | **No** | Architecture decisions, code review, security audit, codemap synthesis (think-only) |
+| Oracle | sonnet | **No** | **No** | Architecture decisions, code review, security audit, codebase map synthesis (think-only) |
 | Designer | sonnet | Yes | Yes | UI/UX, frontend components |
 | Orchestrator | opus | — | — | Triage, PR creation, reviews auditor fixes (no agent cost) |
 
@@ -348,7 +353,9 @@ Oracle verifies before returning APPROVED:
 - Matches business intent, edge cases align with real user behavior
 - Error handling aligns with UX expectations
 
-**Post-approval:** check if touched directories have up-to-date `codemap.md` — flag missing/outdated for fixer
+**Post-approval — hybrid codemap update (§12a):**
+- **Tier 2 (always):** run `cartographer.py changes` → explorer fills affected `codemap.md` → fixer writes → `cartographer.py update`
+- **Tier 1 (if structural):** new/removed modules or major architectural shifts → Sonnet subagents update relevant sections of `docs/CODEBASE_MAP.md`
 
 ### 9. Test + Retry
 - Run tests after each step
@@ -385,16 +392,34 @@ Types: `feat`, `fix`, `test`, `docs`, `chore`, `refactor`, `perf`, `security`
 - **Explorer** scans PR diff → summary to orchestrator → **Oracle** does final review
 - Reviews: code quality, PR title/description, architecture, test coverage
 - Issues → fix on parent → explorer re-scans → oracle re-reviews
-- Approved → codemap check → learn + merge
+- Approved → hybrid codemap update → learn + merge
 
-### 12a. Codemap Maintenance (after Oracle approval)
-After approving a PR, codemap update follows the explorer → oracle → fixer pipeline:
-1. **Explorer** (haiku) scans touched directories → produces structure summary (files, exports, dependencies)
-2. **Oracle** (sonnet, think-only) reviews summary → decides: missing, outdated, or up-to-date
-3. If missing/outdated: **Oracle** synthesizes codemap content from explorer's summary → **Fixer** writes the file
-4. Up to date: no action needed, proceed to learn + merge
+### 12a. Hybrid Codemap Update (after Oracle approval)
 
-> **Why?** Codemaps are the primary navigation aid for all agents. Stale or missing codemaps cause agents to waste tokens re-discovering structure. Keeping them current at merge time is cheaper than fixing them later.
+After approving a PR, update both tiers of the codemap system before merging:
+
+#### Tier 2: Per-Folder Codemaps (always, cheap)
+1. Run `cartographer.py changes --root <repo>` to identify affected folders
+2. If no changes: skip to Tier 1 check
+3. For each affected folder: dispatch **Explorer** (haiku) to read files and fill `codemap.md`
+4. **Fixer** writes updated `codemap.md` files
+5. Run `cartographer.py update --root <repo>` to record new hashes
+
+#### Tier 1: CODEBASE_MAP.md (conditional, only for structural changes)
+After Tier 2 is done, check if the PR introduced **major structural changes**:
+- New modules/directories added
+- Directories removed or renamed
+- Significant architectural shifts (new entry points, changed data flow)
+
+**If yes:**
+1. Run `scan-codebase.py . --format json` for updated token counts
+2. Spawn Sonnet subagents to re-analyze only the changed modules
+3. Update relevant sections of `docs/CODEBASE_MAP.md` (merge with existing, don't regenerate everything)
+4. Update `last_mapped` timestamp
+
+**If no:** Skip — `docs/CODEBASE_MAP.md` stays as-is.
+
+> **Cost:** Tier 2 runs on every PR (~200 tokens per folder, haiku only). Tier 1 runs rarely (~10% of PRs, Sonnet subagents). Total overhead is minimal for routine PRs, thorough for structural ones.
 
 ### 13. Hotfix Fast Path 🔥
 - For production emergencies only (critical bugs, security vulnerabilities)

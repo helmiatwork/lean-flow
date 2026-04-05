@@ -42,7 +42,19 @@ Before returning APPROVED or flagging issues, verify all that apply:
 - [ ] Matches business intent, edge cases align with real user behavior
 - [ ] Error handling aligns with UX expectations
 
-## Post-Approval: Codemap Check
-After returning APPROVED, decide codemap status based on explorer's summary of touched directories:
-- [ ] Every touched directory has a `codemap.md` — flag missing ones for explorer to scan → oracle to synthesize → fixer to write
-- [ ] Existing `codemap.md` files reflect current state (new/removed/renamed files, changed purpose) — flag outdated ones for the same flow
+## Post-Approval: Hybrid Codemap Update
+After returning APPROVED, orchestrator triggers the hybrid codemap update (§12a) before merge:
+
+### Tier 2 — always (cheap)
+- [ ] Run `cartographer.py changes` to find affected folders
+- [ ] Dispatch explorer (haiku) to fill affected `codemap.md` templates
+- [ ] Fixer writes updated files → `cartographer.py update`
+
+### Tier 1 — conditional (only if structural changes detected)
+Flag `docs/CODEBASE_MAP.md` for update ONLY if the PR introduced:
+- [ ] New modules or directories
+- [ ] Removed or renamed directories
+- [ ] Changed entry points, data flow, or architecture
+
+If flagged: Sonnet subagents re-analyze changed modules → update relevant sections of `docs/CODEBASE_MAP.md`.
+If not flagged: skip — Tier 1 stays as-is.

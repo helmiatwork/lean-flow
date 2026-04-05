@@ -2,16 +2,16 @@
 
 ## Responsibility
 
-Reusable prompt skill files invoked via Claude Code's `/skill` command or the Skill tool. Each file is a standalone prompt document that guides a specific task (e.g., how to write a plan, how to update config).
+<!-- What is this folder's job in the system? -->
 
 ## Design
 
-Plain markdown files. No code — pure prompt content. Skills are invoked by name and their content is injected into the current context as instructions. Kept minimal to avoid token bloat.
+<!-- Key patterns, abstractions, architectural decisions -->
 
 ## Flow
 
-User or orchestrator calls `Skill tool` with a skill name. Claude Code locates the `.md` file, reads it, and follows the embedded instructions within the current conversation turn. Skills do not persist state.
+<!-- How does data/control flow through this module? -->
 
 ## Integration
 
-Registered in Claude Code via the skills discovery path. Referenced in CLAUDE.md instructions (e.g., "use writing-plans skill for plan quality guidance"). No dependencies on other lean-flow components.
+<!-- How does it connect to other parts of the system? -->

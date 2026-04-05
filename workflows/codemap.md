@@ -2,16 +2,16 @@
 
 ## Responsibility
 
-Development workflow documentation. Contains the standard development flow as a mermaid diagram and prose, describing how the orchestrator routes tasks (simple/complex/greenfield/hotfix) through agents, branches, and PRs.
+<!-- What is this folder's job in the system? -->
 
 ## Design
 
-Single primary document `standard-development-flow.md` with a mermaid flowchart as the canonical reference. The diagram covers all decision branches: triage, simple fix, complex multi-step, greenfield, and hotfix paths. Prose sections elaborate on each node.
+<!-- Key patterns, abstractions, architectural decisions -->
 
 ## Flow
 
-Statically read by the orchestrator at planning time to understand the expected process. Not executed — serves as the authoritative workflow spec that CLAUDE.md summarizes and enforces.
+<!-- How does data/control flow through this module? -->
 
 ## Integration
 
-Referenced by CLAUDE.md (Standard Development Flow section). Agents may be pointed to this file for workflow context. No code dependencies — documentation only.
+<!-- How does it connect to other parts of the system? -->
