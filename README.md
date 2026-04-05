@@ -155,140 +155,38 @@ Background memory consolidation using Haiku. Runs every 5 sessions / 24 hours. C
 
 ```mermaid
 flowchart TD
-    USER(["👤 User prompt"]) --> TRIAGE
+    USER([User prompt]) --> TRIAGE
 
-    TRIAGE{"🎯 Orchestrator\ntriages complexity"}
-    TRIAGE -->|"Simple"| DIRECT["Orchestrator\nhandles directly"]
-    TRIAGE -->|"Complex"| MEMORY
-    TRIAGE -->|"Greenfield 🌱"| GREENFIELD
+    TRIAGE{Orchestrator triages}
+    TRIAGE -->|Simple| DIRECT[Handle directly] --> DONE([Done])
+    TRIAGE -->|Greenfield| GENDOCS[Generate docs] --> PLAN
+    TRIAGE -->|Hotfix| HOTFIX[Hotfix branch] --> HOTFIXPR[PR to main] --> DONE
+    TRIAGE -->|Complex| MEMORY[Pattern search]
 
-    %% === GREENFIELD PATH ===
-    GREENFIELD["🌱 Brainstorm\nproduct concept"] --> GENDOCS
-    GENDOCS["📄 Generate docs\n(PRD, HLA, TRD, DB, API)"] --> PLANMODE
+    MEMORY --> FOUND{Match?}
+    FOUND -->|Yes| BRANCH
+    FOUND -->|No| PLAN[Plan and approve]
 
-    %% === HOTFIX PATH ===
-    TRIAGE -->|"Hotfix 🔥"| HOTFIX
-    HOTFIX["🔥 hotfix/ branch\nfrom main"] --> HOTFIXFIX["🔧 Fixer\nMinimal fix + test"]
-    HOTFIXFIX --> HOTFIXPR["PR hotfix → main\n🔮 Oracle inline review"]
-    HOTFIXPR --> HOTFIXDONE(["✅ Merge"])
+    PLAN --> BRANCH[Create parent branch]
+    BRANCH --> STEP
 
-    MEMORY["🧠 pattern_search\nKnowledge MCP"] --> FOUND
+    subgraph Step Loop
+        STEP{Next step?} -->|Yes| RESEARCH{Research?}
+        RESEARCH -->|Yes| AGENTS[Explorer / Librarian] --> IMPL
+        RESEARCH -->|No| IMPL[Fixer implements + tests]
+        IMPL --> TEST{Tests pass?}
+        TEST -->|Fail x3| ORACLE_ESC[Oracle diagnoses] --> IMPL
+        TEST -->|Pass| STEPPR[PR step to parent] --> STEP
+    end
 
-    FOUND{"Match?"}
-    FOUND -->|"Yes"| ADAPT["Apply pattern"]
-    FOUND -->|"No"| BRAINSTORM
+    STEP -->|All done| AUDIT[Oracle security audit]
 
-    ADAPT --> BRANCH
-    DIRECT --> DONE(["✅ Done"])
+    AUDIT --> CLEAN{Issues?}
+    CLEAN -->|Found| FIX[Fix issues] --> AUDIT
+    CLEAN -->|Clean| FINAL[Oracle final review]
 
-    BRAINSTORM["💡 Brainstorming"] --> PLANMODE
-
-    PLANMODE["📋 EnterPlanMode"] --> QUALITY
-
-    QUALITY["✍️ writing-plans\nquality guidance"] --> WRITE
-
-    WRITE["Write plan"] --> REVIEW
-
-    REVIEW{"Approved?"}
-    REVIEW -->|"No"| WRITE
-    REVIEW -->|"Yes"| EXITPLAN
-
-    EXITPLAN["📋 ExitPlanMode\nplan-plus → steps"] --> VIEWER
-
-    VIEWER["📺 Plan viewer\nlocalhost:3456"] --> BRANCH
-
-    BRANCH["🌿 Create parent branch"] --> STEP
-
-    STEP{"Next step?"}
-    STEP -->|"Yes"| RESEARCH
-    STEP -->|"All done"| PLANCOMPLETE["✅ All complete"]
-    PLANCOMPLETE --> AUDIT
-
-    RESEARCH{"Needs research?"}
-    RESEARCH -->|"Unfamiliar code"| EXPLORER["🔍 Explorer\n(haiku)"]
-    RESEARCH -->|"Need docs"| LIBRARIAN["📚 Librarian\n(haiku)"]
-    RESEARCH -->|"No"| STEPBR
-
-    EXPLORER --> STEPBR
-    LIBRARIAN --> STEPBR
-
-    STEPBR["🌿 Step branch\nprefix/name/step-N"] --> IMPLEMENT
-
-    IMPLEMENT["🔧 Fixer\n(haiku)\nImplement + tests"] --> FIXCHECK
-
-    FIXCHECK["✅ Fixer checklist\n(self-verify)"] --> TEST
-
-    TEST["Run tests"]
-    TEST -->|"Fail x3"| ORACLE_ESC["🔮 Oracle\n(sonnet)\nDiagnosis"]
-    ORACLE_ESC --> FIX
-    TEST -->|"Pass"| STEPPR
-
-    STEPPR["PR step → parent\n(auto-merge)"] --> MERGE_STEP["Merge to parent"]
-    MERGE_STEP --> CHECKBOX["☑️ Mark step [x]"]
-    CHECKBOX --> STEP
-
-    AUDIT["🔮 Oracle\n(sonnet)\nSecurity audit\nfull parent diff"] --> CLEAN
-
-    CLEAN{"Issues?"}
-    CLEAN -->|"Found"| FIXAUDIT["🔮 Oracle creates\nfix PR → parent"]
-    CLEAN -->|"Clean"| MAINPR
-
-    FIXAUDIT --> AUDITREV["🎯 Orchestrator\nreviews fix"]
-    AUDITREV --> AUDIT
-
-    MAINPR["PR parent → main"] --> FINAL
-
-    FINAL["🔮 Oracle\n(sonnet)\nReview checklist"]
-    FINAL -->|"Issues"| FIXFINAL["🔧 Fixer\nfix on parent"]
-    FINAL -->|"Approved"| LEARN
-
-    FIXFINAL --> FINAL
-    LEARN["🧠 pattern_store\nSave patterns"] --> MERGE(["✅ Merge to main"])
-
-    style USER fill:#34495E,color:#fff
-    style TRIAGE fill:#8E44AD,color:#fff
-    style MEMORY fill:#2980B9,color:#fff
-    style FOUND fill:#F39C12,color:#fff
-    style ADAPT fill:#2980B9,color:#fff
-    style DIRECT fill:#27AE60,color:#fff
-    style REVIEW fill:#F39C12,color:#fff
-    style BRAINSTORM fill:#E91E63,color:#fff
-    style PLANMODE fill:#4A90D9,color:#fff
-    style QUALITY fill:#E91E63,color:#fff
-    style WRITE fill:#4A90D9,color:#fff
-    style EXITPLAN fill:#4A90D9,color:#fff
-    style VIEWER fill:#2980B9,color:#fff
-    style BRANCH fill:#1ABC9C,color:#fff
-    style STEP fill:#8E44AD,color:#fff
-    style RESEARCH fill:#F39C12,color:#fff
-    style EXPLORER fill:#3498DB,color:#fff
-    style LIBRARIAN fill:#3498DB,color:#fff
-    style STEPBR fill:#1ABC9C,color:#fff
-    style IMPLEMENT fill:#3498DB,color:#fff
-    style FIXCHECK fill:#2ECC71,color:#fff
-    style FIX fill:#E67E22,color:#fff
-    style FIXAUDIT fill:#E67E22,color:#fff
-    style FIXFINAL fill:#E67E22,color:#fff
-    style TEST fill:#7B68EE,color:#fff
-    style AUDIT fill:#9B59B6,color:#fff
-    style MAINPR fill:#2ECC71,color:#fff
-    style ORACLE_ESC fill:#9B59B6,color:#fff
-    style FINAL fill:#9B59B6,color:#fff
-    style STEPPR fill:#2ECC71,color:#fff
-    style MERGE_STEP fill:#27AE60,color:#fff
-    style CHECKBOX fill:#2980B9,color:#fff
-    style PLANCOMPLETE fill:#27AE60,color:#fff
-    style LEARN fill:#2980B9,color:#fff
-    style MERGE fill:#27AE60,color:#fff
-    style DONE fill:#27AE60,color:#fff
-    style CLEAN fill:#F39C12,color:#fff
-    style AUDITREV fill:#8E44AD,color:#fff
-    style GREENFIELD fill:#16A085,color:#fff
-    style GENDOCS fill:#1ABC9C,color:#fff
-    style HOTFIX fill:#E74C3C,color:#fff
-    style HOTFIXFIX fill:#E67E22,color:#fff
-    style HOTFIXPR fill:#2ECC71,color:#fff
-    style HOTFIXDONE fill:#27AE60,color:#fff
+    FINAL -->|Issues| FIXFINAL[Fixer fixes] --> FINAL
+    FINAL -->|Approved| LEARN[Save patterns] --> MERGE([Merge to main])
 ```
 
 <details>
