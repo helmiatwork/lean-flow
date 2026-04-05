@@ -59,7 +59,7 @@ flowchart TD
     STEP{"Next step?"}
     STEP -->|"Yes"| RESEARCH
     STEP -->|"All done"| PLANCOMPLETE["✅ All steps complete!\nProceed to audit"]
-    PLANCOMPLETE --> AUDIT
+    PLANCOMPLETE --> AUDITSCAN
     STEP -->|"Plan invalid"| REPLAN
 
     REPLAN["📋 Revise remaining\nsteps in plan-plus"] --> STEP
@@ -83,7 +83,7 @@ flowchart TD
     FIXCHECK["✅ Fixer checklist\n(self-verify)"] --> TEST
 
     TEST["Run tests"]
-    TEST -->|"Fail x3"| ORACLE_ESC["🔮 Oracle\n(sonnet)\nDiagnosis"]
+    TEST -->|"Fail x3"| ORACLE_SCAN["🔍 Explorer\nreads error context"] --> ORACLE_ESC["🔮 Oracle\n(think-only)\nDiagnosis"]
     ORACLE_ESC --> FIX
     TEST -->|"Pass"| STEPPR
 
@@ -91,26 +91,32 @@ flowchart TD
     MERGE_STEP --> CHECKBOX["☑️ Mark step [x]\nin skeleton"]
     CHECKBOX --> STEP
 
-    AUDIT["🔮 Oracle\n(sonnet)\nSecurity audit\nfull parent diff"] --> CLEAN
+    AUDITSCAN["🔍 Explorer\n(haiku)\nRead full parent diff\n→ structured summary"] --> AUDIT
+
+    AUDIT["🔮 Oracle\n(sonnet, think-only)\nSecurity audit\nfrom explorer summary"] --> CLEAN
 
     CLEAN{"Issues?"}
-    CLEAN -->|"Found"| FIXAUDIT["🔧 Fixer implements\n🔮 Oracle reviews fix"]
+    CLEAN -->|"Found"| FIXAUDIT["🔧 Fixer implements\n🔍 Explorer re-reads\n🔮 Oracle reviews"]
     CLEAN -->|"Clean"| MAINPR
 
-    FIXAUDIT --> AUDIT
+    FIXAUDIT --> AUDITSCAN
 
-    MAINPR["PR parent → main\n+ release notes"] --> FINAL
+    MAINPR["PR parent → main\n+ release notes"] --> FINALSCAN
 
-    FINAL["🔮 Oracle\n(sonnet)\nReview checklist"]
+    FINALSCAN["🔍 Explorer\n(haiku)\nScan PR diff\n→ summary"] --> FINAL
+
+    FINAL["🔮 Oracle\n(sonnet, think-only)\nReview checklist\nfrom explorer summary"]
     FINAL -->|"Issues"| FIXFINAL["🔧 Fixer\nfix on parent"]
-    FINAL -->|"Approved"| CODEMAP
+    FINAL -->|"Approved"| CMAPSCAN
 
-    FIXFINAL --> FINAL
+    FIXFINAL --> FINALSCAN
 
-    CODEMAP{"🗺️ Oracle\nCodemap check"}
-    CODEMAP -->|"Missing/outdated"| FIXMAP["🔧 Fixer\nCreate/update codemap"]
+    CMAPSCAN["🔍 Explorer\n(haiku)\nScan touched dirs\n→ structure summary"] --> CODEMAP
+
+    CODEMAP{"🔮 Oracle\n(think-only)\nCodemap decision"}
+    CODEMAP -->|"Missing/outdated"| CMAPSYNTH["🔮 Oracle synthesizes\ncodemap from summary\n→ 🔧 Fixer writes file"]
     CODEMAP -->|"Up to date"| LEARN
-    FIXMAP --> LEARN
+    CMAPSYNTH --> LEARN
 
     LEARN["🧠 pattern_store\nSave patterns"] --> MERGE_MAIN(["✅ Merge to main"])
 
@@ -153,8 +159,12 @@ flowchart TD
     style MERGE_STEP fill:#27AE60,color:#fff
     style CHECKBOX fill:#2980B9,color:#fff
     style PLANCOMPLETE fill:#27AE60,color:#fff
+    style AUDITSCAN fill:#3498DB,color:#fff
+    style FINALSCAN fill:#3498DB,color:#fff
+    style CMAPSCAN fill:#3498DB,color:#fff
+    style CMAPSYNTH fill:#9B59B6,color:#fff
+    style ORACLE_SCAN fill:#3498DB,color:#fff
     style CODEMAP fill:#F39C12,color:#fff
-    style FIXMAP fill:#E67E22,color:#fff
     style LEARN fill:#2980B9,color:#fff
     style MERGE_MAIN fill:#27AE60,color:#fff
     style DONE fill:#27AE60,color:#fff
@@ -295,16 +305,16 @@ When working solo (no team reviewers, no CI per step), per-step PRs are pure ove
   - Continue execution from the revised steps
 
 ### 8. Agent Model Routing
-| Agent | Model | When |
-|-------|-------|------|
-| Explorer | haiku | File discovery, codebase navigation |
-| Librarian | haiku | Docs, API lookup, web search |
-| Fixer | haiku | All implementation: features, bug fixes, refactors, tests, mechanical changes |
-| Oracle | sonnet | Code review, stuck diagnosis, architecture decisions, security audit (read-only) |
-| Designer | sonnet | UI/UX, frontend components |
-| Orchestrator | opus | Triage, PR creation, reviews auditor fixes (no agent cost) |
+| Agent | Model | Reads files? | Writes files? | When |
+|-------|-------|-------------|---------------|------|
+| Explorer | haiku | Yes | No | File discovery, codebase navigation, codemap scanning, pre-oracle diff reading |
+| Librarian | haiku | Yes | No | Docs, API lookup, web search |
+| Fixer | haiku | Yes | Yes | All implementation: features, bug fixes, refactors, tests, mechanical changes |
+| Oracle | sonnet | **No** | **No** | Architecture decisions, code review, security audit, codemap synthesis (think-only) |
+| Designer | sonnet | Yes | Yes | UI/UX, frontend components |
+| Orchestrator | opus | — | — | Triage, PR creation, reviews auditor fixes (no agent cost) |
 
-> **Oracle is read-only.** Oracle diagnoses issues, reviews code, and runs security audits but never edits files. When the audit finds issues, **fixer** implements the fix and **oracle** reviews it.
+> **Oracle is think-only.** Oracle never reads files or writes code. Explorer reads files/diffs and provides structured summaries → orchestrator passes summaries to oracle → oracle thinks and decides. This keeps expensive sonnet tokens minimal.
 
 ### 8a. Fixer Done Checklist
 Fixer self-verifies before reporting back:
@@ -343,15 +353,15 @@ Oracle verifies before returning APPROVED:
 ### 9. Test + Retry
 - Run tests after each step
 - Retry fixer up to 2x on failure
-- 3rd failure: escalate to Oracle (sonnet) for root cause diagnosis
+- 3rd failure: explorer reads error context → orchestrator passes summary to oracle → oracle diagnoses
 - Oracle provides guidance → Fixer implements fix
 - After 3 oracle escalations on the same step: flag for human intervention
 
 ### 10. Security Audit (once, after ALL steps merged into parent)
-- Run on the full parent branch diff vs main
-- Oracle (sonnet) scans for security issues, N+1, diff risk
+- **Explorer** (haiku) reads the full parent branch diff vs main → produces structured summary
+- **Oracle** (sonnet, think-only) audits from explorer's summary — security issues, N+1, diff risk
 - **Special attention:** database migrations (table locks, backward compat, reversibility)
-- If issues found: **Fixer** implements fix on parent, **Oracle** reviews the fix
+- If issues found: **Fixer** implements fix on parent → **Explorer** re-reads → **Oracle** reviews
 - Re-audit until clean (max 3 rounds, then escalate to human)
 
 ### 11. Commit & PR Style
@@ -372,16 +382,17 @@ Types: `feat`, `fix`, `test`, `docs`, `chore`, `refactor`, `perf`, `security`
 
 ### 12. Final PR: Parent → Main (MUST include release notes)
 - Create PR from parent branch into main
-- Oracle does final review on the complete feature diff
+- **Explorer** scans PR diff → summary to orchestrator → **Oracle** does final review
 - Reviews: code quality, PR title/description, architecture, test coverage
-- Issues → fix on parent → re-review
+- Issues → fix on parent → explorer re-scans → oracle re-reviews
 - Approved → codemap check → learn + merge
 
 ### 12a. Codemap Maintenance (after Oracle approval)
-After approving a PR, Oracle checks codemap status:
-- **Missing codemap:** if any directory touched by the PR lacks a `codemap.md`, Oracle flags it and fixer creates one
-- **Outdated codemap:** if code changes added/removed/renamed files or changed directory purpose, Oracle flags it and fixer updates the relevant `codemap.md`
-- **Up to date:** no action needed, proceed to learn + merge
+After approving a PR, codemap update follows the explorer → oracle → fixer pipeline:
+1. **Explorer** (haiku) scans touched directories → produces structure summary (files, exports, dependencies)
+2. **Oracle** (sonnet, think-only) reviews summary → decides: missing, outdated, or up-to-date
+3. If missing/outdated: **Oracle** synthesizes codemap content from explorer's summary → **Fixer** writes the file
+4. Up to date: no action needed, proceed to learn + merge
 
 > **Why?** Codemaps are the primary navigation aid for all agents. Stale or missing codemaps cause agents to waste tokens re-discovering structure. Keeping them current at merge time is cheaper than fixing them later.
 
