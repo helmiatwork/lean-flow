@@ -119,7 +119,7 @@ flowchart TD
     CMAPSYNTH --> T1CHECK
 
     T1CHECK{"Major structural\nchanges?"}
-    T1CHECK -->|"New/removed modules\nrenamed dirs"| T1UPDATE["🔍 Sonnet subagents\nregenerate relevant sections\nof docs/CODEBASE_MAP.md"]
+    T1CHECK -->|"New/removed modules\nrenamed dirs"| T1UPDATE["🔍 Sonnet subagents analyze\n→ 🔧 Fixer writes\ndocs/CODEBASE_MAP.md"]
     T1CHECK -->|"No"| LEARN
     T1UPDATE --> LEARN
 
@@ -413,9 +413,9 @@ After Tier 2 is done, check if the PR introduced **major structural changes**:
 
 **If yes:**
 1. Run `scan-codebase.py . --format json` for updated token counts
-2. Spawn Sonnet subagents to re-analyze only the changed modules
-3. Update relevant sections of `docs/CODEBASE_MAP.md` (merge with existing, don't regenerate everything)
-4. Update `last_mapped` timestamp
+2. Spawn **Sonnet subagents** to re-analyze only the changed modules (read + synthesize)
+3. **Fixer** (haiku) writes the updated sections to `docs/CODEBASE_MAP.md` (merge with existing, don't regenerate everything)
+4. **Fixer** updates `last_mapped` timestamp
 
 **If no:** Skip — `docs/CODEBASE_MAP.md` stays as-is.
 

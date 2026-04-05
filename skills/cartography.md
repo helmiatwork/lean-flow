@@ -85,7 +85,9 @@ Each subagent prompt should request:
 
 Merge all subagent reports. Deduplicate, identify cross-cutting concerns, build architecture diagram, extract navigation paths.
 
-### Step 6: Write CODEBASE_MAP.md
+### Step 6: Fixer Writes CODEBASE_MAP.md
+
+Dispatch **Fixer** (haiku) to write the synthesized output. Sonnet subagents analyze — Fixer writes the file.
 
 **Get the actual timestamp first:**
 ```bash
@@ -142,9 +144,9 @@ Add or update codebase summary in CLAUDE.md pointing to the map.
 
 When updating an existing map:
 1. Identify changed files from git
-2. Spawn subagents only for changed modules
-3. Merge new analysis with existing map
-4. Update `last_mapped` timestamp
+2. Spawn Sonnet subagents only for changed modules (read + analyze)
+3. **Fixer** (haiku) merges new analysis with existing map and writes the file
+4. **Fixer** updates `last_mapped` timestamp
 5. Preserve unchanged sections
 
 ---
