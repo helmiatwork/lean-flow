@@ -11,7 +11,7 @@ LOCAL_BIN="$HOME/.local/bin"
 LAUNCH_AGENTS="$HOME/Library/LaunchAgents"
 PLIST_NAME="com.ichigo.claude-usage-fetch"
 REFRESH_INTERVAL=180  # 3 minutes in seconds
-SWIFTBAR_INTERVAL="5s"
+SWIFTBAR_INTERVAL="30s"
 
 echo "=== Claude Usage Monitor Installer ==="
 echo ""

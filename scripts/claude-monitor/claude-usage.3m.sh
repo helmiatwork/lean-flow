@@ -109,7 +109,7 @@ if [ -f "$CACHE_FILE" ]; then
   echo "Updated: $updated | size=11 color=#888888"
   echo "Next refresh: $countdown | size=11 color=#888888"
 fi
-SELF_PATH="/Users/ichigo/Library/Application Support/SwiftBar/Plugins/claude-usage.5s.sh"
+SELF_PATH="/Users/ichigo/Library/Application Support/SwiftBar/Plugins/claude-usage.30s.sh"
 echo "Refresh | bash='$SELF_PATH' param1=refresh_now terminal=false refresh=true"
 echo "---"
 current_mins=$(( FETCH_INTERVAL / 60 ))
