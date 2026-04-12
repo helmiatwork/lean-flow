@@ -4,8 +4,18 @@
 
 CACHE_FILE="/tmp/claude-usage-cache.json"
 SESSION_FILE="/tmp/claude-usage-session.txt"
-CLAUDE_BIN="${CLAUDE_BIN:-$(command -v claude 2>/dev/null || echo "/opt/homebrew/bin/claude")}"
 LOCK_FILE="/tmp/claude-usage-fetch.lock"
+
+# Ensure nodenv picks a version that has claude installed
+if command -v nodenv &>/dev/null && [ -z "$NODENV_VERSION" ]; then
+  for v in $(nodenv versions --bare 2>/dev/null | sort -rV); do
+    if [ -x "$HOME/.nodenv/versions/$v/bin/claude" ]; then
+      export NODENV_VERSION="$v"
+      break
+    fi
+  done
+fi
+CLAUDE_BIN="${CLAUDE_BIN:-$(command -v claude 2>/dev/null || echo "/opt/homebrew/bin/claude")}"
 
 # Run from a trusted dir
 cd "$HOME"
@@ -32,7 +42,7 @@ trap "rm -f $LOCK_FILE" EXIT
   sleep 2
   printf "/exit\r"
   sleep 2
-} | script -q "$SESSION_FILE" "$CLAUDE_BIN" --no-chrome --disallowedTools "Bash,Edit,Write,Read,Grep,Glob,Agent" 2>/dev/null
+} | TERM=dumb script -q "$SESSION_FILE" "$CLAUDE_BIN" --no-chrome --disallowedTools "Bash,Edit,Write,Read,Grep,Glob,Agent" 2>/dev/null
 
 # Use session file if it has data, fall back to log (launchd redirects stdout there)
 RAW_FILE="$SESSION_FILE"
@@ -40,13 +50,16 @@ if [ ! -s "$RAW_FILE" ] && [ -s "/tmp/claude-usage-fetch.log" ]; then
   RAW_FILE="/tmp/claude-usage-fetch.log"
 fi
 
-# Strip ANSI codes
+# Strip ANSI codes (order matters: cursor-forward first, then all CSI, then OSC)
 clean=$(perl -pe '
   s/\e\[\d*C/ /g;
+  s/\e\[\?[^a-zA-Z]*[a-zA-Z]//g;
   s/\e\[[^a-zA-Z]*[a-zA-Z]//g;
   s/\e\][^\a]*(\a|\e\\)//g;
   s/\e\([A-Z]//g;
+  s/\e[=>]//g;
   s/[\x00-\x08\x0b\x0c\x0e-\x1f]//g;
+  s/\s+/ /g;
 ' "$RAW_FILE" 2>/dev/null)
 
 # Parse percentages
@@ -61,9 +74,13 @@ week_sonnet_pct=$(echo "$pct_output" | sed -n '3p')
 now_epoch=$(date +%s)
 today=$(date +%Y-%m-%d)
 
-# Extract raw reset strings from text between "used" and next section boundary
-# This handles ANSI-garbled output where letters may be missing
-resets=$(echo "$clean" | perl -ne 'while (/(\d+)%\s*used\s*(.*?)(?:\(|Cur|Esc|$)/g) { my $r=$2; $r=~s/^\s+|\s+$//g; print "$r\n" }' | head -3)
+# Extract reset strings — match "Resets <time> (timezone)" directly
+# Handles garbled ANSI: "Rese" prefix variants, optional am/pm
+resets=$(echo "$clean" | perl -ne '
+  while (/Rese\w*\s+((?:[A-Z][a-z]{2}\s+\d+[,.]?\s+)?\d+(?::\d+)?\s*[ap]?\s*m)\b/gi) {
+    print "$1\n";
+  }
+' | head -3)
 session_raw=$(echo "$resets" | sed -n '1p')
 week_all_raw=$(echo "$resets" | sed -n '2p')
 week_sonnet_raw=$(echo "$resets" | sed -n '3p')
@@ -72,10 +89,10 @@ calc_remaining() {
   local raw="$1"
   [ -z "$raw" ] && echo "?" && return
 
-  # Strip leading "Reset"/"Resets"/"Reses" etc (use [a-z] not \w to avoid eating digits)
-  local stripped=$(echo "$raw" | perl -pe 's/^Rese[a-z]*\s*//')
+  # Input is already stripped of "Resets" prefix (e.g. "2pm", "Apr 17, 8pm")
+  local stripped="$raw"
 
-  # Check if it has a month+day: "Apr3at10am" or "Apr 3 at 10am"
+  # Check if it has a month+day: "Apr 17, 8pm" or "Apr3at10am"
   local month=$(echo "$stripped" | perl -ne 'print $1 if /^([A-Z][a-z]{2})/i')
   local day=$(echo "$stripped" | perl -ne 'print $1 if /^[A-Za-z]{3}\s*(\d+)/')
 
