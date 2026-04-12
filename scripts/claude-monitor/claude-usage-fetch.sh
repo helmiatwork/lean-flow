@@ -74,10 +74,10 @@ week_sonnet_pct=$(echo "$pct_output" | sed -n '3p')
 now_epoch=$(date +%s)
 today=$(date +%Y-%m-%d)
 
-# Extract reset strings — match "Resets <time> (timezone)" directly
-# Handles garbled ANSI: "Rese" prefix variants, optional am/pm
+# Extract reset strings — match "Rese[ts] <time> (timezone)" directly
+# Progress bars garble adjacent chars: "Resets" → "Rese s", "Rese ts" etc.
 resets=$(echo "$clean" | perl -ne '
-  while (/Rese\w*\s+((?:[A-Z][a-z]{2}\s+\d+[,.]?\s+)?\d+(?::\d+)?\s*[ap]?\s*m)\b/gi) {
+  while (/Rese[\w\s]*?\s+((?:[A-Z][a-z]{2}\s+\d+[,.]?\s+)?\d+(?::\d+)?\s*[ap]?\s*m)\b/gi) {
     print "$1\n";
   }
 ' | head -3)
