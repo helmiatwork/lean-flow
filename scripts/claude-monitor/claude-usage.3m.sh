@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # Claude Code Usage Monitor for SwiftBar
-# Reads cached usage data written by the fetcher (OAuth rate limit headers)
+# Reads cached usage data from OAuth rate limit headers
 
 CACHE_FILE="/tmp/claude-usage-cache.json"
 BLINK_FLAG="/tmp/claude-usage-blink"
@@ -17,7 +17,11 @@ FETCH_INTERVAL=$(( ${_mins:-5} * 60 ))
 # --- Handle commands from menu actions ---
 if [ "$1" = "set_interval" ] && [[ "$2" =~ ^[0-9]+$ ]]; then
   mkdir -p "$(dirname "$CONFIG_FILE")"
-  echo "refresh_minutes=$2" > "$CONFIG_FILE"
+  if grep -q '^refresh_minutes=' "$CONFIG_FILE" 2>/dev/null; then
+    sed -i '' "s/^refresh_minutes=.*/refresh_minutes=$2/" "$CONFIG_FILE"
+  else
+    echo "refresh_minutes=$2" >> "$CONFIG_FILE"
+  fi
   exit 0
 fi
 
@@ -83,8 +87,8 @@ fi
 echo "---"
 echo "Claude Code Usage | size=14"
 echo "---"
-echo "Session (5h):  ${session_pct}% (reset ${session_reset})"
-echo "Weekly (7d):   ${week_pct}% (reset ${week_reset})"
+echo "Session (5h):  ${session_pct}%  ↻ ${session_reset}"
+echo "Weekly (7d):   ${week_pct}%  ↻ ${week_reset}"
 echo "---"
 if [ -f "$CACHE_FILE" ]; then
   updated=$(jq -r '.updated // "?"' "$CACHE_FILE" 2>/dev/null)
