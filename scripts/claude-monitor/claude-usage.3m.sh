@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # Claude Code Usage Monitor for SwiftBar
-# Reads cached usage data written by the fetcher daemon
+# Reads cached usage data written by the fetcher (OAuth rate limit headers)
 
 CACHE_FILE="/tmp/claude-usage-cache.json"
 BLINK_FLAG="/tmp/claude-usage-blink"
@@ -22,7 +22,6 @@ if [ "$1" = "set_interval" ] && [[ "$2" =~ ^[0-9]+$ ]]; then
 fi
 
 if [ "$1" = "refresh_now" ]; then
-  # Show ⚡ immediately while fetcher runs
   touch "$BLINK_FLAG"
   open -g "swiftbar://refreshplugin?name=claude-usage"
   "$FETCHER" &>/dev/null &
@@ -32,23 +31,19 @@ fi
 # --- Read cache ---
 if [ -f "$CACHE_FILE" ]; then
   session_pct=$(jq -r '.session // "?"' "$CACHE_FILE" 2>/dev/null)
-  week_all_pct=$(jq -r '.week_all // "?"' "$CACHE_FILE" 2>/dev/null)
-  week_sonnet_pct=$(jq -r '.week_sonnet // "?"' "$CACHE_FILE" 2>/dev/null)
+  week_pct=$(jq -r '.week_all // "?"' "$CACHE_FILE" 2>/dev/null)
   session_reset=$(jq -r '.session_reset // "?"' "$CACHE_FILE" 2>/dev/null)
-  week_all_reset=$(jq -r '.week_all_reset // "?"' "$CACHE_FILE" 2>/dev/null)
-  week_sonnet_reset=$(jq -r '.week_sonnet_reset // "?"' "$CACHE_FILE" 2>/dev/null)
+  week_reset=$(jq -r '.week_all_reset // "?"' "$CACHE_FILE" 2>/dev/null)
 else
   session_pct="?"
-  week_all_pct="?"
-  week_sonnet_pct="?"
+  week_pct="?"
   session_reset="?"
-  week_all_reset="?"
-  week_sonnet_reset="?"
+  week_reset="?"
 fi
 
 # --- Color based on highest usage ---
 max_pct=0
-for p in "$session_pct" "$week_all_pct" "$week_sonnet_pct"; do
+for p in "$session_pct" "$week_pct"; do
   if [[ "$p" =~ ^[0-9]+$ ]] && [ "$p" -gt "$max_pct" ]; then
     max_pct=$p
   fi
@@ -62,7 +57,7 @@ else
   icon="🟢"
 fi
 
-# --- Blink detection (10s after data updated) ---
+# --- Blink detection (10s after refresh) ---
 blink=false
 if [ -f "$BLINK_FLAG" ]; then
   flag_age=$(( $(date +%s) - $(stat -f%m "$BLINK_FLAG") ))
@@ -74,7 +69,7 @@ if [ -f "$BLINK_FLAG" ]; then
 fi
 
 # --- Title bar ---
-display="${session_pct}%(${session_reset})┊${week_all_pct}%(${week_all_reset})┊${week_sonnet_pct}%(${week_sonnet_reset})"
+display="${session_pct}%(${session_reset})┊${week_pct}%(${week_reset})"
 
 if [ "$session_pct" = "?" ]; then
   echo "☁️ --% | color=#888888"
@@ -88,9 +83,8 @@ fi
 echo "---"
 echo "Claude Code Usage | size=14"
 echo "---"
-echo "Session:       ${session_pct}% (reset ${session_reset})"
-echo "Week (all):    ${week_all_pct}% (reset ${week_all_reset})"
-echo "Week (sonnet): ${week_sonnet_pct}% (reset ${week_sonnet_reset})"
+echo "Session (5h):  ${session_pct}% (reset ${session_reset})"
+echo "Weekly (7d):   ${week_pct}% (reset ${week_reset})"
 echo "---"
 if [ -f "$CACHE_FILE" ]; then
   updated=$(jq -r '.updated // "?"' "$CACHE_FILE" 2>/dev/null)
