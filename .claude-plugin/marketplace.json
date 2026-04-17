@@ -10,7 +10,7 @@
       "name": "lean-flow",
       "description": "Lightweight dev workflow plugin: pattern memory (SQLite), parallel agents, plan-plus integration, cartographer (codebase mapping), auto-dream memory consolidation, oracle code review.",
       "category": "development",
-      "source": ".",
+      "source": "./lean-flow",
       "homepage": "https://github.com/helmiatwork/lean-flow"
     }
   ]
