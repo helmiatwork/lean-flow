@@ -1,147 +1,102 @@
 #!/bin/bash
 
-# Claude Usage Fetcher — runs with a real TTY via script command
+# Claude Usage Fetcher — reads OAuth token from keychain, hits API rate limit headers
+# Much faster and more reliable than the old TTY/script approach.
 
 CACHE_FILE="/tmp/claude-usage-cache.json"
-SESSION_FILE="/tmp/claude-usage-session.txt"
 LOCK_FILE="/tmp/claude-usage-fetch.lock"
-
-# Ensure nodenv picks a version that has claude installed
-if command -v nodenv &>/dev/null && [ -z "$NODENV_VERSION" ]; then
-  for v in $(nodenv versions --bare 2>/dev/null | sort -rV); do
-    if [ -x "$HOME/.nodenv/versions/$v/bin/claude" ]; then
-      export NODENV_VERSION="$v"
-      break
-    fi
-  done
-fi
-CLAUDE_BIN="${CLAUDE_BIN:-$(command -v claude 2>/dev/null || echo "/opt/homebrew/bin/claude")}"
-
-# Run from a trusted dir
-cd "$HOME"
 
 # Prevent concurrent runs
 if [ -f "$LOCK_FILE" ]; then
   lock_age=$(( $(date +%s) - $(stat -f%m "$LOCK_FILE") ))
-  if [ "$lock_age" -lt 60 ]; then
-    exit 0
-  fi
+  [ "$lock_age" -lt 30 ] && exit 0
 fi
 echo $$ > "$LOCK_FILE"
 trap "rm -f $LOCK_FILE" EXIT
 
-# Fetch usage via script + piped commands
-# Enter accepts trust dialog, then /usage, Esc closes modal, /exit quits
-{
-  sleep 5
-  printf "\r"
-  sleep 10
-  printf "/usage\r"
-  sleep 8
-  printf "\033"
-  sleep 2
-  printf "/exit\r"
-  sleep 2
-} | TERM=dumb script -q "$SESSION_FILE" "$CLAUDE_BIN" --no-chrome --disallowedTools "Bash,Edit,Write,Read,Grep,Glob,Agent" 2>/dev/null
-
-# Use session file if it has data, fall back to log (launchd redirects stdout there)
-RAW_FILE="$SESSION_FILE"
-if [ ! -s "$RAW_FILE" ] && [ -s "/tmp/claude-usage-fetch.log" ]; then
-  RAW_FILE="/tmp/claude-usage-fetch.log"
+# --- Get OAuth token from keychain ---
+CREDS=$(security find-generic-password -s "Claude Code-credentials" -w 2>/dev/null)
+if [ -z "$CREDS" ]; then
+  # Try hashed service name pattern
+  CREDS=$(security dump-keychain 2>/dev/null | grep -A4 "Claude Code-credentials" | head -1)
+  [ -z "$CREDS" ] && exit 1
 fi
 
-# Strip ANSI codes (order matters: cursor-forward first, then all CSI, then OSC)
-clean=$(perl -pe '
-  s/\e\[\d*C/ /g;
-  s/\e\[\?[^a-zA-Z]*[a-zA-Z]//g;
-  s/\e\[[^a-zA-Z]*[a-zA-Z]//g;
-  s/\e\][^\a]*(\a|\e\\)//g;
-  s/\e\([A-Z]//g;
-  s/\e[=>]//g;
-  s/[\x00-\x08\x0b\x0c\x0e-\x1f]//g;
-  s/\s+/ /g;
-' "$RAW_FILE" 2>/dev/null)
+TOKEN=$(echo "$CREDS" | python3 -c "import sys,json; print(json.load(sys.stdin).get('claudeAiOauth',{}).get('accessToken',''))" 2>/dev/null)
+[ -z "$TOKEN" ] && exit 1
 
-# Parse percentages
-pct_output=$(echo "$clean" | grep -oE '[0-9]+%[[:space:]]*used' | sed 's/% *used//' | head -3)
-session_pct=$(echo "$pct_output" | sed -n '1p')
-week_all_pct=$(echo "$pct_output" | sed -n '2p')
-week_sonnet_pct=$(echo "$pct_output" | sed -n '3p')
+# --- Minimal API call to get rate limit headers ---
+# Requires anthropic-beta header for OAuth token auth
+HEADERS=$(curl -sS -D - -o /dev/null -X POST "https://api.anthropic.com/v1/messages" \
+  -H "Authorization: Bearer $TOKEN" \
+  -H "Content-Type: application/json" \
+  -H "anthropic-version: 2023-06-01" \
+  -H "anthropic-beta: oauth-2025-04-20" \
+  -H "User-Agent: claude-code/2.1.5" \
+  -d '{"model":"claude-haiku-4-5-20251001","max_tokens":1,"messages":[{"role":"user","content":"hi"}]}' \
+  2>/dev/null)
 
-# Parse reset times and convert to remaining time
-# Session: "5pm" today -> hours remaining
-# Week: "Apr 3 at 10am" -> days remaining
-now_epoch=$(date +%s)
-today=$(date +%Y-%m-%d)
-
-# Extract reset strings — match "Rese[ts] <time> (timezone)" directly
-# Progress bars garble adjacent chars: "Resets" → "Rese s", "Rese ts" etc.
-resets=$(echo "$clean" | perl -ne '
-  while (/Rese[\w\s]*?\s+((?:[A-Z][a-z]{2}\s+\d+[,.]?\s+)?\d+(?::\d+)?\s*[ap]?\s*m)\b/gi) {
-    print "$1\n";
-  }
-' | head -3)
-session_raw=$(echo "$resets" | sed -n '1p')
-week_all_raw=$(echo "$resets" | sed -n '2p')
-week_sonnet_raw=$(echo "$resets" | sed -n '3p')
-
-calc_remaining() {
-  local raw="$1"
-  [ -z "$raw" ] && echo "?" && return
-
-  # Input is already stripped of "Resets" prefix (e.g. "2pm", "Apr 17, 8pm")
-  local stripped="$raw"
-
-  # Check if it has a month+day: "Apr 17, 8pm" or "Apr3at10am"
-  local month=$(echo "$stripped" | perl -ne 'print $1 if /^([A-Z][a-z]{2})/i')
-  local day=$(echo "$stripped" | perl -ne 'print $1 if /^[A-Za-z]{3}\s*(\d+)/')
-
-  if [ -n "$month" ] && [ -n "$day" ]; then
-    # Future date — calc days remaining
-    month=$(echo "$month" | perl -pe '$_ = ucfirst(lc($_))')
-    local target=$(date -j -f "%b %d %Y %H%M" "$month $day $(date +%Y) 0000" +%s 2>/dev/null)
-    local today_midnight=$(date -j -f "%Y%m%d %H%M" "$(date +%Y%m%d) 0000" +%s 2>/dev/null)
-    if [ -n "$target" ] && [ -n "$today_midnight" ]; then
-      local days=$(( (target - today_midnight) / 86400 ))
-      if [ "$days" -le 0 ]; then
-        echo "today"
-      else
-        echo "${days}d"
-      fi
-    else
-      echo "?"
-    fi
-  else
-    # Same-day reset: extract time like "1am", "1 am", "1pm", "5:30pm", "1 m"
-    local time=$(echo "$stripped" | grep -oiE '[0-9]+(:[0-9]+)?\s*[ap]?\s*m')
-    if [ -n "$time" ]; then
-      # Normalize spaces: "1 a m" -> "1am", "1 m" -> "1m"
-      time=$(echo "$time" | perl -pe 's/\s+//g')
-      # If still just "Xm" (no a/p), infer from hour: 1-6 = am, 7-12 = pm
-      time=$(echo "$time" | perl -pe 'if (/^(\d+)(:\d+)?m$/i) { my $h=$1; my $s=$2//""; $h<=6 ? s/m$/am/i : s/m$/pm/i }')
-      echo "$time"
-    else
-      echo "?"
-    fi
-  fi
+# --- Parse rate limit headers ---
+get_header() {
+  echo "$HEADERS" | grep -i "^$1:" | sed 's/^[^:]*:[[:space:]]*//' | tr -d '\r'
 }
 
-session_reset=$(calc_remaining "$session_raw")
-week_all_reset=$(calc_remaining "$week_all_raw")
-week_sonnet_reset=$(calc_remaining "$week_sonnet_raw")
+session_util=$(get_header "anthropic-ratelimit-unified-5h-utilization")
+session_reset_ts=$(get_header "anthropic-ratelimit-unified-5h-reset")
+week_util=$(get_header "anthropic-ratelimit-unified-7d-utilization")
+week_reset_ts=$(get_header "anthropic-ratelimit-unified-7d-reset")
 
-# If usage is 0% and reset is unknown, show "-" instead of "?"
-[ "$week_sonnet_pct" = "0" ] && [ "$week_sonnet_reset" = "?" ] && week_sonnet_reset="-"
-[ "$week_all_pct" = "0" ] && [ "$week_all_reset" = "?" ] && week_all_reset="-"
+# Convert utilization (0.0-1.0) to percentage
+to_pct() {
+  local val="$1"
+  [ -z "$val" ] && echo "?" && return
+  python3 -c "print(int(float('$val') * 100))" 2>/dev/null || echo "?"
+}
+
+session_pct=$(to_pct "$session_util")
+week_pct=$(to_pct "$week_util")
+
+# Convert reset timestamps to human-readable remaining time
+calc_remaining() {
+  local ts="$1"
+  [ -z "$ts" ] && echo "?" && return
+  python3 -c "
+import sys
+from datetime import datetime, timezone
+try:
+    ts = float('$ts')
+    reset = datetime.fromtimestamp(ts, tz=timezone.utc)
+    now = datetime.now(tz=timezone.utc)
+    diff = reset - now
+    secs = int(diff.total_seconds())
+    if secs <= 0:
+        print('now')
+    elif secs < 3600:
+        print(f'{secs // 60}m')
+    elif secs < 86400:
+        h = secs // 3600
+        m = (secs % 3600) // 60
+        print(f'{h}h{m}m')
+    else:
+        print(f'{secs // 86400}d')
+except:
+    print('?')
+" 2>/dev/null || echo "?"
+}
+
+session_reset=$(calc_remaining "$session_reset_ts")
+week_reset=$(calc_remaining "$week_reset_ts")
+
+# If usage is 0% and reset is unknown, show "-"
 [ "$session_pct" = "0" ] && [ "$session_reset" = "?" ] && session_reset="-"
+[ "$week_pct" = "0" ] && [ "$week_reset" = "?" ] && week_reset="-"
 
 # Only update cache if we got valid data
 if [[ "$session_pct" =~ ^[0-9]+$ ]]; then
   cat > "$CACHE_FILE" << JSON
-{"session": "$session_pct", "week_all": "${week_all_pct:-?}", "week_sonnet": "${week_sonnet_pct:-?}", "session_reset": "${session_reset:-?}", "week_all_reset": "${week_all_reset:-?}", "week_sonnet_reset": "${week_sonnet_reset:-?}", "updated": "$(date '+%H:%M')"}
+{"session": "$session_pct", "week_all": "${week_pct:-?}", "session_reset": "${session_reset:-?}", "week_all_reset": "${week_reset:-?}", "updated": "$(date '+%H:%M')"}
 JSON
-  # Flash ⚡ for 10s then back to normal
   touch /tmp/claude-usage-blink
-  open -g "swiftbar://refreshplugin?name=claude-usage"
-  ( sleep 11 && open -g "swiftbar://refreshplugin?name=claude-usage" ) &>/dev/null &
+  open -g "swiftbar://refreshplugin?name=claude-usage" 2>/dev/null
+  ( sleep 11 && open -g "swiftbar://refreshplugin?name=claude-usage" 2>/dev/null ) &
 fi
