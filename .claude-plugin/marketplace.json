@@ -1,0 +1,17 @@
+{
+  "$schema": "https://anthropic.com/claude-code/marketplace.schema.json",
+  "name": "lean-flow",
+  "description": "Lightweight dev workflow plugin: pattern memory, parallel agents, plan-plus, cartographer, oracle code review",
+  "owner": {
+    "name": "helmiatwork"
+  },
+  "plugins": [
+    {
+      "name": "lean-flow",
+      "description": "Lightweight dev workflow plugin: pattern memory (SQLite), parallel agents, plan-plus integration, cartographer (codebase mapping), auto-dream memory consolidation, oracle code review.",
+      "category": "development",
+      "source": ".",
+      "homepage": "https://github.com/helmiatwork/lean-flow"
+    }
+  ]
+}
