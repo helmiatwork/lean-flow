@@ -6,7 +6,7 @@
 INPUT=$(cat)
 SESSION_ID=$(printf '%s' "$INPUT" | jq -r '.session_id // empty' 2>/dev/null)
 
-WORKFLOW_FILE="$(dirname "${CLAUDE_PLUGIN_ROOT}")/workflows/standard-development-flow.md"
+WORKFLOW_FILE="$(dirname "${CLAUDE_PLUGIN_ROOT}")/workflows/claude-rules.md"
 
 [ -f "$WORKFLOW_FILE" ] || exit 0
 [ -z "$SESSION_ID" ] && exit 0
@@ -19,8 +19,7 @@ touch "$SESSION_CACHE"
 # Clean up old session caches (keep last 10)
 ls -1t /tmp/claude-workflow-session-*.cache 2>/dev/null | tail -n +11 | xargs rm -f 2>/dev/null || true
 
-# Extract prose only — skip lines 1-242 (title + Mermaid diagram)
-PROSE=$(tail -n +243 "$WORKFLOW_FILE")
+PROSE=$(cat "$WORKFLOW_FILE")
 
 HEADER="[LEAN-FLOW WORKFLOW ACTIVE]
 CRITICAL: This project uses lean-flow ONLY. Never suggest /gsd-* commands.
