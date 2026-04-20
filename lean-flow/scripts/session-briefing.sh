@@ -1,5 +1,6 @@
 #!/usr/bin/env bash
-# Session briefing — minimal context, max signal
+# Session briefing — fires once per unique (repo, branch, working-tree state)
+# Subsequent sessions with no changes produce zero output = zero tokens
 
 if ! git rev-parse --is-inside-work-tree &>/dev/null; then
   exit 0
@@ -7,23 +8,24 @@ fi
 
 REPO=$(basename "$(git rev-parse --show-toplevel)")
 BRANCH=$(git branch --show-current 2>/dev/null || echo "detached")
-COMMITS=$(git log --oneline -5 2>/dev/null || echo "(no commits)")
-CHANGES=$(git status --short 2>/dev/null | head -10)
+CHANGES=$(git status --short 2>/dev/null | head -20)
 
-# Knowledge: 1-line count only — use pattern_search on demand
-KN=""
-KNOWLEDGE_DB="${HOME}/.claude/knowledge/patterns.db"
-if [ -f "$KNOWLEDGE_DB" ] && command -v sqlite3 &>/dev/null; then
-  total=$(sqlite3 "$KNOWLEDGE_DB" "SELECT COUNT(*) FROM patterns;" 2>/dev/null || echo "0")
-  repo_count=$(sqlite3 "$KNOWLEDGE_DB" "SELECT COUNT(*) FROM patterns WHERE project='${REPO}';" 2>/dev/null || echo "0")
-  [ "$total" -gt 0 ] && KN="Patterns: ${repo_count}/${total} for ${REPO}"
-fi
+# Cache key: changes only if repo/branch/working-tree actually changed
+STATE_HASH=$(printf '%s\n%s\n%s' "$REPO" "$BRANCH" "$CHANGES" | md5)
+CACHE_FILE="/tmp/claude-briefing-${STATE_HASH}.cache"
+
+# Already briefed for this exact state — skip
+[ -f "$CACHE_FILE" ] && exit 0
+
+# Mark as briefed
+touch "$CACHE_FILE"
+
+# Clean up old briefing caches (keep last 20)
+find /tmp -maxdepth 1 -name "claude-briefing-*.cache" 2>/dev/null | \
+  sort -t- -k3 | head -n -20 | xargs -r python3 -c "import sys,os; [os.remove(f) for f in sys.argv[1:]]" 2>/dev/null || true
 
 BRIEFING="${REPO} | ${BRANCH}
-${COMMITS}
-${CHANGES:+---
-${CHANGES}}${KN:+
-${KN}}"
+${CHANGES:-(clean)}"
 
 if command -v jq &>/dev/null; then
   jq -n --arg msg "$BRIEFING" '{"systemMessage": $msg}'
