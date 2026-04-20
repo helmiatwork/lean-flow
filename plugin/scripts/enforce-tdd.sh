@@ -27,25 +27,44 @@ case "$BASENAME" in
   *config*|*setup*|*migration*|*seed*|*fixture*|*factory*) exit 0 ;;
 esac
 
-# It's an implementation file — enforce TDD + auto-run cycle
-MSG="[TDD ENFORCEMENT]
-You just wrote implementation code in: $(basename "$FILE")
+# Check if a test file already exists for this implementation file
+BASENAME_NO_EXT="${BASENAME%.*}"
+EXT="${FILE##*.}"
+DIR=$(dirname "$FILE")
+EXISTING_TEST=$(find "$DIR" -maxdepth 2 \( -name "${BASENAME_NO_EXT}.test.*" -o -name "${BASENAME_NO_EXT}.spec.*" -o -name "${BASENAME_NO_EXT}_test.*" \) 2>/dev/null | head -1)
 
-MANDATORY cycle (non-negotiable):
-1. RED   — write failing unit test first, watch it fail
-2. GREEN — minimal code to pass, run tests NOW
-3. REFACTOR — clean up, keep green
-4. E2E   — add E2E test for user-facing flows
-5. COVERAGE — run coverage, must be ≥80%
+if [ -n "$EXISTING_TEST" ]; then
+  # Test file already exists — just remind to run cycle
+  MSG="[TDD ENFORCEMENT] Test file exists: $(basename "$EXISTING_TEST")
+Run the test cycle now:
+- RUN tests → PASS: check coverage ≥80% → proceed
+- FAIL x3: STOP, invoke lean-flow:oracle with error + what you tried"
+else
+  # No test file yet — ask user which type of test to write
+  MSG="[TDD ENFORCEMENT] You just wrote implementation code in: $(basename "$FILE")
 
-RUN TESTS NOW. Then follow this retry rule:
-- PASS → check coverage ≥80% → proceed
+ASK THE USER before writing tests:
+'Tipe test apa yang ingin dibuat untuk $(basename "$FILE")?
+  a. Unit test          — logic/function isolation (default)
+  b. E2E test           — user flow via browser (Playwright)
+  c. Regression test    — reproduksi bug dulu, lalu fix
+  d. Unit + E2E         — full TDD cycle (recommended for user-facing features)
+  e. Skip test          — throwaway prototype only (requires user confirmation)
+
+Jawab a/b/c/d/e:'
+
+Wait for user answer, then follow the chosen path:
+- a/default → RED(unit) → GREEN → REFACTOR → coverage ≥80%
+- b → RED(E2E via Playwright) → GREEN → REFACTOR
+- c → RED(regression reproducing bug) → GREEN → REFACTOR → unit coverage ≥80%
+- d → RED(unit) → GREEN → REFACTOR → RED(E2E) → GREEN → coverage ≥80%
+- e → confirm with user explicitly, then skip
+
+RETRY RULE (all paths):
 - FAIL attempt 1 → diagnose + fix → run again
 - FAIL attempt 2 → diagnose + fix → run again
-- FAIL attempt 3 → STOP. Invoke lean-flow:oracle with error + what you tried.
-  Never retry past 3 failures — escalate to oracle.
-
-Do NOT mark done until: unit tests pass + E2E pass + coverage ≥80%."
+- FAIL attempt 3 → STOP. Invoke lean-flow:oracle. Never retry past 3 failures."
+fi
 
 jq -n --arg msg "$MSG" \
   '{"hookSpecificOutput":{"hookEventName":"PostToolUse","additionalContext":$msg}}' 2>/dev/null
