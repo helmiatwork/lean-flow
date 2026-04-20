@@ -63,7 +63,7 @@ chmod +x "$LOCAL_BIN/claude-usage-fetch.sh"
 
 # 5. Install SwiftBar plugin
 rm -f "$PLUGIN_DIR"/claude-usage.*.sh 2>/dev/null
-cp "$SRC_DIR/claude-usage.3m.sh" "$PLUGIN_DIR/claude-usage.3m.sh"
+cp "$SRC_DIR/claude-usage.30s.sh" "$PLUGIN_DIR/claude-usage.30s.sh"
 chmod +x "$PLUGIN_DIR/claude-usage.3m.sh"
 
 # 6. Install launchd agent
