@@ -27,19 +27,25 @@ case "$BASENAME" in
   *config*|*setup*|*migration*|*seed*|*fixture*|*factory*) exit 0 ;;
 esac
 
-# It's an implementation file — enforce TDD
+# It's an implementation file — enforce TDD + auto-run cycle
 MSG="[TDD ENFORCEMENT]
 You just wrote implementation code in: $(basename "$FILE")
-MANDATORY: Invoke lean-flow:test-driven-development before proceeding.
 
-Steps (non-negotiable):
-1. RED — write failing unit test first
-2. GREEN — minimal code to pass
-3. REFACTOR — clean up
-4. E2E — add E2E test for user-facing flows
-5. COVERAGE — run coverage report, must be ≥80%
+MANDATORY cycle (non-negotiable):
+1. RED   — write failing unit test first, watch it fail
+2. GREEN — minimal code to pass, run tests NOW
+3. REFACTOR — clean up, keep green
+4. E2E   — add E2E test for user-facing flows
+5. COVERAGE — run coverage, must be ≥80%
 
-Do NOT mark done until: unit tests pass + E2E tests pass + coverage ≥80%."
+RUN TESTS NOW. Then follow this retry rule:
+- PASS → check coverage ≥80% → proceed
+- FAIL attempt 1 → diagnose + fix → run again
+- FAIL attempt 2 → diagnose + fix → run again
+- FAIL attempt 3 → STOP. Invoke lean-flow:oracle with error + what you tried.
+  Never retry past 3 failures — escalate to oracle.
+
+Do NOT mark done until: unit tests pass + E2E pass + coverage ≥80%."
 
 jq -n --arg msg "$MSG" \
   '{"hookSpecificOutput":{"hookEventName":"PostToolUse","additionalContext":$msg}}' 2>/dev/null
