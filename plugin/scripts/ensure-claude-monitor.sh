@@ -101,7 +101,7 @@ open -a SwiftBar 2>/dev/null
 
 cat <<'EOF'
 {
-  "systemMessage": "[lean-flow] Claude Usage Monitor installed: SwiftBar plugin + fetcher daemon (every 3min). Check your menu bar for usage stats."
+  "systemMessage": "[lean-flow] Claude Usage Monitor installed: SwiftBar plugin + fetcher daemon (every 30s). Check your menu bar for usage stats."
 }
 EOF
 
