@@ -1,25 +1,24 @@
 # plugin/scripts/
 
 ## Responsibility
-
-`plugin/scripts/` contains hook handlers and automation tools that run transparently during Claude sessions. Scripts intercept tool calls (PreToolUse/PostToolUse), enforce guardrails (block secrets, protected branches, identity markers), update documentation (codemaps), consolidate memory, and monitor usage. All are zero-cost when conditions aren't met.
+`plugin/scripts/` implements the lean-flow plugin system — a collection of git hooks, session lifecycle handlers, and background agents that enforce TDD, manage memory consolidation, auto-update documentation, and monitor API usage. All scripts are designed to be zero-cost when inactive (early exit) and operate silently in the background.
 
 ## Design
-
-**Hook-based architecture**: Each script is a standalone bash/Python filter that reads JSON from stdin, decides to pass through (exit 0), block (exit 2), or transform (jq output). Dual-gated patterns (e.g., `auto-dream.sh` requires both session count AND hours elapsed) prevent redundant work. Config loaded from `load-config.sh` for centralized tuning. Cartographer uses git-aware pattern matching and state files (`.slim/cartography.json`) to track repo structure deltas without re-scanning.
+- **Hook-based execution**: Scripts use `PreToolUse` and `PostToolUse` hooks (jq-parsed JSON input) to intercept git commands, file writes, and tool invocations. Each block/enforce script exits early (0) if conditions don't match.
+- **Dual-gated background tasks**: `auto-dream.sh` and `auto-observe.sh` use lock files and timestamp gates to prevent concurrent runs and only activate after N sessions or N hours.
+- **Cartographer state machine**: `cartographer.py` maintains `.slim/cartography.json` to track file hashes and changed directories; `auto-update-codemaps.py` uses git diff-tree to detect affected directories and regenerates codemap.md via Claude API with OAuth keychain fallback.
+- **Config inheritance**: Scripts source `load-config.sh` for centralized settings (`LEAN_FLOW_PROTECTED_BRANCHES`, `LEAN_FLOW_DREAM_SESSIONS`, etc.).
+- **Portable shell**: Uses POSIX bash with platform-aware stat (`Darwin` vs Linux), jq for JSON, and Python 3 as fallback logic engine.
 
 ## Flow
-
-1. **Session hooks** (`ensure-*.sh`): Fire on SessionStart, emit system messages if cartography stale or monitor not installed
-2. **Tool interception** (`block-*.sh`, `auto-compress-output.sh`): Triggered PreToolUse/PostToolUse, inspect command, allow/deny/rewrite
-3. **Consolidation** (`auto-dream.sh`): Runs on SessionStop when gates pass (N sessions + N hours), spawns background Claude haiku task to prune memory
-4. **Documentation** (`auto-update-codemaps.py`): PostToolUse on git commit, diffs changed dirs, calls Claude API to fill codemap stubs
-5. **Observation** (`auto-observe.sh`): Silent pattern capture to `~/.claude/knowledge/patterns.db` from session logs
+1. **Session Start** → `ensure-cartography.sh` checks Tier 1 (docs/CODEBASE_MAP.md age) and Tier 2 (cartographer changes); `ensure-claude-monitor.sh` installs SwiftBar plugin + launchd agent (macOS).
+2. **Tool Use** → Block scripts (`block-*.sh`) intercept git/gh commands; `auto-compress-output.sh` catches high-output commands and summarizes via Haiku model.
+3. **Post Write/Edit** → `enforce-tdd.sh` detects new code files and prompts for test coverage; `auto-update-codemaps.py` regenerates codemap.md for changed directories via Claude API.
+4. **Session Stop** → `auto-observe.sh` silently logs session patterns to patterns.db; `auto-dream.sh` consolidates memory files and prunes pattern DB after dual gates (session count + time elapsed).
+5. **Background** → `claude-monitor/` fetcher runs via launchd, posting usage stats to SwiftBar menu.
 
 ## Integration
-
-- **Config**: All scripts source `load-config.sh` for `LEAN_FLOW_*` variables (protected branches, dream intervals, etc.)
-- **Memory system**: `auto-dream.sh` and `auto-observe.sh` read/write `~/.claude/projects/`, `~/.claude/knowledge/patterns.db`
-- **Cartographer**: `ensure-cartography.sh` invokes `cartographer.py` to detect Tier 2 codemaps needing updates
-- **Claude monitor** (macOS): `ensure-claude-monitor.sh` installs SwiftBar plugin + launchd agent to feed usage data
-- **Git/toolchain**: Hooks depend on git state, bash, jq, optional Python3; gracefully degrade if unavailable
+- **Git hooks**: Scripts hook into lean-flow plugin framework; block rules gate commits to protected branches, secrets, and identity markers.
+- **Claude API**: `auto-update-codemaps.py` and `auto-compress-output.sh` call Claude (Opus for codemaps, Haiku for compression) with OAuth tokens from macOS keychain.
+- **Project state**: Reads/writes `.slim/cartography.json` (cartographer state), `~/.claude/dream-state/` (memory consolidation locks), `~/.claude/knowledge/patterns.db` (session observations).
+- **Config**: All scripts respect `CLAUDE_PLUGIN_ROOT` env var and load centralized config from `load-config.sh` (not shown but sourced by multiple hooks).
