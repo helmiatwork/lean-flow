@@ -337,6 +337,8 @@ When working solo (no team reviewers, no CI per step), per-step PRs are pure ove
 
 > **Oracle is think-only.** Oracle never reads files or writes code. Explorer reads files/diffs and provides structured summaries → orchestrator passes summaries to oracle → oracle thinks and decides. This keeps expensive sonnet tokens minimal.
 
+> **Orchestrator never runs shell commands directly.** git, grep, npm test, file reads — all delegated to `explorer` (read-only) or `fixer` (write). Use the `delegate-to-haiku` skill. Orchestrator stays thin: triage, dispatch, decide.
+
 ### 8a. Background Agent Visibility
 All sessions — including background sub-agents Claude spawns invisibly — are tracked via hooks:
 - **PreToolUse / PostToolUse / Stop** hooks write state to `/tmp/claude-sessions/{session_id}.json`
