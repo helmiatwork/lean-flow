@@ -24,7 +24,7 @@ case "$LOWER" in
 esac
 
 if [ "$IS_CODE_CREATE" = "1" ]; then
-  jq -n '{"hookSpecificOutput":{"hookEventName":"UserPromptSubmit","additionalContext":"[TDD PRE-CHECK] This looks like a code creation request. BEFORE dispatching fixer, ask the user ONE question (do not skip):\n\"Test type? a=unit  b=E2E  c=regression  d=unit+E2E (recommended)  e=skip\"\nWait for answer, then dispatch fixer with the chosen test strategy."}}' 2>/dev/null
+  jq -n '{"hookSpecificOutput":{"hookEventName":"UserPromptSubmit","additionalContext":"[TDD PRE-CHECK] Code creation detected. BEFORE dispatching fixer, use AskUserQuestion tool with these EXACT options:\n- Question: \"What type of tests do you want for this implementation?\"\n- Options:\n  1. Unit test — isolate and test logic/functions\n  2. E2E test — test user flow via browser (Playwright)\n  3. Regression test — reproduce the bug first, then fix\n  4. Unit + E2E — full TDD cycle (recommended for user-facing features)\n  5. Skip tests — throwaway prototype only\nWait for user selection, then dispatch fixer with the chosen test strategy."}}' 2>/dev/null
   exit 0
 fi
 
