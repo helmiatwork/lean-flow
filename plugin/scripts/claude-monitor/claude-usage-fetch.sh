@@ -130,7 +130,8 @@ session_reset=$(calc_remaining "$session_raw")
 week_all_reset=$(calc_remaining "$week_all_raw")
 week_sonnet_reset=$(calc_remaining "$week_sonnet_raw")
 
-# If usage is 0% and reset is unknown, show "-" instead of "?"
+# If usage is 0% or empty and reset is unknown, show "-" instead of "?"
+[ -z "$week_sonnet_pct" ] && week_sonnet_pct="-" && week_sonnet_reset="-"
 [ "$week_sonnet_pct" = "0" ] && [ "$week_sonnet_reset" = "?" ] && week_sonnet_reset="-"
 [ "$week_all_pct" = "0" ] && [ "$week_all_reset" = "?" ] && week_all_reset="-"
 [ "$session_pct" = "0" ] && [ "$session_reset" = "?" ] && session_reset="-"
