@@ -9,8 +9,8 @@ These are NON-NEGOTIABLE — always invoke before proceeding:
 | Situation | Must invoke |
 |---|---|
 | Any bug / test failure / unexpected behavior | `lean-flow:systematic-debugging` |
-| Before writing implementation code | `lean-flow:test-driven-development` |
-| Before claiming complete / creating PR | `lean-flow:verification-before-completion` |
+| Before writing implementation code | `lean-flow:test-driven-development` — RED→GREEN→REFACTOR, then E2E, then coverage ≥80% |
+| Before claiming complete / creating PR | `lean-flow:verification-before-completion` — unit + E2E pass + coverage ≥80% |
 | Implementation done, ready to merge | `lean-flow:finishing-a-development-branch` |
 | Code review requested | `lean-flow:code-reviewer` |
 

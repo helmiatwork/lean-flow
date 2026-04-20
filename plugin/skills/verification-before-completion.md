@@ -37,11 +37,30 @@ BEFORE claiming any status or expressing satisfaction:
 Skip any step = lying, not verifying
 ```
 
+## Coverage Requirements (Non-Negotiable)
+
+Before claiming complete, ALL of these must pass:
+
+| Check | Minimum | Command |
+|-------|---------|---------|
+| Unit tests | 0 failures | `<test runner> --coverage` |
+| E2E tests | 0 failures | `<e2e runner>` |
+| Test coverage | **≥80%** lines/branches | Coverage report output |
+
+**Coverage below 80% = work is NOT complete. Write more tests.**
+
+Coverage check commands by stack:
+- JS/TS: `jest --coverage` → look for "Statements: XX%" ≥ 80
+- Python: `pytest --cov --cov-report=term` → look for "TOTAL XX%" ≥ 80
+- Go: `go test ./... -cover` → look for "coverage: XX%" ≥ 80
+- Ruby: `rspec --format progress` + SimpleCov → look for "XX% covered" ≥ 80
+
 ## Common Failures
 
 | Claim | Requires | Not Sufficient |
 |-------|----------|----------------|
-| Tests pass | Test command output: 0 failures | Previous run, "should pass" |
+| Tests pass | Unit + E2E output: 0 failures | Previous run, "should pass" |
+| Coverage adequate | Coverage report ≥80% | "I wrote tests" |
 | Linter clean | Linter output: 0 errors | Partial check, extrapolation |
 | Build succeeds | Build command: exit 0 | Linter passing, logs look good |
 | Bug fixed | Test original symptom: passes | Code changed, assumed fixed |
