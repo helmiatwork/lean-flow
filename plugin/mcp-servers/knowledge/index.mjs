@@ -139,6 +139,10 @@ const statsStmt = db.prepare(`
   FROM patterns GROUP BY project
 `);
 
+const getPatternByIdStmt = db.prepare(`
+  SELECT * FROM patterns WHERE id = ?
+`);
+
 const deleteStmt = db.prepare(`
   DELETE FROM patterns WHERE project = ? AND key = ?
 `);
@@ -152,7 +156,7 @@ const server = new McpServer({
 // Tool 1: Search patterns
 server.tool(
   'pattern_search',
-  'Search saved patterns by keyword or category. Use before solving a problem to check if a similar pattern was already solved.',
+  'Returns compact index. Use pattern_get <id> to fetch full solution.',
   {
     query: z.string().describe('Search query (keywords, problem description)'),
     project: z.string().optional().describe('Project name filter (default: search all)'),
@@ -192,20 +196,39 @@ server.tool(
       return { content: [{ type: 'text', text: `No patterns found for: ${query}` }] };
     }
 
-    const results = rows.map((r) => ({
-      key: r.key,
-      category: r.category,
-      problem: r.problem,
-      solution: r.solution,
-      tags: r.tags,
-      score: r.score,
-      uses: r.used_count,
-      project: r.project,
-    }));
+    const results = rows.map((r) => {
+      const problemPreview = r.problem
+        ? (r.problem.length > 80 ? r.problem.substring(0, 80) + '…' : r.problem)
+        : null;
+      return {
+        id: r.id,
+        key: r.key,
+        category: r.category,
+        problem: problemPreview,
+        tags: r.tags,
+        score: r.score,
+      };
+    });
 
     return {
       content: [{ type: 'text', text: JSON.stringify(results, null, 2) }],
     };
+  }
+);
+
+// Tool 1b: Get full pattern details by ID
+server.tool(
+  'pattern_get',
+  'Get full details of a pattern by ID. Use after pattern_search to fetch the solution.',
+  {
+    id: z.number().describe('Pattern ID from pattern_search results'),
+  },
+  async ({ id }) => {
+    const row = getPatternByIdStmt.get(id);
+    if (!row) {
+      return { content: [{ type: 'text', text: `No pattern found with id: ${id}` }] };
+    }
+    return { content: [{ type: 'text', text: JSON.stringify(row, null, 2) }] };
   }
 );
 
