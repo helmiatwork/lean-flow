@@ -79,6 +79,11 @@
             "type": "command",
             "command": "bash ${CLAUDE_PLUGIN_ROOT}/scripts/block-claude-identity.sh",
             "if": "Bash(gh pr create*)"
+          },
+          {
+            "type": "command",
+            "command": "bash ${CLAUDE_PLUGIN_ROOT}/scripts/auto-compress-output.sh",
+            "timeout": 30000
           }
         ]
       },
