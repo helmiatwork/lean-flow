@@ -111,11 +111,12 @@ All workflow-related hooks are consolidated into a **single entry point**: `work
 SwiftBar menu bar plugin showing real-time Claude Code usage:
 - Session %, weekly %, sonnet % with reset countdown
 - Color-coded: 🟢 <50% · 🟡 50-80% · 🔴 >80%
-- Auto-refresh via launchd daemon (every 3 min)
+- **Per-model token breakdown** — reads `~/.claude/projects/**/*.jsonl` locally (no API calls): input/output token counts + % share for each model (Sonnet, Haiku, Opus) over the last 7 days
+- Auto-refresh via launchd daemon (every 30s)
 
 > **Note:** The usage monitor requires macOS + SwiftBar. On Linux, you can manually check usage with `claude /usage` or read `/tmp/claude-usage-cache.json` if the fetcher is running.
 >
-> **macOS permission:** The fetcher daemon runs `node` to access Claude's usage data. If you see a *"node would like to access data from other apps"* dialog, go to **System Settings → Privacy & Security → App Management** and toggle **Allow** for `node`. If `node` isn't listed, click **+** and navigate to `/opt/homebrew/bin/node` (or wherever `which node` points). This is a one-time setup.
+> **macOS permission:** The fetcher daemon runs the Claude CLI to access usage data. If you see a permission dialog for the Claude binary, go to **System Settings → Privacy & Security → App Management** and toggle **Allow** for it. If the binary isn't listed, click **+** and navigate to the path shown by `which claude`. This is a one-time setup.
 
 ### 🗺️ Cartographer (Hybrid Codebase Mapping)
 Two-tier documentation system for codebases of any size.
@@ -453,12 +454,12 @@ lean-flow automatically enables these companion plugins on first session:
 To completely remove lean-flow and all installed components:
 
 ```bash
-bash /path/to/lean-flow/scripts/uninstall.sh
+bash /path/to/lean-flow/plugin/scripts/uninstall.sh
 ```
 
 Or if installed as a plugin:
 ```bash
-bash ~/.claude/plugins/cache/lean-flow/*/scripts/uninstall.sh
+bash ~/.claude/plugins/cache/lean-flow/*/plugin/scripts/uninstall.sh
 ```
 
 This removes: knowledge MCP, Playwright MCP, SwiftBar monitor, launchd daemon, dream state, and config file. Pattern database deletion requires confirmation.
@@ -474,7 +475,7 @@ Customize lean-flow by creating `~/.claude/lean-flow.json`:
   "protectedBranches": ["main", "master", "staging", "production"],
   "models": {
     "fixer": "sonnet",
-    "oracle": "sonnet",
+    "oracle": "opus",
     "explorer": "haiku"
   },
   "dream": {
@@ -523,51 +524,55 @@ lean-flow/
 │   └── cartography.md           # Codebase mapping skill (cartographer)
 ├── hooks/
 │   └── hooks.json               # SessionStart, PreToolUse, PostToolUse, Stop
-├── scripts/
-│   ├── workflow-hook.sh         # ← Single entry point for ALL workflow hooks (routes by event)
-│   │                            #   SessionStart → session-briefing
-│   │                            #   UserPromptSubmit → pattern-recall + load-workflow + star-clarify
-│   │                            #   PostToolUse Write|Edit → enforce-tdd
-│   │                            #   PostToolUse EnterPlanMode → knowledge-prefilter
-│   │                            #   PostToolUse ExitPlanMode → generate-plan-viewer
-│   │                            #   PostToolUse Bash (pr create) → PR notify
-│   │                            #   SubagentStop → remind-check-step
-│   │                            #   Stop → auto-dream + auto-observe + session-summary (bg)
-│   │                            #   PostCompact → session-summary (bg)
-│   ├── ensure-knowledge-mcp.sh  # Auto-install SQLite pattern memory
-│   ├── ensure-permissions.sh    # Auto-configure workflow permissions
-│   ├── ensure-plugins.sh        # Auto-enable superpowers + plan-plus
-│   ├── ensure-playwright-mcp.sh # Auto-install Playwright + Chromium
-│   ├── ensure-claude-monitor.sh # Auto-install SwiftBar usage monitor
-│   ├── ensure-rtk.sh            # Auto-install RTK (Rust tool rewrites)
-│   ├── ensure-cartography.sh    # Auto-detect codebase map changes on session start
-│   ├── block-protected-push.sh  # Block push to main/master/staging
-│   ├── block-no-verify.sh       # Block --no-verify/--no-gpg-sign bypass
-│   ├── block-secret-commits.sh  # Block staging .env/credentials files
-│   ├── block-claude-identity.sh # Block Claude attribution in commits/PRs
-│   ├── block-wrong-plan-dir.sh  # Block plans saved outside ~/.claude/plans/
-│   ├── session-briefing.sh      # Git state on session start (called by workflow-hook)
-│   ├── pattern-recall.sh        # Knowledge MCP pattern search (called by workflow-hook)
-│   ├── load-workflow.sh         # Inject claude-rules.md into context (called by workflow-hook)
-│   ├── star-clarify.sh          # Detect vague prompts, ask clarifying questions (called by workflow-hook)
-│   ├── enforce-tdd.sh           # Mandatory TDD reminder after file writes (called by workflow-hook)
-│   ├── knowledge-prefilter.sh   # Inject patterns into plan context (called by workflow-hook)
-│   ├── remind-check-step.sh     # Remind to mark step [x] after subagent (called by workflow-hook)
-│   ├── auto-dream.sh            # Memory consolidation via Haiku (background)
-│   ├── auto-observe.sh          # Session observations to memory (background)
-│   ├── session-summary.sh       # Write session summary (background)
-│   ├── auto-compress-output.sh  # Compress high-output Bash commands via Haiku (PreToolUse)
-│   ├── auto-update-codemaps.sh  # Update codemaps after git commit (PostToolUse)
-│   ├── track-test-failures.sh   # Count test failures, escalate to oracle at 3
-│   ├── warn-secret-files.sh     # Warn when writing near secret paths
+├── plugin/scripts/
+│   │
+│   │   # — Registered hooks (run directly by hooks.json) —
+│   ├── workflow-hook.sh         # Single entry point for workflow events (routes internally)
+│   ├── ensure-knowledge-mcp.sh  # SessionStart: auto-install SQLite pattern memory
+│   ├── ensure-plugins.sh        # SessionStart: auto-enable superpowers + plan-plus
+│   ├── ensure-permissions.sh    # SessionStart: auto-configure workflow permissions
+│   ├── ensure-playwright-mcp.sh # SessionStart: auto-install Playwright + Chromium
+│   ├── ensure-claude-monitor.sh # SessionStart: auto-install SwiftBar usage monitor
+│   ├── ensure-plan-viewer.sh    # SessionStart: auto-start plan viewer server
+│   ├── ensure-rtk.sh            # SessionStart: auto-install RTK
+│   ├── ensure-cartography.sh    # SessionStart: detect codebase map changes
+│   ├── block-protected-push.sh  # PreToolUse Bash(git push): block push to main/master/staging
+│   ├── block-no-verify.sh       # PreToolUse Bash(git *--no-verify*): block bypass flags
+│   ├── block-secret-commits.sh  # PreToolUse Bash(git add): block staging .env/credentials
+│   ├── block-claude-identity.sh # PreToolUse Bash(git commit|gh pr): block Claude attribution
+│   ├── warn-secret-files.sh     # PreToolUse Write|Edit: warn near secret paths
+│   ├── block-wrong-plan-dir.sh  # PreToolUse Write|Edit: block plans outside ~/.claude/plans/
+│   ├── auto-compress-output.sh  # PreToolUse Bash: compress high-output commands via Haiku
+│   ├── restructure-plan.py      # PostToolUse ExitPlanMode: plan-plus restructuring
+│   ├── track-test-failures.sh   # PostToolUse Bash: count failures, escalate to oracle at 3
+│   ├── auto-update-codemaps.sh  # PostToolUse Bash(git commit): update codemaps
+│   │
+│   │   # — workflow-hook.sh internal handlers (not separate hooks) —
+│   ├── session-briefing.sh      # SessionStart: git state summary
+│   ├── pattern-recall.sh        # UserPromptSubmit: knowledge MCP pattern search
+│   ├── load-workflow.sh         # UserPromptSubmit: inject claude-rules.md (once/session)
+│   ├── star-clarify.sh          # UserPromptSubmit: detect vague prompts
+│   ├── enforce-tdd.sh           # PostToolUse Write|Edit: mandatory TDD reminder
+│   ├── knowledge-prefilter.sh   # PostToolUse EnterPlanMode: inject patterns into plan
+│   ├── generate-plan-viewer.sh  # PostToolUse ExitPlanMode: open plan dashboard
+│   ├── remind-check-step.sh     # SubagentStop: remind to mark step [x]
+│   ├── auto-dream.sh            # Stop: memory consolidation via Haiku (background)
+│   ├── auto-observe.sh          # Stop: session observations to memory (background)
+│   ├── session-summary.sh       # Stop/PostCompact: write session summary (background)
+│   │
+│   │   # — Utilities —
 │   ├── load-config.sh           # Load ~/.claude/lean-flow.json config
-│   ├── generate-plan-viewer.sh  # Start/reuse plan server + open browser
+│   ├── token-budget.sh          # Token budget tracking
 │   ├── plan-server.mjs          # Live plan viewer server (SSE + file watch)
 │   ├── plan-viewer.mjs          # Static HTML generator (fallback)
 │   ├── cartographer.py          # Tier 2: MD5 change detection for per-folder codemaps
 │   ├── scan-codebase.py         # Tier 1: codebase scanner with token counts
 │   ├── uninstall.sh             # Remove all lean-flow components
 │   └── claude-monitor/          # SwiftBar plugin + fetcher daemon
+│       ├── claude-usage.30s.sh  # SwiftBar display script (reads cache, renders menu)
+│       ├── claude-usage-fetch.sh # Fetcher daemon (OAuth → usage API + local token stats)
+│       ├── local-tokens.py      # Per-model token aggregator from ~/.claude JSONL files
+│       └── install.command      # One-click installer for SwiftBar + launchd daemon
 ├── templates/
 │   ├── PULL_REQUEST_TEMPLATE.md      # Step PR (child → parent)
 │   ├── PULL_REQUEST_TEMPLATE_MAIN.md # Feature PR (parent → main) + release notes
@@ -609,6 +614,7 @@ lean-flow/
 - **[plan-plus](https://github.com/RandyHaylor/plan-plus)** — Plan mode optimizer (recommended companion)
 - **[cartographer](https://github.com/kingbootoshi/cartographer)** — Codebase mapping via parallel AI subagents (Tier 1 atlas)
 - **[rtk](https://www.rtk-ai.app)** — Rust token killer — transparent CLI proxy that rewrites dev commands for 60–90% token savings
+- **[SwiftBar](https://github.com/swiftbar/SwiftBar)** — macOS menu bar scripting platform powering the usage monitor
 
 ---
 
