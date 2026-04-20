@@ -1,21 +1,22 @@
 # plugin/hooks/
 
 ## Responsibility
-Central configuration for Claude plugin lifecycle and tool-use hooks. Defines automated startup initialization, git safety guards, and pre-execution validators that run during plugin sessions.
+Defines lifecycle hooks that execute scripts at key plugin lifecycle events (SessionStart, PreToolUse). Orchestrates initialization, safety checks, and preventive measures before tool execution.
 
 ## Design
-- **Hook registry pattern**: `hooks.json` organizes handlers by lifecycle event (`SessionStart`, `PreToolUse`) with optional matchers (`Bash`, `Write|Edit`) and conditional guards (`if` field)
-- **Timeout enforcement**: Each hook specifies millisecond timeouts to prevent blocking operations (30s for MCPs, 3-5s for lightweight checks)
-- **Guard-rail approach**: Pre-tool hooks intercept dangerous operations (git push, --no-verify, secret commits) via conditional pattern matching before execution
+JSON-based declarative hook configuration with event-driven architecture. Each hook specifies:
+- **Event trigger**: `SessionStart` (session initialization), `PreToolUse` (before tool execution)
+- **Matcher conditions**: Tool type matching (Bash, Write/Edit, etc.) and command pattern matching (e.g., `Bash(git push *)`)
+- **Action type**: Command execution with configurable timeouts (3000-30000ms)
+- **Conditional guards**: `if` conditions prevent execution on protected patterns (git --no-verify, secret files)
 
 ## Flow
-1. **SessionStart** triggers sequentially through 9 initialization scripts (knowledge MCP → plugins → permissions → MCPs → monitoring → RTK → cartography → briefing)
-2. **PreToolUse** evaluates incoming Bash commands and file operations against matchers/conditions
-3. Matching hooks execute validation/blocking scripts; non-matching hooks skip execution
-4. Auto-compression runs universally for Bash tools to limit output verbosity
+1. **SessionStart**: On plugin initialization, sequentially runs 9 setup scripts (knowledge-mcp, plugins, permissions, playwright-mcp, claude-monitor, plan-viewer, rtk, cartography, briefing)
+2. **PreToolUse**: Before Bash/Write/Edit tool execution, applies matching guards (git safety, secret detection, output compression) conditionally based on command patterns
+3. Scripts return exit codes to halt execution on safety violations
 
 ## Integration
-- Scripts referenced in hooks live in `${CLAUDE_PLUGIN_ROOT}/scripts/` (sibling directory)
-- Hooks integrate with Claude's tool execution system via `type: "command"` handlers
-- Guards prevent accidental git identity leaks, secret pushes, and file operations in protected directories
-- Output compression (`auto-compress-output.sh`) integrates with downstream log handling
+- Executed by plugin runtime on defined lifecycle events; scripts reference `${CLAUDE_PLUGIN_ROOT}` environment variable
+- Prevents unintended operations (unauthorized git pushes, secret file modifications, wrong directory writes)
+- Integrates with `scripts/` directory implementations (block-protected-push.sh, warn-secret-files.sh, etc.)
+- Complements core plugin safety policy with automated preventive enforcement
