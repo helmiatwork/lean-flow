@@ -4,7 +4,9 @@
 
 ```mermaid
 flowchart TD
-    USER(["👤 User prompt"]) --> TRIAGE
+    USER(["👤 User prompt"]) --> AUTORECALL
+
+    AUTORECALL["⚡ Auto pattern recall\n(UserPromptSubmit hook)\nFTS5 keyword extract → patterns.db\nInjects matches silently — zero tokens if no match"] --> TRIAGE
 
     TRIAGE{"🎯 Orchestrator\ntriages complexity"}
     TRIAGE -->|"Simple"| DIRECTFIX
@@ -125,7 +127,11 @@ flowchart TD
 
     LEARN["🧠 pattern_store\nSave patterns"] --> MERGE_MAIN(["✅ Merge to main"])
 
+    MERGE_MAIN --> CICODEMAP["🤖 CI: auto-update codemaps\n(GitHub Actions)\nHaiku regenerates codemap.md\nfor each changed directory"]
+    MERGE_MAIN --> AUTOOBSERVE["📊 Auto-observe\n(Stop hook)\nRecord tool usage stats\nto patterns.db — zero tokens"]
+
     style USER fill:#34495E,color:#fff
+    style AUTORECALL fill:#1A5276,color:#fff
     style TRIAGE fill:#8E44AD,color:#fff
     style MEMORY fill:#2980B9,color:#fff
     style FOUND fill:#F39C12,color:#fff
@@ -181,6 +187,8 @@ flowchart TD
     style HOTFIXMERGE fill:#27AE60,color:#fff
     style GREENFIELD fill:#16A085,color:#fff
     style GENDOCS fill:#1ABC9C,color:#fff
+    style CICODEMAP fill:#117A65,color:#fff
+    style AUTOOBSERVE fill:#1A5276,color:#fff
 ```
 
 ## Branch Naming Convention
@@ -233,6 +241,14 @@ main
 - **Complex** tasks: continue to pattern search + planning
 - **Greenfield** (new project, empty repo): doc-first path → brainstorm → generate docs → plan → build
 - **Hotfix** (production emergency): fast path — skip planning, minimal review
+
+### 1a. Auto Pattern Recall (UserPromptSubmit hook — automatic)
+Before any work begins, `pattern-recall.sh` fires automatically on every prompt:
+- Extracts keywords from the prompt (stop words filtered, top 8 terms)
+- Runs FTS5 full-text search against `patterns.db`
+- Project-scoped first, falls back to all projects
+- Injects matching patterns as `hookSpecificOutput` — **zero tokens if no match**
+- Supplements (does not replace) the manual `pattern_search` in the complex path
 
 ### 2. Pattern Search (knowledge MCP)
 - `pattern_search` for previously solved patterns
@@ -321,7 +337,14 @@ When working solo (no team reviewers, no CI per step), per-step PRs are pure ove
 
 > **Oracle is think-only.** Oracle never reads files or writes code. Explorer reads files/diffs and provides structured summaries → orchestrator passes summaries to oracle → oracle thinks and decides. This keeps expensive sonnet tokens minimal.
 
-### 8a. Fixer Done Checklist
+### 8a. Background Agent Visibility
+All sessions — including background sub-agents Claude spawns invisibly — are tracked via hooks:
+- **PreToolUse / PostToolUse / Stop** hooks write state to `/tmp/claude-sessions/{session_id}.json`
+- **SwiftBar** menu bar shows all active sessions: `🟢 6%(21m)┊24%(3d) · 2⚡`
+- Clicking a session row opens a live terminal viewer (`claude-session-view.sh`) showing tool history with timestamps
+- No extra API calls, no tokens — hook-only, file-based state
+
+### 8b. Fixer Done Checklist
 Fixer self-verifies before reporting back:
 
 **Always:**
@@ -337,7 +360,7 @@ Fixer self-verifies before reporting back:
 **If async/jobs:** idempotent, retry-safe, race conditions handled, dead-letter/failure handling
 **If risky/new:** feature flags, safe env defaults, dependencies justified, logs for critical flows
 
-### 8b. Oracle Review Checklist
+### 8c. Oracle Review Checklist
 Oracle verifies before returning APPROVED:
 
 - PR description matches actual changes, scoped to request
@@ -421,6 +444,14 @@ After Tier 2 is done, check if the PR introduced **major structural changes**:
 
 > **Cost:** Tier 2 runs on every PR (~200 tokens per folder, haiku only). Tier 1 runs rarely (~10% of PRs, Sonnet subagents). Total overhead is minimal for routine PRs, thorough for structural ones.
 
+### 12b. CI Codemap Auto-Update (on push to main)
+After merge to main, GitHub Actions automatically updates codemaps for changed directories:
+- Detects changed directories from `git diff HEAD~1 HEAD`
+- For each directory with an existing `codemap.md`: reads files (up to 20, 120 lines each) and calls Claude Haiku to regenerate the 4-section codemap
+- Commits updated files with `[skip ci]` — no infinite loop
+- Only touches directories that actually changed — unrelated codemaps are never overwritten
+- Requires `ANTHROPIC_API_KEY` secret in GitHub repo settings
+
 ### 13. Hotfix Fast Path 🔥
 - For production emergencies only (critical bugs, security vulnerabilities)
 - Branch `hotfix/<name>` directly from main (no parent branch, no step branches)
@@ -434,12 +465,52 @@ After Tier 2 is done, check if the PR introduced **major structural changes**:
 - **Rollback:** if the merge breaks production, create a `hotfix/revert-<feature>` branch with `git revert` and fast-track through the hotfix path
 - **Fix-forward vs revert:** prefer fix-forward for minor issues, revert for critical breakage
 
-### 15. Learn (pattern_store)
-- `pattern_store` successful patterns via knowledge MCP
+### 15. Learn (pattern_store + auto-observe)
+
+**Manual — `pattern_store`:**
+- Store successful patterns via knowledge MCP after solving a non-trivial problem
 - Tags: task type, files touched, approach used
 - Future sessions retrieve instead of re-reasoning
 
-### 16. Auto-Dream (Stop hook — background)
+**Automatic — `auto-observe` (Stop hook):**
+- Fires on every session end with zero tokens and no API calls
+- Reads the session log, writes a 1-line tool-usage observation to `patterns.db`
+- Format: `lean-flow | main | Bash×12, Edit×5 | git commit×3 [45m]`
+- Stored with `category = session-observation` — excluded from pattern recall to avoid noise
+- Builds a passive usage history without any manual effort
+
+### 16. Session Briefing (SessionStart hook — cached)
+- `session-briefing.sh` fires once per unique (repo, branch, working-tree, top-3 patterns) state
+- Computes `md5(repo + branch + git_status + pattern_sig)` and caches to `/tmp/`
+- **Zero tokens on repeat sessions** — no output if nothing changed
+- When state changes: injects repo name, branch, dirty files, and top-3 patterns as `systemMessage`
+- Pattern bullets come from `patterns.db` score-ordered query — max ~100 tokens, never per-prompt
+
+### 17. Auto-Dream (Stop hook — background)
 - Runs on session end (every 5 sessions / 24h)
 - Consolidates memory, removes duplicates, prunes stale entries
 - Uses haiku in background — zero interactive cost
+
+## Plugin Structure
+
+```
+plugin/                         ← plugin source (installed as ${CLAUDE_PLUGIN_ROOT})
+├── agents/                     ← agent definitions (explorer, fixer, oracle, designer, librarian)
+├── hooks/
+│   └── hooks.json              ← all lifecycle hooks (SessionStart, PreToolUse, PostToolUse, Stop)
+├── mcp-servers/
+│   └── knowledge/              ← SQLite knowledge MCP server (auto-installed on SessionStart)
+├── scripts/
+│   ├── claude-monitor/         ← SwiftBar plugin + session tracker + live viewer
+│   ├── block-*.sh              ← guard rails (no --no-verify, no direct push to main, etc.)
+│   ├── ensure-*.sh             ← idempotent setup scripts (run on SessionStart)
+│   ├── session-briefing.sh     ← cached session context injection
+│   ├── pattern-recall.sh       ← auto FTS5 recall on every prompt
+│   ├── knowledge-prefilter.sh  ← FTS5 pattern surface on EnterPlanMode
+│   ├── auto-observe.sh         ← passive session observation on Stop
+│   └── auto-update-codemaps.*  ← local codemap update after git commit
+└── skills/                     ← cartography skill definition
+
+scripts/                        ← CI tools (not shipped in plugin)
+└── ci-update-codemaps.py       ← GitHub Actions codemap updater
+```
