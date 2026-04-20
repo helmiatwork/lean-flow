@@ -149,7 +149,7 @@ JSON
   # --- Append local token stats ---
   SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
   if command -v python3 &>/dev/null && [ -f "$SCRIPT_DIR/local-tokens.py" ]; then
-    token_stats=$(python3 "$SCRIPT_DIR/local-tokens.py" "today" 2>/dev/null)
+    token_stats=$(python3 "$SCRIPT_DIR/local-tokens.py" "7d" 2>/dev/null)
     if [ -n "$token_stats" ] && echo "$token_stats" | jq . &>/dev/null; then
       # Merge token_stats into cache file
       tmp=$(mktemp)
