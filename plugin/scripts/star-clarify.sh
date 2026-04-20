@@ -5,13 +5,28 @@
 INPUT=$(cat)
 PROMPT=$(printf '%s' "$INPUT" | jq -r '.prompt // empty' 2>/dev/null)
 
-[ -z "$PROMPT" ] || [ "${#PROMPT}" -lt 50 ] && exit 0
+[ -z "$PROMPT" ] || [ "${#PROMPT}" -lt 5 ] && exit 0
 
 LOWER=$(printf '%s' "$PROMPT" | tr '[:upper:]' '[:lower:]' | sed 's/^[[:space:]]*//')
 case "$LOWER" in
-  yes*|no*|ok*|sure*|nope*|correct*|exactly*|proceed*|go\ ahead*|done*|thanks*|thank\ you*|got\ it*)
+  yes*|no*|ok*|sure*|nope*|correct*|exactly*|proceed*|go\ ahead*|done*|thanks*|thank\ you*|got\ it*|a|b|c|d|e)
     exit 0 ;;
 esac
+
+# Detect code creation requests — ask test type BEFORE dispatching fixer
+IS_CODE_CREATE=0
+case "$LOWER" in
+  *create*|*implement*|*add*function*|*add*class*|*add*method*|*build*|*write*a*)
+    case "$LOWER" in
+      *.ts*|*.tsx*|*.js*|*.jsx*|*.py*|*.go*|*.rb*|*.java*|*.rs*|*function*|*class*|*module*|*service*|*component*|*helper*|*util*)
+        IS_CODE_CREATE=1 ;;
+    esac ;;
+esac
+
+if [ "$IS_CODE_CREATE" = "1" ]; then
+  jq -n '{"hookSpecificOutput":{"hookEventName":"UserPromptSubmit","additionalContext":"[TDD PRE-CHECK] This looks like a code creation request. BEFORE dispatching fixer, ask the user ONE question (do not skip):\n\"Test type? a=unit  b=E2E  c=regression  d=unit+E2E (recommended)  e=skip\"\nWait for answer, then dispatch fixer with the chosen test strategy."}}' 2>/dev/null
+  exit 0
+fi
 
 MSG='[STAR PROTOCOL]
 Before responding, classify this prompt as simple, medium, or heavy. This applies to ANY task — code or non-code:
