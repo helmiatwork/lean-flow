@@ -8,16 +8,16 @@ BLINK_FLAG="/tmp/claude-usage-blink"
 CONFIG_FILE="$HOME/.config/claude-usage/config"
 FETCHER="$HOME/.local/bin/claude-usage-fetch.sh"
 
-# Read refresh interval from config (default 5 minutes)
+# Read refresh interval from config (default 30 seconds)
 if [ -f "$CONFIG_FILE" ]; then
-  _mins=$(grep -oE '^refresh_minutes=[0-9]+' "$CONFIG_FILE" | cut -d= -f2)
+  _secs=$(grep -oE '^refresh_seconds=[0-9]+' "$CONFIG_FILE" | cut -d= -f2)
 fi
-FETCH_INTERVAL=$(( ${_mins:-5} * 60 ))
+FETCH_INTERVAL=${_secs:-30}
 
 # --- Handle commands from menu actions ---
 if [ "$1" = "set_interval" ] && [[ "$2" =~ ^[0-9]+$ ]]; then
   mkdir -p "$(dirname "$CONFIG_FILE")"
-  echo "refresh_minutes=$2" > "$CONFIG_FILE"
+  echo "refresh_seconds=$2" > "$CONFIG_FILE"
   exit 0
 fi
 
@@ -103,21 +103,26 @@ if [ -f "$CACHE_FILE" ]; then
     touch "$BLINK_FLAG"
     "$FETCHER" &>/dev/null &
   fi
-  mins=$(( remaining / 60 ))
-  secs=$(( remaining % 60 ))
-  countdown=$(printf "%d:%02d" "$mins" "$secs")
+  secs_left=$(( remaining % 60 ))
+  mins_left=$(( remaining / 60 ))
+  if [ "$mins_left" -gt 0 ]; then
+    countdown=$(printf "%d:%02d" "$mins_left" "$secs_left")
+  else
+    countdown="${secs_left}s"
+  fi
   echo "Updated: $updated | size=11 color=#888888"
   echo "Next refresh: $countdown | size=11 color=#888888"
 fi
 SELF_PATH=$(ls "$HOME/Library/Application Support/SwiftBar/Plugins/claude-usage."*.sh 2>/dev/null | head -1)
 echo "Refresh | bash='$SELF_PATH' param1=refresh_now terminal=false refresh=true"
 echo "---"
-current_mins=$(( FETCH_INTERVAL / 60 ))
-echo "Refresh every: ${current_mins}m | size=11 color=#888888"
-for m in 3 4 5 6 7 8 9 10; do
-  if [ "$m" -eq "$current_mins" ]; then
-    echo "-- ✓ ${m} min | disabled=true"
+echo "Refresh every: ${FETCH_INTERVAL}s | size=11 color=#888888"
+for s in 30 60 120 180 300; do
+  label="${s}s"
+  [ "$s" -ge 60 ] && label="$(( s / 60 ))m"
+  if [ "$s" -eq "$FETCH_INTERVAL" ]; then
+    echo "-- ✓ ${label} | disabled=true"
   else
-    echo "-- ${m} min | bash='$SELF_PATH' param1=set_interval param2=$m terminal=false refresh=true"
+    echo "-- ${label} | bash='$SELF_PATH' param1=set_interval param2=$s terminal=false refresh=true"
   fi
 done
