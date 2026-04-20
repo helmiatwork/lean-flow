@@ -157,6 +157,9 @@ launchctl load "$LAUNCH_AGENTS/$PLIST_NAME.plist" 2>/dev/null
 # 7. Set SwiftBar plugin directory and launch at login
 defaults write com.ameba.SwiftBar PluginDirectory "$PLUGIN_DIR" 2>/dev/null
 osascript -e "tell application \"System Events\" to make new login item at end with properties {name:\"SwiftBar\", path:\"$SWIFTBAR_APP\", hidden:false}" 2>/dev/null || true
+# Kill SwiftBar if running so it restarts and picks up the new plugin directory
+pkill -x SwiftBar 2>/dev/null || true
+sleep 1
 open -a SwiftBar 2>/dev/null
 
 cat <<'EOF'
