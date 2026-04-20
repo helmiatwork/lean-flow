@@ -324,6 +324,29 @@ PASS
 **REFACTOR**
 Extract validation for multiple fields if needed.
 
+## Test Run Cycle (Automatic After Every Write)
+
+After writing implementation code, run tests immediately — do not wait:
+
+```
+RUN tests
+  │
+  ├─ PASS → check coverage ≥80% → proceed
+  │
+  └─ FAIL
+       ├─ Attempt 1: diagnose + fix → RUN again
+       ├─ Attempt 2: diagnose + fix → RUN again
+       └─ Attempt 3 (still failing):
+            STOP. Do not retry.
+            Invoke lean-flow:oracle with:
+            - Error output
+            - What you tried (attempts 1 & 2)
+            - Current code state
+            Oracle diagnoses root cause → fixer implements oracle's guidance
+```
+
+**Never retry blindly past 3 failures.** Blind retrying wastes tokens and usually makes things worse. Oracle sees patterns you missed.
+
 ## Verification Checklist
 
 Before marking work complete:
