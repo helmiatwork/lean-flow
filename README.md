@@ -36,9 +36,12 @@ lean-flow extracts the **7 actually useful features** and implements them with n
 ### 🧠 Pattern Memory
 SQLite database with FTS5 full-text search. Save solved patterns, retrieve them before re-solving.
 
+Progressive disclosure — `pattern_search` returns a compact index (~50 tokens), `pattern_get` fetches full solution only when needed (~10x token savings vs returning everything upfront).
+
 | Tool | Purpose |
 |:-----|:--------|
-| `pattern_search` | Find previously solved patterns by keyword |
+| `pattern_search` | Find patterns by keyword — returns compact index (id, key, category, preview) |
+| `pattern_get` | Fetch full solution + context for a pattern by ID |
 | `pattern_store` | Save problem + solution pairs after success |
 | `pattern_list` | List all patterns for a project |
 | `pattern_delete` | Remove stale or incorrect patterns |
@@ -82,6 +85,7 @@ Steps append `/step-N`: `feature/onboarding/step-1`
 - **Block** Claude identity in commits and PRs (Co-Authored-By, attribution)
 - **Block** saving plans to wrong directory (`docs/superpowers/plans/`)
 - **Auto-allow** workflow tools (Agent, Tasks, PlanMode) — no permission prompts
+- **File Read Gate** — before reading any file, injects recent git activity (`git log -3`) as context (~20 tokens, zero AI cost)
 
 > These hooks enforce rules at the shell level (exit code 2 = block). Zero token cost — no prompt instructions needed.
 
@@ -105,7 +109,7 @@ All workflow-related hooks are consolidated into a **single entry point**: `work
 | | | **session-summary** (bg): writes session summary to `.lean-flow/sessions/` |
 | `PostCompact` | After context compaction | **session-summary** (bg): checkpoint summary for continuity |
 
-> **Not consolidated** (kept separate): `ensure-*`, `block-*`, `claude-session-track`, `restructure-plan.py`, `auto-compress-output`, `track-test-failures`, `auto-update-codemaps`
+> **Not consolidated** (kept separate): `ensure-*`, `block-*`, `claude-session-track`, `restructure-plan.py`, `auto-compress-output`, `track-test-failures`, `auto-update-codemaps`, `file-read-gate`
 
 ### 📊 Usage Monitor *(macOS)*
 SwiftBar menu bar plugin showing real-time Claude Code usage:
@@ -543,6 +547,7 @@ lean-flow/
 │   ├── warn-secret-files.sh     # PreToolUse Write|Edit: warn near secret paths
 │   ├── block-wrong-plan-dir.sh  # PreToolUse Write|Edit: block plans outside ~/.claude/plans/
 │   ├── auto-compress-output.sh  # PreToolUse Bash: compress high-output commands via Haiku
+│   ├── file-read-gate.sh        # PreToolUse Read: inject recent git activity (~20 tokens, zero AI)
 │   ├── restructure-plan.py      # PostToolUse ExitPlanMode: plan-plus restructuring
 │   ├── track-test-failures.sh   # PostToolUse Bash: count failures, escalate to oracle at 3
 │   ├── auto-update-codemaps.sh  # PostToolUse Bash(git commit): update codemaps
