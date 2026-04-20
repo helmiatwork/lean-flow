@@ -136,8 +136,13 @@ week_sonnet_reset=$(calc_remaining "$week_sonnet_raw")
 [ "$week_all_pct" = "0" ] && [ "$week_all_reset" = "?" ] && week_all_reset="-"
 [ "$session_pct" = "0" ] && [ "$session_reset" = "?" ] && session_reset="-"
 
-# Only update cache if we got valid data
-if [[ "$session_pct" =~ ^[0-9]+$ ]]; then
+# Skip cache write if rate limited or error detected
+if echo "$clean" | grep -qiE 'rate.?limit|too many requests|429|overloaded|error'; then
+  exit 0
+fi
+
+# Only update cache if we got valid data (session + week_all must be numbers)
+if [[ "$session_pct" =~ ^[0-9]+$ ]] && [[ "$week_all_pct" =~ ^[0-9]+$ ]]; then
   cat > "$CACHE_FILE" << JSON
 {"session": "$session_pct", "week_all": "${week_all_pct:-?}", "week_sonnet": "${week_sonnet_pct:-?}", "session_reset": "${session_reset:-?}", "week_all_reset": "${week_all_reset:-?}", "week_sonnet_reset": "${week_sonnet_reset:-?}", "updated": "$(date '+%H:%M')"}
 JSON
