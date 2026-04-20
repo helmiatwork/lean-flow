@@ -85,6 +85,28 @@ Steps append `/step-N`: `feature/onboarding/step-1`
 
 > These hooks enforce rules at the shell level (exit code 2 = block). Zero token cost — no prompt instructions needed.
 
+### 🪝 Workflow Hook (`workflow-hook.sh`)
+
+All workflow-related hooks are consolidated into a **single entry point**: `workflow-hook.sh`. It routes by event and matcher internally, and merges multiple `additionalContext` outputs before emitting.
+
+| Event | Trigger | What it does |
+|:------|:--------|:-------------|
+| `SessionStart` | Session opens | **session-briefing**: git state summary (branch, status, recent commits) |
+| `UserPromptSubmit` | Every prompt | **pattern-recall**: searches knowledge MCP for matching patterns before re-solving |
+| | | **load-workflow**: injects `claude-rules.md` + full workflow into model context (once per session) |
+| | | **star-clarify**: detects vague requests and asks clarifying questions before work starts |
+| `PostToolUse Write\|Edit` | After any file write | **enforce-tdd**: injects mandatory RED→GREEN→REFACTOR + E2E + coverage ≥80% + oracle escalation after 3 failures |
+| `PostToolUse EnterPlanMode` | On entering plan mode | **knowledge-prefilter**: checks knowledge MCP for relevant patterns, injects into plan context |
+| `PostToolUse ExitPlanMode` | On exiting plan mode | **generate-plan-viewer**: opens live plan dashboard at `localhost:3456` |
+| `PostToolUse Bash` | After `gh pr create` | **PR notify**: dispatches `lean-flow:code-reviewer` + `lean-flow:fixer` to review and fix the new PR |
+| `SubagentStop` | After each subagent | **remind-check-step**: reminds to mark the step `[x]` in the plan skeleton |
+| `Stop` | Session ends | **auto-dream** (bg): memory consolidation via Haiku |
+| | | **auto-observe** (bg): records session observations to memory |
+| | | **session-summary** (bg): writes session summary to `.lean-flow/sessions/` |
+| `PostCompact` | After context compaction | **session-summary** (bg): checkpoint summary for continuity |
+
+> **Not consolidated** (kept separate): `ensure-*`, `block-*`, `claude-session-track`, `restructure-plan.py`, `auto-compress-output`, `track-test-failures`, `auto-update-codemaps`
+
 ### 📊 Usage Monitor *(macOS)*
 SwiftBar menu bar plugin showing real-time Claude Code usage:
 - Session %, weekly %, sonnet % with reset countdown
@@ -502,30 +524,49 @@ lean-flow/
 ├── hooks/
 │   └── hooks.json               # SessionStart, PreToolUse, PostToolUse, Stop
 ├── scripts/
+│   ├── workflow-hook.sh         # ← Single entry point for ALL workflow hooks (routes by event)
+│   │                            #   SessionStart → session-briefing
+│   │                            #   UserPromptSubmit → pattern-recall + load-workflow + star-clarify
+│   │                            #   PostToolUse Write|Edit → enforce-tdd
+│   │                            #   PostToolUse EnterPlanMode → knowledge-prefilter
+│   │                            #   PostToolUse ExitPlanMode → generate-plan-viewer
+│   │                            #   PostToolUse Bash (pr create) → PR notify
+│   │                            #   SubagentStop → remind-check-step
+│   │                            #   Stop → auto-dream + auto-observe + session-summary (bg)
+│   │                            #   PostCompact → session-summary (bg)
 │   ├── ensure-knowledge-mcp.sh  # Auto-install SQLite pattern memory
 │   ├── ensure-permissions.sh    # Auto-configure workflow permissions
 │   ├── ensure-plugins.sh        # Auto-enable superpowers + plan-plus
 │   ├── ensure-playwright-mcp.sh # Auto-install Playwright + Chromium
 │   ├── ensure-claude-monitor.sh # Auto-install SwiftBar usage monitor
-│   ├── ensure-rtk.sh           # Auto-install RTK (Rust tool rewrites)
+│   ├── ensure-rtk.sh            # Auto-install RTK (Rust tool rewrites)
+│   ├── ensure-cartography.sh    # Auto-detect codebase map changes on session start
 │   ├── block-protected-push.sh  # Block push to main/master/staging
 │   ├── block-no-verify.sh       # Block --no-verify/--no-gpg-sign bypass
 │   ├── block-secret-commits.sh  # Block staging .env/credentials files
 │   ├── block-claude-identity.sh # Block Claude attribution in commits/PRs
 │   ├── block-wrong-plan-dir.sh  # Block plans saved outside ~/.claude/plans/
-│   ├── session-briefing.sh      # Git state on session start
-│   ├── cartographer.py           # Tier 2: MD5 change detection for per-folder codemaps
-│   ├── scan-codebase.py          # Tier 1: codebase scanner with token counts (tiktoken)
-│   ├── ensure-cartography.sh    # Auto-detect changes on session start (both tiers)
-│   ├── auto-dream.sh            # Memory consolidation (background)
-│   ├── auto-dream-prompt.md     # Dream agent instructions
-│   ├── uninstall.sh             # Remove all lean-flow components
+│   ├── session-briefing.sh      # Git state on session start (called by workflow-hook)
+│   ├── pattern-recall.sh        # Knowledge MCP pattern search (called by workflow-hook)
+│   ├── load-workflow.sh         # Inject claude-rules.md into context (called by workflow-hook)
+│   ├── star-clarify.sh          # Detect vague prompts, ask clarifying questions (called by workflow-hook)
+│   ├── enforce-tdd.sh           # Mandatory TDD reminder after file writes (called by workflow-hook)
+│   ├── knowledge-prefilter.sh   # Inject patterns into plan context (called by workflow-hook)
+│   ├── remind-check-step.sh     # Remind to mark step [x] after subagent (called by workflow-hook)
+│   ├── auto-dream.sh            # Memory consolidation via Haiku (background)
+│   ├── auto-observe.sh          # Session observations to memory (background)
+│   ├── session-summary.sh       # Write session summary (background)
+│   ├── auto-compress-output.sh  # Compress high-output Bash commands via Haiku (PreToolUse)
+│   ├── auto-update-codemaps.sh  # Update codemaps after git commit (PostToolUse)
+│   ├── track-test-failures.sh   # Count test failures, escalate to oracle at 3
+│   ├── warn-secret-files.sh     # Warn when writing near secret paths
 │   ├── load-config.sh           # Load ~/.claude/lean-flow.json config
-│   ├── warn-secret-files.sh     # Warn when secrets may be staged
-│   ├── track-test-failures.sh   # Count failures, escalate to oracle at 3
+│   ├── generate-plan-viewer.sh  # Start/reuse plan server + open browser
 │   ├── plan-server.mjs          # Live plan viewer server (SSE + file watch)
 │   ├── plan-viewer.mjs          # Static HTML generator (fallback)
-│   ├── generate-plan-viewer.sh  # Start/reuse plan server + open browser
+│   ├── cartographer.py          # Tier 2: MD5 change detection for per-folder codemaps
+│   ├── scan-codebase.py         # Tier 1: codebase scanner with token counts
+│   ├── uninstall.sh             # Remove all lean-flow components
 │   └── claude-monitor/          # SwiftBar plugin + fetcher daemon
 ├── templates/
 │   ├── PULL_REQUEST_TEMPLATE.md      # Step PR (child → parent)
