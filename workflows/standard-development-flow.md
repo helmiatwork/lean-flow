@@ -8,7 +8,7 @@ flowchart TD
 
     AUTORECALL["⚡ Auto pattern recall\n(UserPromptSubmit hook)\nFTS5 keyword extract → patterns.db\nInjects matches silently — zero tokens if no match"] --> TRIAGE
 
-    TRIAGE{"🎯 Orchestrator\ntriages complexity"}
+    TRIAGE{"🎯 Orchestrator\ntriages complexity\n⚠️ never writes files\nor runs dev commands directly"}
     TRIAGE -->|"Simple"| DIRECTFIX
     TRIAGE -->|"Complex"| MEMORY
     TRIAGE -->|"Greenfield 🌱"| GREENFIELD
@@ -95,7 +95,7 @@ flowchart TD
 
     AUDITSCAN["🔍 Explorer\n(haiku)\nRead full parent diff\n→ structured summary"] --> AUDIT
 
-    AUDIT["🔮 Oracle\n(sonnet, think-only)\nSecurity audit\nfrom explorer summary"] --> CLEAN
+    AUDIT["🔮 Oracle\n(sonnet, think-only)\nSecurity audit\nfrom explorer summary\n🚫 no Write/Edit/Bash"] --> CLEAN
 
     CLEAN{"Issues?"}
     CLEAN -->|"Found"| FIXAUDIT["🔧 Fixer implements\n🔍 Explorer re-reads\n🔮 Oracle reviews"]
@@ -107,7 +107,7 @@ flowchart TD
 
     FINALSCAN["🔍 Explorer\n(haiku)\nScan PR diff\n→ summary"] --> FINAL
 
-    FINAL["🔮 Oracle\n(sonnet, think-only)\nReview checklist\nfrom explorer summary"]
+    FINAL["🔮 Oracle\n(sonnet, think-only)\nReview checklist\nfrom explorer summary\n🚫 no Write/Edit/Bash"]
     FINAL -->|"Issues"| FIXFINAL["🔧 Fixer\nfix on parent"]
     FINAL -->|"Approved"| CMAPSCAN
 
@@ -129,6 +129,10 @@ flowchart TD
 
     MERGE_MAIN --> CICODEMAP["🤖 CI: auto-update codemaps\n(GitHub Actions)\nHaiku regenerates codemap.md\nfor each changed directory"]
     MERGE_MAIN --> AUTOOBSERVE["📊 Auto-observe\n(Stop hook)\nRecord tool usage stats\nto patterns.db — zero tokens"]
+
+    %% === AUTO HOOKS (always running) ===
+    BASHCMD(["🔧 Any Bash command"]) --> RTK["⚡ RTK hook\nStrips verbose output\nbefore hitting context"]
+    RTK --> COMPRESS["🤖 auto-compress hook\nIf output >25 lines\n→ haiku summarises\n→ blocks original call"]
 
     style USER fill:#34495E,color:#fff
     style AUTORECALL fill:#1A5276,color:#fff
@@ -189,6 +193,9 @@ flowchart TD
     style GENDOCS fill:#1ABC9C,color:#fff
     style CICODEMAP fill:#117A65,color:#fff
     style AUTOOBSERVE fill:#1A5276,color:#fff
+    style BASHCMD fill:#34495E,color:#fff
+    style RTK fill:#6C3483,color:#fff
+    style COMPRESS fill:#1A5276,color:#fff
 ```
 
 ## Branch Naming Convention
@@ -335,9 +342,11 @@ When working solo (no team reviewers, no CI per step), per-step PRs are pure ove
 | Designer | sonnet | Yes | Yes | UI/UX, frontend components |
 | Orchestrator | opus | — | — | Triage, PR creation, reviews auditor fixes (no agent cost) |
 
-> **Oracle is think-only.** Oracle never reads files or writes code. Explorer reads files/diffs and provides structured summaries → orchestrator passes summaries to oracle → oracle thinks and decides. This keeps expensive sonnet tokens minimal.
+> **Oracle is think-only — hard prohibited from Write/Edit/Bash.** Oracle has `tools: []`. It receives summaries from explorer via orchestrator, returns text instructions only. Never writes code. If oracle needs file content, it tells orchestrator what to ask explorer to fetch.
 
-> **Orchestrator never runs shell commands directly.** git, grep, npm test, file reads — all delegated to `explorer` (read-only) or `fixer` (write). Use the `delegate-to-haiku` skill. Orchestrator stays thin: triage, dispatch, decide.
+> **Orchestrator never writes files or runs dev commands directly.** git, grep, npm test, file reads — all delegated to `explorer` (read-only) or `fixer` (write + execute). Enforced via global CLAUDE.md rules. Use the `delegate-to-haiku` skill as reference. Orchestrator stays thin: triage, dispatch, decide.
+
+> **All Bash output is automatically compressed.** RTK strips verbose output on every command. For outputs >25 lines (git log, npm test, grep -r, etc.), `auto-compress-output.sh` pipes through haiku, returns a summary, and blocks the original call. Zero manual effort.
 
 ### 8a. Background Agent Visibility
 All sessions — including background sub-agents Claude spawns invisibly — are tracked via hooks:
@@ -363,7 +372,12 @@ Fixer self-verifies before reporting back:
 **If risky/new:** feature flags, safe env defaults, dependencies justified, logs for critical flows
 
 ### 8c. Oracle Review Checklist
-Oracle verifies before returning APPROVED:
+Oracle verifies before returning APPROVED.
+
+**Oracle hard rules (enforced via `tools: []`):**
+- Never use Write, Edit, or Bash — express all fixes as text: "In `src/foo.py` line 42, change X to Y"
+- Never read files directly — tell orchestrator what to ask explorer to fetch
+- Return APPROVED or a numbered list of issues with severity and exact location
 
 - PR description matches actual changes, scoped to request
 - Architecture fits system, follows domain boundaries
