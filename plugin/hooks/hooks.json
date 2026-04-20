@@ -127,6 +127,11 @@
         "hooks": [
           {
             "type": "command",
+            "command": "python3 ${CLAUDE_PLUGIN_ROOT}/scripts/restructure-plan.py",
+            "timeout": 30000
+          },
+          {
+            "type": "command",
             "command": "bash ${CLAUDE_PLUGIN_ROOT}/scripts/generate-plan-viewer.sh",
             "timeout": 10000
           }
