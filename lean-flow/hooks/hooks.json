@@ -96,6 +96,14 @@
             "timeout": 3000
           }
         ]
+      },
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "bash ${CLAUDE_PLUGIN_ROOT}/scripts/claude-session-track.sh PreToolUse"
+          }
+        ]
       }
     ],
     "PostToolUse": [
@@ -134,6 +142,24 @@
             "timeout": 3000
           }
         ]
+      },
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "bash ${CLAUDE_PLUGIN_ROOT}/scripts/auto-update-codemaps.sh",
+            "if": "Bash(git commit*)",
+            "timeout": 60000
+          }
+        ]
+      },
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "bash ${CLAUDE_PLUGIN_ROOT}/scripts/claude-session-track.sh PostToolUse"
+          }
+        ]
       }
     ],
     "SubagentStop": [
@@ -154,6 +180,24 @@
             "type": "command",
             "command": "bash ${CLAUDE_PLUGIN_ROOT}/scripts/auto-dream.sh",
             "timeout": 5000
+          }
+        ]
+      },
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "bash ${CLAUDE_PLUGIN_ROOT}/scripts/claude-session-track.sh Stop"
+          }
+        ]
+      }
+    ],
+    "UserPromptSubmit": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "bash ${CLAUDE_PLUGIN_ROOT}/scripts/claude-session-track.sh UserPromptSubmit"
           }
         ]
       }
