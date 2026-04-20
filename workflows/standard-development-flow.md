@@ -325,9 +325,10 @@ Before brainstorming on complex tasks in existing codebases:
 - Match found: fixer applies pattern, skip planning, enter step loop
 - No match: proceed to brainstorming + plan-plus
 
-### 3. Brainstorming (superpowers skill)
-- Auto-invoked before planning for complex tasks
+### 3. Brainstorming
+- **`lean-flow:brainstorming`** — auto-invoked before planning for complex tasks
 - Explores user intent, requirements, and design before implementation
+- Hard gate: no implementation until design is approved
 - Output feeds into plan-plus
 
 ### 3a. Pre-Planning Research
@@ -371,7 +372,7 @@ For new projects (empty repos), generate project documentation **before** planni
 ### 6. Execute Steps (sequential, parallel fixers within)
 - For each step:
   1. Create step branch from parent
-  2. **TDD mode** (if applicable): fixer writes failing tests first
+  2. **TDD** (always for features): invoke `lean-flow:test-driven-development` — RED (failing test) → GREEN (minimal code) → REFACTOR. Non-negotiable gate.
   3. Dispatch fixer(s) — parallel for independent sub-tasks within the step
   4. Fixer implements + writes tests
   5. **Fixer self-verify** — run done checklist (always + conditional items)
@@ -426,7 +427,7 @@ All sessions — including background sub-agents Claude spawns invisibly — are
 - No extra API calls, no tokens — hook-only, file-based state
 
 ### 8b. Fixer Done Checklist
-Fixer self-verifies before reporting back:
+Fixer invokes **`lean-flow:verification-before-completion`** before reporting back — evidence before assertions, always:
 
 **Always:**
 - Tests pass, deterministic, cover error/edge cases
@@ -441,8 +442,12 @@ Fixer self-verifies before reporting back:
 **If async/jobs:** idempotent, retry-safe, race conditions handled, dead-letter/failure handling
 **If risky/new:** feature flags, safe env defaults, dependencies justified, logs for critical flows
 
-### 8c. Oracle Review Checklist
-Oracle verifies before returning APPROVED.
+### 8c. Code Review
+Use **`lean-flow:code-reviewer`** (dedicated sonnet agent) for code review — separate from oracle's architecture role.
+**`lean-flow:code-reviewer`** checks: spec compliance, code quality, patterns, error handling, naming, test coverage, security, performance, SOLID principles. Returns APPROVED or numbered issues (Critical / Important / Suggestion).
+
+### 8d. Oracle Review Checklist
+Oracle verifies architecture and system-level concerns before returning APPROVED.
 
 **Oracle hard rules (enforced via `tools: []`):**
 - Never use Write, Edit, or Bash — express all fixes as text: "In `src/foo.py` line 42, change X to Y"
@@ -466,7 +471,9 @@ Oracle verifies before returning APPROVED.
 - **Tier 2 (always):** run `cartographer.py changes` → explorer fills affected `codemap.md` → fixer writes → `cartographer.py update`
 - **Tier 1 (if structural):** new/removed modules or major architectural shifts → Sonnet subagents update relevant sections of `docs/CODEBASE_MAP.md`
 
-### 9. Test + Retry
+### 9. Bug Handling + Test + Retry
+**Any bug, test failure, or unexpected behavior:** invoke **`lean-flow:systematic-debugging`** first — root cause before fix, always. No ad-hoc fixes.
+
 - Run tests after each step
 - Retry fixer up to 2x on failure
 - 3rd failure: explorer reads error context → orchestrator passes summary to oracle → oracle diagnoses
@@ -502,10 +509,10 @@ Types: `feat`, `fix`, `test`, `docs`, `chore`, `refactor`, `perf`, `security`
 **Any PR to main/master MUST include release notes.** Written for end users, not developers.
 
 ### 12. Final PR: Parent → Main (MUST include release notes)
+- Invoke **`lean-flow:finishing-a-development-branch`** — structured options for merge/PR/cleanup decision
 - Create PR from parent branch into main
-- **Explorer** scans PR diff → summary to orchestrator → **Oracle** does final review
-- Reviews: code quality, PR title/description, architecture, test coverage
-- Issues → fix on parent → explorer re-scans → oracle re-reviews
+- **Explorer** scans PR diff → **`lean-flow:code-reviewer`** reviews code quality → **Oracle** reviews architecture
+- Issues → fix on parent → re-review cycle
 - Approved → hybrid codemap update → learn + merge
 
 ### 12a. Hybrid Codemap Update (after Oracle approval)
