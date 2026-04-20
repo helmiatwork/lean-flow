@@ -47,6 +47,11 @@
             "type": "command",
             "command": "bash ${CLAUDE_PLUGIN_ROOT}/scripts/session-briefing.sh",
             "timeout": 10000
+          },
+          {
+            "type": "command",
+            "command": "bash ${CLAUDE_PLUGIN_ROOT}/scripts/load-workflow.sh",
+            "timeout": 5000
           }
         ]
       }
