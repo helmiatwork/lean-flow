@@ -1,20 +1,23 @@
 #!/usr/bin/env bash
 # load-workflow.sh
-# SessionStart: inject workflow rules into model context, only when workflow changes.
-# Skips the Mermaid diagram (lines 1-242) to minimise token cost.
+# UserPromptSubmit: inject workflow rules once per session into model context.
+# Skips Mermaid diagram (lines 1-242) to minimise token cost.
+
+INPUT=$(cat)
+SESSION_ID=$(printf '%s' "$INPUT" | jq -r '.session_id // empty' 2>/dev/null)
 
 WORKFLOW_FILE="$(dirname "${CLAUDE_PLUGIN_ROOT}")/workflows/standard-development-flow.md"
 
 [ -f "$WORKFLOW_FILE" ] || exit 0
+[ -z "$SESSION_ID" ] && exit 0
 
-# Hash-based cache — only re-inject when workflow file changes
-WORKFLOW_HASH=$(md5 -q "$WORKFLOW_FILE" 2>/dev/null || md5sum "$WORKFLOW_FILE" 2>/dev/null | cut -d' ' -f1)
-CACHE_FILE="/tmp/claude-workflow-${WORKFLOW_HASH}.cache"
-[ -f "$CACHE_FILE" ] && exit 0
-touch "$CACHE_FILE"
+# Fire once per session only
+SESSION_CACHE="/tmp/claude-workflow-session-${SESSION_ID}.cache"
+[ -f "$SESSION_CACHE" ] && exit 0
+touch "$SESSION_CACHE"
 
-# Clean up old caches (keep last 5)
-find /tmp -maxdepth 1 -name "claude-workflow-*.cache" 2>/dev/null | sort | head -n -5 | xargs rm -f 2>/dev/null || true
+# Clean up old session caches (keep last 10)
+ls -1t /tmp/claude-workflow-session-*.cache 2>/dev/null | tail -n +11 | xargs rm -f 2>/dev/null || true
 
 # Extract prose only — skip lines 1-242 (title + Mermaid diagram)
 PROSE=$(tail -n +243 "$WORKFLOW_FILE")
@@ -32,4 +35,4 @@ Always follow the workflow rules below exactly.
 CONTENT="${HEADER}${PROSE}"
 
 jq -n --arg content "$CONTENT" \
-  '{"hookSpecificOutput":{"hookEventName":"SessionStart","additionalContext":$content}}' 2>/dev/null
+  '{"hookSpecificOutput":{"hookEventName":"UserPromptSubmit","additionalContext":$content}}' 2>/dev/null
