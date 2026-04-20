@@ -611,10 +611,13 @@ lean-flow/
 
 - **[ruflo](https://github.com/ruvnet/ruflo)** — Enterprise AI agent orchestration with 60+ agent types
 - **[oh-my-opencode-slim](https://github.com/ruvnet/oh-my-opencode-slim)** — OpenCode/Claude Code enhancement framework
+- **[gsd](https://github.com/davidpp/gsd)** — Get Stuff Done: structured phase-based workflow system for Claude Code
+- **[superpowers](https://github.com/anthropics/claude-code-plugins)** — Official Anthropic plugin providing skills (TDD, debugging, brainstorming, code review)
 - **[plan-plus](https://github.com/RandyHaylor/plan-plus)** — Plan mode optimizer (recommended companion)
 - **[cartographer](https://github.com/kingbootoshi/cartographer)** — Codebase mapping via parallel AI subagents (Tier 1 atlas)
 - **[rtk](https://www.rtk-ai.app)** — Rust token killer — transparent CLI proxy that rewrites dev commands for 60–90% token savings
 - **[SwiftBar](https://github.com/swiftbar/SwiftBar)** — macOS menu bar scripting platform powering the usage monitor
+- **[claude-mem](https://github.com/hestudy/claude-mem)** — Persistent memory system for Claude Code sessions
 
 ---
 
