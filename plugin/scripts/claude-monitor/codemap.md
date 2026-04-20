@@ -2,25 +2,25 @@
 
 ## Responsibility
 
-Claude Code session tracking and usage monitoring for SwiftBar macOS menu bar. Provides real-time visibility into active Claude sessions (prompts, tool execution, subagents) and periodic token usage metrics with color-coded alerts.
+This directory provides a SwiftBar menu bar widget for monitoring Claude Code token usage and an interactive session activity tracker. It consists of a background fetcher daemon that periodically queries Claude's `/usage` endpoint, caches results, and a pair of display scripts that render usage stats (with color-coded alerts) and live session events in the menu bar and terminal.
 
 ## Design
 
-- **Event-driven tracking** (`claude-session-track.sh`): hooks into Claude Code lifecycle events (UserPromptSubmit, PreToolUse, PostToolUse, Stop) and logs structured JSON per session to `/tmp/claude-sessions/`
-- **Live session viewer** (`claude-session-view.sh`): renders terminal UI with event history, status, active tool, and elapsed time
-- **Data collection via CLI automation** (`claude-usage-fetch.sh`): spawns a Claude session, automates `/usage` command via `script`, strips ANSI codes with perl, parses percentages and reset times into JSON cache
-- **Minimal SwiftBar widget** (`claude-usage.3m.sh`): reads cached JSON, implements local blink-on-update flag (no API calls), renders color-coded icon and dropdown menu
-- **One-click installer** (`install.command`): symlinks plugins, installs launchd agent, ensures jq/SwiftBar/Claude CLI present
+- **Separation of concerns**: Fetcher (`claude-usage-fetch.sh`) handles API interaction and writes immutable cache; plugins (`claude-usage.3m.sh`) only read local state files and render
+- **File-based IPC**: All communication via JSON cache (`/tmp/claude-usage-cache.json`), state files (`/tmp/claude-sessions/`), and flag files (blink detection)
+- **Session tracking**: `claude-session-track.sh` hooks into Claude events (UserPromptSubmit, PreToolUse, PostToolUse, Stop) to build per-session JSON state + append-only logs; `claude-session-view.sh` renders live activity with ANSI colors and Python-based log parsing
+- **Install automation**: Single `install.command` handles dependency checks (jq, SwiftBar, Claude CLI), directory creation, symlink setup, and launchd agent registration
 
 ## Flow
 
-1. **Session tracking**: Claude Code emits events → piped to `claude-session-track.sh` → writes state JSON + appends log line to `/tmp/claude-sessions/{sid}.json` and `.log`
-2. **Usage fetching**: launchd triggers `claude-usage-fetch.sh` every 3 min → spawns Claude session, reads `/usage` output, perl strips formatting, extracts percentages/dates → writes `/tmp/claude-usage-cache.json` + touches blink flag
-3. **Display**: SwiftBar runs `claude-usage.3m.sh` every 30s → reads cache, checks 10s-old blink flag → renders icon (🟢/🟡/🔴 or ⚡) + percentage/reset times in dropdown
+1. **Data collection** (every 3 min): launchd triggers `claude-usage-fetch.sh` → spawns Claude CLI session with `/usage` command → strips ANSI codes via perl regex → extracts percentages & reset times → writes `/tmp/claude-usage-cache.json` + touches `/tmp/claude-usage-blink` flag
+2. **Menu bar display** (every 30s): SwiftBar runs `claude-usage.3m.sh` → reads cache JSON → checks blink flag age (shows ⚡ if < 10s old) → renders color-coded icon (🟢/🟡/🔴) with session/week/sonnet percentages
+3. **Session tracking** (on-demand): `claude-session-track.sh` reads stdin JSON events, writes state to `/tmp/claude-sessions/${session_id}.json`, appends log lines; `claude-session-view.sh` tails log with formatted timestamps and tool names
+4. **Cleanup**: Fetcher auto-deletes stopped sessions older than 10 minutes; blink flag expires naturally after 10s
 
 ## Integration
 
-- **Claude Code hooks**: expects piped JSON input on session events (invoked externally)
-- **SwiftBar**: plugin symlinked to `~/Library/Application Support/SwiftBar/Plugins/` with `3m` refresh interval
-- **launchd**: plist at `~/Library/LaunchAgents/com.ichigo.claude-usage-fetch.plist` runs fetcher daemon
-- **Files**: uses `/tmp/claude-*` for ephemeral state, `~/.local/bin/` for installed scripts, `~/.config/claude-usage/` for user config (refresh interval)
+- **SwiftBar**: Plugin entry point is symlink at `~/Library/Application Support/SwiftBar/Plugins/claude-usage.3m.sh`; menu actions (`refresh_now`, `set_interval`) call back to plugin via `swiftbar://refreshplugin` protocol
+- **launchd**: Daemon plist at `~/Library/LaunchAgents/com.ichigo.claude-usage-fetch.plist` (StartInterval 180s) runs fetcher script in background; logs to `/tmp/claude-usage-fetch.log`
+- **Claude Code CLI**: Invoked with `--no-chrome --disallowedTools` to prevent interactive tool use; interactive input (Enter, `/usage`, Esc, `/exit`) piped via `script` command
+- **Session hooks** (implicit): External scripts/agents invoke `claude-session-track.sh <EVENT_TYPE>` with JSON stdin to populate live session views
