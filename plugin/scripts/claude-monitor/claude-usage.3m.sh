@@ -6,7 +6,7 @@
 CACHE_FILE="/tmp/claude-usage-cache.json"
 BLINK_FLAG="/tmp/claude-usage-blink"
 CONFIG_FILE="$HOME/.config/claude-usage/config"
-FETCHER="/Users/ichigo/.local/bin/claude-usage-fetch.sh"
+FETCHER="$HOME/.local/bin/claude-usage-fetch.sh"
 
 # Read refresh interval from config (default 5 minutes)
 if [ -f "$CONFIG_FILE" ]; then
@@ -109,7 +109,7 @@ if [ -f "$CACHE_FILE" ]; then
   echo "Updated: $updated | size=11 color=#888888"
   echo "Next refresh: $countdown | size=11 color=#888888"
 fi
-SELF_PATH="/Users/ichigo/Library/Application Support/SwiftBar/Plugins/claude-usage.30s.sh"
+SELF_PATH=$(ls "$HOME/Library/Application Support/SwiftBar/Plugins/claude-usage."*.sh 2>/dev/null | head -1)
 echo "Refresh | bash='$SELF_PATH' param1=refresh_now terminal=false refresh=true"
 echo "---"
 current_mins=$(( FETCH_INTERVAL / 60 ))
