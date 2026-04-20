@@ -524,7 +524,7 @@ lean-flow/
 │   └── cartography.md           # Codebase mapping skill (cartographer)
 ├── hooks/
 │   └── hooks.json               # SessionStart, PreToolUse, PostToolUse, Stop
-├── scripts/
+├── plugin/scripts/
 │   ├── workflow-hook.sh         # ← Single entry point for ALL workflow hooks (routes by event)
 │   │                            #   SessionStart → session-briefing
 │   │                            #   UserPromptSubmit → pattern-recall + load-workflow + star-clarify
@@ -540,6 +540,7 @@ lean-flow/
 │   ├── ensure-plugins.sh        # Auto-enable superpowers + plan-plus
 │   ├── ensure-playwright-mcp.sh # Auto-install Playwright + Chromium
 │   ├── ensure-claude-monitor.sh # Auto-install SwiftBar usage monitor
+│   ├── ensure-plan-viewer.sh    # Auto-start plan viewer server
 │   ├── ensure-rtk.sh            # Auto-install RTK (Rust tool rewrites)
 │   ├── ensure-cartography.sh    # Auto-detect codebase map changes on session start
 │   ├── block-protected-push.sh  # Block push to main/master/staging
@@ -561,14 +562,20 @@ lean-flow/
 │   ├── auto-update-codemaps.sh  # Update codemaps after git commit (PostToolUse)
 │   ├── track-test-failures.sh   # Count test failures, escalate to oracle at 3
 │   ├── warn-secret-files.sh     # Warn when writing near secret paths
+│   ├── token-budget.sh          # Token budget tracking and warnings
 │   ├── load-config.sh           # Load ~/.claude/lean-flow.json config
 │   ├── generate-plan-viewer.sh  # Start/reuse plan server + open browser
 │   ├── plan-server.mjs          # Live plan viewer server (SSE + file watch)
 │   ├── plan-viewer.mjs          # Static HTML generator (fallback)
+│   ├── restructure-plan.py      # plan-plus plan restructuring helper
 │   ├── cartographer.py          # Tier 2: MD5 change detection for per-folder codemaps
 │   ├── scan-codebase.py         # Tier 1: codebase scanner with token counts
 │   ├── uninstall.sh             # Remove all lean-flow components
 │   └── claude-monitor/          # SwiftBar plugin + fetcher daemon
+│       ├── claude-usage.30s.sh  # SwiftBar display script (reads cache, renders menu)
+│       ├── claude-usage-fetch.sh # Fetcher daemon (OAuth → usage API + local token stats)
+│       ├── local-tokens.py      # Per-model token aggregator from ~/.claude JSONL files
+│       └── install.command      # One-click installer for SwiftBar + launchd daemon
 ├── templates/
 │   ├── PULL_REQUEST_TEMPLATE.md      # Step PR (child → parent)
 │   ├── PULL_REQUEST_TEMPLATE_MAIN.md # Feature PR (parent → main) + release notes
