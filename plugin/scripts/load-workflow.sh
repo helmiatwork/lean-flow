@@ -3,7 +3,7 @@
 # SessionStart: inject workflow rules into model context, only when workflow changes.
 # Skips the Mermaid diagram (lines 1-242) to minimise token cost.
 
-WORKFLOW_FILE="${CLAUDE_PLUGIN_ROOT}/workflows/standard-development-flow.md"
+WORKFLOW_FILE="$(dirname "${CLAUDE_PLUGIN_ROOT}")/workflows/standard-development-flow.md"
 
 [ -f "$WORKFLOW_FILE" ] || exit 0
 
