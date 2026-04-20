@@ -22,7 +22,7 @@ LOCAL_BIN="$HOME/.local/bin"
 LAUNCH_AGENTS="$HOME/Library/LaunchAgents"
 PLIST_NAME="com.claude.usage-fetch"
 SRC_DIR="${CLAUDE_PLUGIN_ROOT}/scripts/claude-monitor"
-REFRESH_INTERVAL=180
+REFRESH_INTERVAL=30
 
 # Skip if plugin root not set
 if [ -z "$CLAUDE_PLUGIN_ROOT" ] || [ ! -d "$SRC_DIR" ]; then
