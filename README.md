@@ -111,7 +111,8 @@ All workflow-related hooks are consolidated into a **single entry point**: `work
 SwiftBar menu bar plugin showing real-time Claude Code usage:
 - Session %, weekly %, sonnet % with reset countdown
 - Color-coded: 🟢 <50% · 🟡 50-80% · 🔴 >80%
-- Auto-refresh via launchd daemon (every 3 min)
+- **Per-model token breakdown** — reads `~/.claude/projects/**/*.jsonl` locally (no API calls): input/output token counts + % share for each model (Sonnet, Haiku, Opus) over the last 7 days
+- Auto-refresh via launchd daemon (every 30s)
 
 > **Note:** The usage monitor requires macOS + SwiftBar. On Linux, you can manually check usage with `claude /usage` or read `/tmp/claude-usage-cache.json` if the fetcher is running.
 >
@@ -609,6 +610,7 @@ lean-flow/
 - **[plan-plus](https://github.com/RandyHaylor/plan-plus)** — Plan mode optimizer (recommended companion)
 - **[cartographer](https://github.com/kingbootoshi/cartographer)** — Codebase mapping via parallel AI subagents (Tier 1 atlas)
 - **[rtk](https://www.rtk-ai.app)** — Rust token killer — transparent CLI proxy that rewrites dev commands for 60–90% token savings
+- **[SwiftBar](https://github.com/swiftbar/SwiftBar)** — macOS menu bar scripting platform powering the usage monitor
 
 ---
 
