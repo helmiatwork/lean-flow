@@ -6,7 +6,14 @@
 flowchart TD
     USER(["👤 User prompt"]) --> AUTORECALL
 
-    AUTORECALL["⚡ Auto pattern recall\n(UserPromptSubmit hook)\nFTS5 keyword extract → patterns.db\nInjects matches silently — zero tokens if no match"] --> TRIAGE
+    AUTORECALL["⚡ Auto pattern recall\n(UserPromptSubmit hook)\nFTS5 keyword extract → patterns.db\nInjects matches silently — zero tokens if no match"] --> STARCHECK
+
+    STARCHECK{"⭐ STAR clarify\n(UserPromptSubmit hook)\nHaiku classifies complexity\nsimple → skip, medium/heavy → expand"}
+    STARCHECK -->|"Simple"| TRIAGE
+    STARCHECK -->|"Medium/Heavy"| STARSHOW["📋 Show STAR breakdown\nto user for confirmation\nS·T·A·R format"]
+    STARSHOW --> STARCONFIRM{"User\nconfirms?"}
+    STARCONFIRM -->|"Yes"| TRIAGE
+    STARCONFIRM -->|"Adjust"| STARSHOW
 
     TRIAGE{"🎯 Orchestrator\ntriages complexity\n⚠️ never writes files\nor runs dev commands directly"}
     TRIAGE -->|"Simple"| DIRECTFIX
@@ -36,11 +43,21 @@ flowchart TD
 
     FOUND{"Match?"}
     FOUND -->|"Yes"| ADAPT["Apply pattern\n🔧 Fixer implements"]
-    FOUND -->|"No"| BRAINSTORM
+    FOUND -->|"No"| MAPCB{"🗺️ Brownfield?\n(existing codebase)"}
+    MAPCB -->|"Yes"| MAPCODEBASE["🗺️ map-codebase\nParallel explorer agents\n7-dimension analysis"]
+    MAPCB -->|"No"| BRAINSTORM
+    MAPCODEBASE --> INGESTDOCS{"📄 Existing\nADRs/PRDs/SPECs?"}
+    INGESTDOCS -->|"Yes"| INGEST["📄 ingest-docs\nExtract locked decisions\n+ surface conflicts"]
+    INGESTDOCS -->|"No"| BRAINSTORM
+    INGEST --> BRAINSTORM
+    BRAINSTORM["💡 Brainstorming skill\nExplore requirements"] --> RESEARCH2
+    RESEARCH2["🔬 phase-researcher\nVerify approaches\n+ known pitfalls"] --> PLANMODE
 
-    BRAINSTORM["💡 Brainstorming skill\nExplore requirements"] --> PLANMODE
-
-    PLANMODE["📋 EnterPlanMode"] --> QUALITY
+    PLANMODE["📋 EnterPlanMode"] --> ASSUMPTIONS
+    ASSUMPTIONS["🔍 assumptions-analyzer\nEvidence check\nbefore planning"] --> ASSUMPCHECK{"Blockers?"}
+    ASSUMPCHECK -->|"Unclear assumptions"| SPIKE["⚡ spike\nThrowaway experiment\nvalidate feasibility"]
+    ASSUMPCHECK -->|"Clear"| QUALITY
+    SPIKE --> ASSUMPTIONS
 
     QUALITY["✍️ writing-plans skill\nQuality guidance\n(file paths, code, TDD)"] --> WRITE
 
@@ -50,7 +67,10 @@ flowchart TD
     REVIEW -->|"No"| WRITE
     REVIEW -->|"Yes"| EXITPLAN
 
-    EXITPLAN["📋 ExitPlanMode\nplan-plus restructures\ninto skeleton + steps"] --> VIEWER
+    EXITPLAN["📋 ExitPlanMode\nplan-plus restructures\ninto skeleton + steps"] --> PLANCHECK
+    PLANCHECK["✅ plan-checker\n8-dimension verification\ngoal-backward analysis"] --> PLANCHECKRESULT{"Issues?"}
+    PLANCHECKRESULT -->|"Blockers"| WRITE
+    PLANCHECKRESULT -->|"Passed"| VIEWER
 
     VIEWER["📺 Plan viewer\nlocalhost:3456"] --> BRANCH
 
@@ -61,7 +81,12 @@ flowchart TD
     STEP{"Next step?"}
     STEP -->|"Yes"| RESEARCH
     STEP -->|"All done"| PLANCOMPLETE["✅ All steps complete!\nProceed to audit"]
-    PLANCOMPLETE --> AUDITSCAN
+    PLANCOMPLETE --> VERIFY["🔍 verifier\nGoal-backward check\nexists+wired+data-flowing"]
+    VERIFY --> VERIFYRESULT{"Gaps?"}
+    VERIFYRESULT -->|"Gaps found"| FIXVERIFY["🔧 Fixer closes gaps"]
+    FIXVERIFY --> VERIFY
+    VERIFYRESULT -->|"Passed"| NYQUIST["🧪 nyquist-auditor\nFill test coverage gaps\ntest-only, no impl changes"]
+    NYQUIST --> AUDITSCAN
     STEP -->|"Plan invalid"| REPLAN
 
     REPLAN["📋 Revise remaining\nsteps in plan-plus"] --> STEP
@@ -196,6 +221,23 @@ flowchart TD
     style BASHCMD fill:#34495E,color:#fff
     style RTK fill:#6C3483,color:#fff
     style COMPRESS fill:#1A5276,color:#fff
+    style STARCHECK fill:#F39C12,color:#fff
+    style STARSHOW fill:#8E44AD,color:#fff
+    style STARCONFIRM fill:#F39C12,color:#fff
+    style MAPCB fill:#F39C12,color:#fff
+    style MAPCODEBASE fill:#1ABC9C,color:#fff
+    style INGESTDOCS fill:#F39C12,color:#fff
+    style INGEST fill:#2980B9,color:#fff
+    style RESEARCH2 fill:#3498DB,color:#fff
+    style ASSUMPTIONS fill:#3498DB,color:#fff
+    style ASSUMPCHECK fill:#F39C12,color:#fff
+    style SPIKE fill:#E74C3C,color:#fff
+    style PLANCHECK fill:#2ECC71,color:#fff
+    style PLANCHECKRESULT fill:#F39C12,color:#fff
+    style VERIFY fill:#3498DB,color:#fff
+    style VERIFYRESULT fill:#F39C12,color:#fff
+    style FIXVERIFY fill:#E67E22,color:#fff
+    style NYQUIST fill:#9B59B6,color:#fff
 ```
 
 ## Branch Naming Convention
@@ -257,6 +299,27 @@ Before any work begins, `pattern-recall.sh` fires automatically on every prompt:
 - Injects matching patterns as `hookSpecificOutput` — **zero tokens if no match**
 - Supplements (does not replace) the manual `pattern_search` in the complex path
 
+### 1b. STAR Clarification (UserPromptSubmit hook — medium/heavy tasks only)
+After pattern recall fires, `star-clarify.sh` classifies the prompt complexity via haiku:
+- **Simple** (1-2 file changes, bug fix, quick config): skipped — zero tokens overhead
+- **Medium** (multi-file feature, refactor, new script): STAR expansion generated
+- **Heavy** (new system, major architecture, multi-phase): STAR expansion generated
+
+For medium/heavy tasks, haiku generates a STAR breakdown:
+- **S — Situation:** context and challenge
+- **T — Task:** specific goal
+- **A — Action:** planned approach
+- **R — Result:** expected deliverable
+
+The orchestrator shows this to the user and asks for confirmation **before doing any work**. The user replies `yes` to proceed or describes what's different. This eliminates misunderstandings on costly multi-file tasks without adding friction to simple ones.
+
+Short prompts (<50 chars) and follow-up messages (`yes`, `ok`, `proceed`, etc.) are automatically skipped.
+
+### 1c. Brownfield Orientation (complex tasks on existing codebases)
+Before brainstorming on complex tasks in existing codebases:
+- **`lean-flow:map-codebase`** — Spawn parallel explorer (haiku) agents across 7 dimensions (stack, architecture, structure, integrations, conventions, testing, concerns). Token-efficient — haiku only.
+- **`lean-flow:ingest-docs`** — If ADRs, PRDs, or SPECs exist, extract locked decisions and surface conflicts before planning. ADR decisions are treated as locked unless user overrides.
+
 ### 2. Pattern Search (knowledge MCP)
 - `pattern_search` for previously solved patterns
 - Match found: fixer applies pattern, skip planning, enter step loop
@@ -267,7 +330,13 @@ Before any work begins, `pattern-recall.sh` fires automatically on every prompt:
 - Explores user intent, requirements, and design before implementation
 - Output feeds into plan-plus
 
-### 3a. Greenfield: Doc-First Development
+### 3a. Pre-Planning Research
+Before EnterPlanMode on medium/heavy tasks:
+- **`lean-flow:phase-researcher`** — Answers "what do I need to know to plan this well?" Verifies library APIs, patterns, pitfalls via Context7 + docs + web search. Tags every finding as [VERIFIED] or [ASSUMED].
+- **`lean-flow:assumptions-analyzer`** — Scans codebase for evidence behind every plan assumption. Classifies as Confident/Likely/Unclear with file citations. Unclear assumptions block planning until resolved.
+- **`lean-flow:spike`** — When assumptions-analyzer flags UNCLEAR items, run a throwaway 15-min experiment to validate feasibility before committing to a plan.
+
+### 3b. Greenfield: Doc-First Development
 For new projects (empty repos), generate project documentation **before** planning code:
 
 1. **Brainstorm** — discuss product concept, target users, core features, tech stack
@@ -289,6 +358,7 @@ For new projects (empty repos), generate project documentation **before** planni
 - Write the plan to the plan mode file (wrong directory blocked by `block-wrong-plan-dir.sh` hook)
 - User MUST review and approve before execution
 - `ExitPlanMode` — plan-plus restructures into skeleton + step files
+- **`lean-flow:plan-checker`** runs after ExitPlanMode — 8-dimension goal-backward verification before any fixer is dispatched. BLOCKER issues send plan back for revision.
 - Plan viewer opens at localhost:3456
 
 ### 5. Branching
@@ -404,6 +474,11 @@ Oracle verifies before returning APPROVED.
 - After 3 oracle escalations on the same step: flag for human intervention
 
 ### 10. Security Audit (once, after ALL steps merged into parent)
+Before the security audit, run goal verification:
+- **`lean-flow:verifier`** — Checks each deliverable is exists + substantive + wired + data-flowing. Catches stubs and disconnected implementations.
+- **`lean-flow:nyquist-auditor`** — Fills test coverage gaps. Generates behavioral tests for uncovered requirements. Read-only on implementation files.
+
+Then the security audit proceeds:
 - **Explorer** (haiku) reads the full parent branch diff vs main → produces structured summary
 - **Oracle** (sonnet, think-only) audits from explorer's summary — security issues, N+1, diff risk
 - **Special attention:** database migrations (table locks, backward compat, reversibility)

@@ -106,7 +106,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "bash ${CLAUDE_PLUGIN_ROOT}/scripts/claude-session-track.sh PreToolUse"
+            "command": "bash ${CLAUDE_PLUGIN_ROOT}/scripts/claude-monitor/claude-session-track.sh PreToolUse"
           }
         ]
       }
@@ -162,7 +162,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "bash ${CLAUDE_PLUGIN_ROOT}/scripts/claude-session-track.sh PostToolUse"
+            "command": "bash ${CLAUDE_PLUGIN_ROOT}/scripts/claude-monitor/claude-session-track.sh PostToolUse"
           }
         ]
       }
@@ -201,7 +201,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "bash ${CLAUDE_PLUGIN_ROOT}/scripts/claude-session-track.sh Stop"
+            "command": "bash ${CLAUDE_PLUGIN_ROOT}/scripts/claude-monitor/claude-session-track.sh Stop"
           }
         ]
       }
@@ -220,7 +220,16 @@
         "hooks": [
           {
             "type": "command",
-            "command": "bash ${CLAUDE_PLUGIN_ROOT}/scripts/claude-session-track.sh UserPromptSubmit"
+            "command": "bash ${CLAUDE_PLUGIN_ROOT}/scripts/star-clarify.sh",
+            "timeout": 15000
+          }
+        ]
+      },
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "bash ${CLAUDE_PLUGIN_ROOT}/scripts/claude-monitor/claude-session-track.sh UserPromptSubmit"
           }
         ]
       }
