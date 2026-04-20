@@ -7,17 +7,24 @@ This project uses **lean-flow** workflow only. Never suggest or use `/gsd-*` com
 | Instead of | Use |
 |---|---|
 | `/gsd-discuss-phase` | `lean-flow:discuss` |
-| `/gsd-plan-phase` | plan-plus skill + lean-flow:fixer |
+| `/gsd-plan-phase` | plan-plus + `lean-flow:fixer` |
 | `/gsd-executor` | `lean-flow:fixer` |
 | `/gsd-verify-phase` | `lean-flow:verifier` |
 | `/gsd-*` anything | lean-flow equivalent |
 
-## Workflow
+## Workflow — Always Follow
 
-Follow `workflows/standard-development-flow.md` for all tasks.
+Full rules in `workflows/claude-rules.md`. Summary:
 
-Key steps before writing any code:
-1. STAR clarification fires automatically on medium/heavy prompts
-2. Run `lean-flow:discuss` to scope decisions
-3. Use `lean-flow:phase-researcher` + `lean-flow:assumptions-analyzer` for research
-4. Plan with plan-plus, then execute with `lean-flow:fixer`
+**Before any code:** STAR auto-fires → `lean-flow:discuss` → research → plan → execute
+
+**Non-negotiable triggers:**
+- Bug/failure → `lean-flow:systematic-debugging` FIRST, always
+- Writing feature code → `lean-flow:test-driven-development` (RED-GREEN-REFACTOR)
+- Claiming done / before PR → `lean-flow:verification-before-completion`
+- Implementation complete → `lean-flow:finishing-a-development-branch`
+- Code review → `lean-flow:code-reviewer`
+
+**Escalation:**
+- Fixer fails 3× same step → oracle diagnoses (stop retrying)
+- Oracle escalates 3× → flag human intervention

@@ -2,6 +2,24 @@
 
 CRITICAL: Use lean-flow commands only. Never suggest /gsd-* commands.
 
+## Mandatory Skill Triggers
+
+These are NON-NEGOTIABLE — always invoke before proceeding:
+
+| Situation | Must invoke |
+|---|---|
+| Any bug / test failure / unexpected behavior | `lean-flow:systematic-debugging` |
+| Before writing implementation code | `lean-flow:test-driven-development` |
+| Before claiming complete / creating PR | `lean-flow:verification-before-completion` |
+| Implementation done, ready to merge | `lean-flow:finishing-a-development-branch` |
+| Code review requested | `lean-flow:code-reviewer` |
+
+## Escalation Rule
+
+- Fixer fails same step 3 times → stop retrying → oracle diagnoses
+- Oracle escalates 3 times on same step → flag for human intervention
+- Never retry blindly — diagnose root cause first
+
 ## Branch Naming
 
 | Prefix | When |
