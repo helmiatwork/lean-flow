@@ -28,7 +28,12 @@ fi
 
 # Step 2: Install npm dependencies if node_modules missing
 if [ ! -d "${KNOWLEDGE_DIR}/node_modules" ]; then
-  (cd "$KNOWLEDGE_DIR" && npm install --silent 2>/dev/null)
+  if ! (cd "$KNOWLEDGE_DIR" && npm install --silent 2>/tmp/lean-flow-npm-install.log); then
+    cat <<'EOF'
+{"systemMessage": "[lean-flow] Knowledge MCP setup failed: npm install error. Check /tmp/lean-flow-npm-install.log for details."}
+EOF
+    exit 0
+  fi
 fi
 
 # Step 3: Ensure DB directory exists (DB auto-creates on first run)

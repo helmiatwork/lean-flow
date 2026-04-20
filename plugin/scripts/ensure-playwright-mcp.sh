@@ -24,20 +24,25 @@ fi
 
 # Check if Chromium is already installed by looking for browser binaries
 PLAYWRIGHT_CACHE="${HOME}/.cache/ms-playwright"
-if [ ! -d "$PLAYWRIGHT_CACHE" ] || [ -z "$(ls -A "$PLAYWRIGHT_CACHE" 2>/dev/null)" ]; then
-  # Install Chromium in background (can take 30-60s, don't block session)
-  (
-    npx playwright install chromium 2>/dev/null
-  ) &
+BROWSER_READY=false
+if [ -d "$PLAYWRIGHT_CACHE" ] && [ -n "$(ls -A "$PLAYWRIGHT_CACHE" 2>/dev/null)" ]; then
+  BROWSER_READY=true
 fi
 
-# Register MCP server (this is fast, don't need to wait for browser download)
+if [ "$BROWSER_READY" = false ]; then
+  # Download Chromium in background
+  (npx playwright install chromium 2>/tmp/lean-flow-playwright-install.log) &
+  cat <<'EOF'
+{"systemMessage": "[lean-flow] Playwright: Chromium downloading in background (~30-60s). Playwright MCP will be registered automatically on next session start once download completes."}
+EOF
+  exit 0
+fi
+
+# Browser is ready — register MCP
 claude mcp add playwright -- npx @playwright/mcp@latest 2>/dev/null
 
 cat <<'EOF'
-{
-  "systemMessage": "[lean-flow] Playwright MCP server registered. Chromium browser installing in background (if not already present)."
-}
+{"systemMessage": "[lean-flow] Playwright MCP server registered and ready."}
 EOF
 
 exit 0

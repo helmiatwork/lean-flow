@@ -91,6 +91,22 @@ echo "---"
 echo "Session:       ${session_pct}% (reset ${session_reset})"
 echo "Week (all):    ${week_all_pct}% (reset ${week_all_reset})"
 echo "Week (sonnet): ${week_sonnet_pct}% (reset ${week_sonnet_reset})"
+# --- Token stats from local sessions ---
+token_stats=$(jq -r '.token_stats // empty' "$CACHE_FILE" 2>/dev/null)
+if [ -n "$token_stats" ]; then
+  window=$(echo "$token_stats" | jq -r '.window // "today"')
+  echo "---"
+  echo "Tokens (${window}) | size=12 color=#aaaaaa"
+  echo "$token_stats" | jq -r '.models[] |
+    (.name | gsub("claude-"; "") | gsub("-20[0-9]+[0-9]+[0-9]+[0-9]+[0-9]+[0-9]+"; "")) as $name |
+    (.input / 1000 | floor | tostring + "k") as $inp |
+    (.output / 1000 | floor | tostring + "k") as $out |
+    (.pct | tostring + "%") as $pct |
+    "\($name)  \($pct)  In:\($inp) Out:\($out)"
+  ' 2>/dev/null | while IFS= read -r line; do
+    echo "$line | size=11 color=#cccccc"
+  done
+fi
 echo "---"
 if [ -f "$CACHE_FILE" ]; then
   updated=$(jq -r '.updated // "?"' "$CACHE_FILE" 2>/dev/null)

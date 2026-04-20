@@ -12,6 +12,9 @@ fi
 
 # Skip if jq not available
 if ! command -v jq &>/dev/null; then
+  cat <<'EOF'
+{"systemMessage": "[lean-flow] Permissions setup skipped: jq not found. Install jq to auto-configure workflow permissions: brew install jq"}
+EOF
   exit 0
 fi
 

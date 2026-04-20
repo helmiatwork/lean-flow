@@ -146,6 +146,16 @@ if [[ "$session_pct" =~ ^[0-9]+$ ]] && [[ "$week_all_pct" =~ ^[0-9]+$ ]]; then
   cat > "$CACHE_FILE" << JSON
 {"session": "$session_pct", "week_all": "${week_all_pct:-?}", "week_sonnet": "${week_sonnet_pct:-?}", "session_reset": "${session_reset:-?}", "week_all_reset": "${week_all_reset:-?}", "week_sonnet_reset": "${week_sonnet_reset:-?}", "updated": "$(date '+%H:%M')"}
 JSON
+  # --- Append local token stats ---
+  SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+  if command -v python3 &>/dev/null && [ -f "$SCRIPT_DIR/local-tokens.py" ]; then
+    token_stats=$(python3 "$SCRIPT_DIR/local-tokens.py" "today" 2>/dev/null)
+    if [ -n "$token_stats" ] && echo "$token_stats" | jq . &>/dev/null; then
+      # Merge token_stats into cache file
+      tmp=$(mktemp)
+      jq --argjson stats "$token_stats" '. + {token_stats: $stats}' "$CACHE_FILE" > "$tmp" && mv "$tmp" "$CACHE_FILE"
+    fi
+  fi
   # Flash ⚡ for 10s then back to normal
   touch /tmp/claude-usage-blink
   open -g "swiftbar://refreshplugin?name=claude-usage"
