@@ -397,7 +397,7 @@ Add to `~/.claude/settings.json`:
 ```json
 {
   "extraKnownMarketplaces": {
-    "lean-flow": {
+    "helmiatwork": {
       "source": {
         "source": "github",
         "repo": "helmiatwork/lean-flow"
@@ -405,7 +405,7 @@ Add to `~/.claude/settings.json`:
     }
   },
   "enabledPlugins": {
-    "lean-flow@lean-flow": true
+    "lean-flow@helmiatwork": true
   }
 }
 ```
