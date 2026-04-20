@@ -50,7 +50,7 @@ flowchart TD
     INGESTDOCS -->|"Yes"| INGEST["📄 ingest-docs\nExtract locked decisions\n+ surface conflicts"]
     INGESTDOCS -->|"No"| BRAINSTORM
     INGEST --> BRAINSTORM
-    BRAINSTORM["💡 Brainstorming skill\nExplore requirements"] --> RESEARCH2
+    BRAINSTORM["💡 lean-flow:brainstorming\nExplore requirements\ndesign-first gate"] --> RESEARCH2
     RESEARCH2["🔬 phase-researcher\nVerify approaches\n+ known pitfalls"] --> PLANMODE
 
     PLANMODE["📋 EnterPlanMode"] --> ASSUMPTIONS
@@ -86,7 +86,8 @@ flowchart TD
     VERIFYRESULT -->|"Gaps found"| FIXVERIFY["🔧 Fixer closes gaps"]
     FIXVERIFY --> VERIFY
     VERIFYRESULT -->|"Passed"| NYQUIST["🧪 nyquist-auditor\nFill test coverage gaps\ntest-only, no impl changes"]
-    NYQUIST --> AUDITSCAN
+    NYQUIST --> FINISHING["🏁 lean-flow:finishing-a-development-branch\nmerge/PR/cleanup decision"]
+    FINISHING --> AUDITSCAN
     STEP -->|"Plan invalid"| REPLAN
 
     REPLAN["📋 Revise remaining\nsteps in plan-plus"] --> STEP
@@ -102,15 +103,16 @@ flowchart TD
     STEPBR["🌿 Step branch\nprefix/name/step-N"] --> TESTFIRST
 
     TESTFIRST{"TDD?"}
-    TESTFIRST -->|"Yes"| TDDTEST["🔧 Fixer writes\nfailing tests"] --> IMPLEMENT
+    TESTFIRST -->|"Yes"| TDDTEST["🔧 lean-flow:test-driven-development\nRED failing test\n→ GREEN minimal code\n→ REFACTOR"] --> IMPLEMENT
     TESTFIRST -->|"No"| IMPLEMENT
 
     IMPLEMENT["🔧 Fixer\n(haiku)\nImplement + tests"] --> FIXCHECK
 
-    FIXCHECK["✅ Fixer checklist\n(self-verify)"] --> TEST
+    FIXCHECK["✅ lean-flow:verification-before-completion\nrun commands + confirm output\nevidence before assertions"] --> TEST
 
     TEST["Run tests"]
-    TEST -->|"Fail x3"| ORACLE_SCAN["🔍 Explorer\nreads error context"] --> ORACLE_ESC["🔮 Oracle\n(think-only)\nDiagnosis"]
+    TEST -->|"Fail x3"| SYSDBG["🔍 lean-flow:systematic-debugging\nroot cause analysis\nbefore any fix"]
+    SYSDBG --> ORACLE_SCAN["🔍 Explorer\nreads error context"] --> ORACLE_ESC["🔮 Oracle\n(think-only)\nDiagnosis"]
     ORACLE_ESC --> FIX
     TEST -->|"Pass"| STEPPR
 
@@ -130,10 +132,12 @@ flowchart TD
 
     MAINPR["PR parent → main\n+ release notes"] --> FINALSCAN
 
-    FINALSCAN["🔍 Explorer\n(haiku)\nScan PR diff\n→ summary"] --> FINAL
+    FINALSCAN["🔍 Explorer\n(haiku)\nScan PR diff\n→ summary"] --> CODEREVIEW["📋 lean-flow:code-reviewer\n(sonnet)\ncode quality, patterns,\nsecurity, SOLID"]
+    CODEREVIEW -->|"Issues"| FIXFINAL["🔧 Fixer\nfix on parent"]
+    CODEREVIEW -->|"Passed"| FINAL
 
-    FINAL["🔮 Oracle\n(sonnet, think-only)\nReview checklist\nfrom explorer summary\n🚫 no Write/Edit/Bash"]
-    FINAL -->|"Issues"| FIXFINAL["🔧 Fixer\nfix on parent"]
+    FINAL["🔮 Oracle\n(sonnet, think-only)\nArchitecture review\nfrom explorer summary\n🚫 no Write/Edit/Bash"]
+    FINAL -->|"Issues"| FIXFINAL
     FINAL -->|"Approved"| CMAPSCAN
 
     FIXFINAL --> FINALSCAN
@@ -238,6 +242,9 @@ flowchart TD
     style VERIFYRESULT fill:#F39C12,color:#fff
     style FIXVERIFY fill:#E67E22,color:#fff
     style NYQUIST fill:#9B59B6,color:#fff
+    style SYSDBG fill:#C0392B,color:#fff
+    style FINISHING fill:#1ABC9C,color:#fff
+    style CODEREVIEW fill:#8E44AD,color:#fff
 ```
 
 ## Branch Naming Convention
