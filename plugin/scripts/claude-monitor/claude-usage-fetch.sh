@@ -15,7 +15,7 @@ if command -v nodenv &>/dev/null && [ -z "$NODENV_VERSION" ]; then
     fi
   done
 fi
-CLAUDE_BIN="${CLAUDE_BIN:-$(command -v claude 2>/dev/null || echo "/opt/homebrew/bin/claude")}"
+CLAUDE_BIN="${CLAUDE_BIN:-$(command -v claude 2>/dev/null || echo "$HOME/.local/bin/claude")}"
 
 # Run from a trusted dir
 cd "$HOME"
