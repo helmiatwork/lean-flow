@@ -5,6 +5,19 @@
 CACHE_FILE="/tmp/claude-usage-cache.json"
 SESSION_FILE="/tmp/claude-usage-session.txt"
 LOCK_FILE="/tmp/claude-usage-fetch.lock"
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+
+_merge_token_stats() {
+  if command -v python3 &>/dev/null && [ -f "$SCRIPT_DIR/local-tokens.py" ]; then
+    local stats
+    stats=$(python3 "$SCRIPT_DIR/local-tokens.py" "7d" 2>/tmp/lean-flow-token-debug.log)
+    if [ -n "$stats" ] && echo "$stats" | jq . &>/dev/null && [ -f "$CACHE_FILE" ]; then
+      local tmp
+      tmp=$(mktemp)
+      jq --argjson s "$stats" '. + {token_stats: $s}' "$CACHE_FILE" > "$tmp" && mv "$tmp" "$CACHE_FILE"
+    fi
+  fi
+}
 
 # Ensure nodenv picks a version that has claude installed
 if command -v nodenv &>/dev/null && [ -z "$NODENV_VERSION" ]; then
@@ -138,6 +151,7 @@ week_sonnet_reset=$(calc_remaining "$week_sonnet_raw")
 
 # Skip cache write if rate limited or error detected
 if echo "$clean" | grep -qiE 'rate.?limit|too many requests|429|overloaded|error'; then
+  _merge_token_stats
   exit 0
 fi
 
@@ -146,17 +160,8 @@ if [[ "$session_pct" =~ ^[0-9]+$ ]] && [[ "$week_all_pct" =~ ^[0-9]+$ ]]; then
   cat > "$CACHE_FILE" << JSON
 {"session": "$session_pct", "week_all": "${week_all_pct:-?}", "week_sonnet": "${week_sonnet_pct:-?}", "session_reset": "${session_reset:-?}", "week_all_reset": "${week_all_reset:-?}", "week_sonnet_reset": "${week_sonnet_reset:-?}", "updated": "$(date '+%H:%M')"}
 JSON
-  # --- Append local token stats ---
-  SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-  if command -v python3 &>/dev/null && [ -f "$SCRIPT_DIR/local-tokens.py" ]; then
-    token_stats=$(python3 "$SCRIPT_DIR/local-tokens.py" "7d" 2>/dev/null)
-    if [ -n "$token_stats" ] && echo "$token_stats" | jq . &>/dev/null; then
-      # Merge token_stats into cache file
-      tmp=$(mktemp)
-      jq --argjson stats "$token_stats" '. + {token_stats: $stats}' "$CACHE_FILE" > "$tmp" && mv "$tmp" "$CACHE_FILE"
-    fi
-  fi
-  # Flash ⚡ for 10s then back to normal
+  _merge_token_stats
+  # Flash ⚡ for 10 s then back to normal
   touch /tmp/claude-usage-blink
   open -g "swiftbar://refreshplugin?name=claude-usage"
   ( sleep 11 && open -g "swiftbar://refreshplugin?name=claude-usage" ) &>/dev/null &
