@@ -17,7 +17,19 @@ touch "$CACHE_FILE"
 find /tmp -maxdepth 1 -name "claude-workflow-*.cache" 2>/dev/null | sort | head -n -5 | xargs rm -f 2>/dev/null || true
 
 # Extract prose only — skip lines 1-242 (title + Mermaid diagram)
-CONTENT=$(tail -n +243 "$WORKFLOW_FILE")
+PROSE=$(tail -n +243 "$WORKFLOW_FILE")
+
+HEADER="[LEAN-FLOW WORKFLOW ACTIVE]
+CRITICAL: This project uses lean-flow ONLY. Never suggest /gsd-* commands.
+Use lean-flow equivalents instead:
+- Scoping/discussion → lean-flow:discuss (NOT /gsd-discuss-phase)
+- Planning → lean-flow:fixer with plan-plus skill (NOT /gsd-plan-phase)
+- Execution → lean-flow:fixer (NOT /gsd-executor)
+- Verification → lean-flow:verifier (NOT /gsd-verify-phase)
+Always follow the workflow rules below exactly.
+
+"
+CONTENT="${HEADER}${PROSE}"
 
 jq -n --arg content "$CONTENT" \
   '{"hookSpecificOutput":{"hookEventName":"SessionStart","additionalContext":$content}}' 2>/dev/null
