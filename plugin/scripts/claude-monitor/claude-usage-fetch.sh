@@ -149,12 +149,21 @@ JSON
   # --- Append local token stats ---
   SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
   if command -v python3 &>/dev/null && [ -f "$SCRIPT_DIR/local-tokens.py" ]; then
-    token_stats=$(python3 "$SCRIPT_DIR/local-tokens.py" "7d" 2>/dev/null)
+    token_stats=$(python3 "$SCRIPT_DIR/local-tokens.py" "7d" 2>/tmp/lean-flow-token-debug.log)
     if [ -n "$token_stats" ] && echo "$token_stats" | jq . &>/dev/null; then
       # Merge token_stats into cache file
       tmp=$(mktemp)
-      jq --argjson stats "$token_stats" '. + {token_stats: $stats}' "$CACHE_FILE" > "$tmp" && mv "$tmp" "$CACHE_FILE"
+      if jq --argjson stats "$token_stats" '. + {token_stats: $stats}' "$CACHE_FILE" > "$tmp" 2>>/tmp/lean-flow-token-debug.log; then
+        mv "$tmp" "$CACHE_FILE"
+      else
+        rm -f "$tmp"
+        echo "Failed to merge token_stats into $CACHE_FILE" >> /tmp/lean-flow-token-debug.log
+      fi
+    else
+      echo "token_stats validation failed or empty. token_stats='$token_stats'" >> /tmp/lean-flow-token-debug.log
     fi
+  else
+    echo "python3 or $SCRIPT_DIR/local-tokens.py not found" >> /tmp/lean-flow-token-debug.log
   fi
   # Flash ⚡ for 10s then back to normal
   touch /tmp/claude-usage-blink
