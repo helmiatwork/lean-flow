@@ -15,6 +15,8 @@ fi
 FETCH_INTERVAL=${_secs:-30}
 
 # --- Handle commands from menu actions ---
+if [ "$1" = "noop" ]; then exit 0; fi
+
 if [ "$1" = "set_interval" ] && [[ "$2" =~ ^[0-9]+$ ]]; then
   mkdir -p "$(dirname "$CONFIG_FILE")"
   echo "refresh_seconds=$2" > "$CONFIG_FILE"
@@ -86,11 +88,27 @@ fi
 
 # --- Dropdown ---
 echo "---"
-echo "Claude Code Usage | size=14"
+echo "Claude Code Usage | size=14 bash='$SELF_PATH' param1=noop terminal=false"
 echo "---"
-echo "Session:       ${session_pct}% (reset ${session_reset})"
-echo "Week (all):    ${week_all_pct}% (reset ${week_all_reset})"
-echo "Week (sonnet): ${week_sonnet_pct}% (reset ${week_sonnet_reset})"
+echo "Session:       ${session_pct}% (reset ${session_reset}) | bash='$SELF_PATH' param1=noop terminal=false"
+echo "Week (all):    ${week_all_pct}% (reset ${week_all_reset}) | bash='$SELF_PATH' param1=noop terminal=false"
+echo "Week (sonnet): ${week_sonnet_pct}% (reset ${week_sonnet_reset}) | bash='$SELF_PATH' param1=noop terminal=false"
+# --- Token stats from local sessions ---
+token_stats=$(jq -r '.token_stats // empty' "$CACHE_FILE" 2>/dev/null)
+if [ -n "$token_stats" ]; then
+  window=$(echo "$token_stats" | jq -r '.window // "today"')
+  echo "---"
+  echo "Tokens (${window}) | size=12 bash='$SELF_PATH' param1=noop terminal=false"
+  echo "$token_stats" | jq -r '.models[] |
+    (.name | gsub("claude-"; "") | gsub("-20[0-9]+[0-9]+[0-9]+[0-9]+[0-9]+[0-9]+"; "")) as $name |
+    (.input / 1000 | floor | tostring + "k") as $inp |
+    (.output / 1000 | floor | tostring + "k") as $out |
+    (.pct | tostring + "%") as $pct |
+    "\($name)  \($pct)  In:\($inp) Out:\($out)"
+  ' 2>/dev/null | while IFS= read -r line; do
+    echo "$line | size=11 bash='$SELF_PATH' param1=noop terminal=false"
+  done
+fi
 echo "---"
 if [ -f "$CACHE_FILE" ]; then
   updated=$(jq -r '.updated // "?"' "$CACHE_FILE" 2>/dev/null)
