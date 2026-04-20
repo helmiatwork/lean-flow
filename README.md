@@ -116,7 +116,7 @@ SwiftBar menu bar plugin showing real-time Claude Code usage:
 
 > **Note:** The usage monitor requires macOS + SwiftBar. On Linux, you can manually check usage with `claude /usage` or read `/tmp/claude-usage-cache.json` if the fetcher is running.
 >
-> **macOS permission:** The fetcher daemon runs `node` to access Claude's usage data. If you see a *"node would like to access data from other apps"* dialog, go to **System Settings → Privacy & Security → App Management** and toggle **Allow** for `node`. If `node` isn't listed, click **+** and navigate to `/opt/homebrew/bin/node` (or wherever `which node` points). This is a one-time setup.
+> **macOS permission:** The fetcher daemon runs the Claude CLI to access usage data. If you see a permission dialog for the Claude binary, go to **System Settings → Privacy & Security → App Management** and toggle **Allow** for it. If the binary isn't listed, click **+** and navigate to the path shown by `which claude`. This is a one-time setup.
 
 ### 🗺️ Cartographer (Hybrid Codebase Mapping)
 Two-tier documentation system for codebases of any size.
@@ -454,12 +454,12 @@ lean-flow automatically enables these companion plugins on first session:
 To completely remove lean-flow and all installed components:
 
 ```bash
-bash /path/to/lean-flow/scripts/uninstall.sh
+bash /path/to/lean-flow/plugin/scripts/uninstall.sh
 ```
 
 Or if installed as a plugin:
 ```bash
-bash ~/.claude/plugins/cache/lean-flow/*/scripts/uninstall.sh
+bash ~/.claude/plugins/cache/lean-flow/*/plugin/scripts/uninstall.sh
 ```
 
 This removes: knowledge MCP, Playwright MCP, SwiftBar monitor, launchd daemon, dream state, and config file. Pattern database deletion requires confirmation.
@@ -475,7 +475,7 @@ Customize lean-flow by creating `~/.claude/lean-flow.json`:
   "protectedBranches": ["main", "master", "staging", "production"],
   "models": {
     "fixer": "sonnet",
-    "oracle": "sonnet",
+    "oracle": "opus",
     "explorer": "haiku"
   },
   "dream": {
