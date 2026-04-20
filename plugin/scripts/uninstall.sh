@@ -67,18 +67,19 @@ else
   skipped+=("SwiftBar plugin (not found)")
 fi
 
-# 4. Unload and remove launchd agent
-PLIST_PATH="$HOME/Library/LaunchAgents/com.claude.usage-fetch.plist"
-if [ -f "$PLIST_PATH" ]; then
-  launchctl unload "$PLIST_PATH" 2>/dev/null || true
-  rm -f "$PLIST_PATH"
-  removed+=("launchd agent: $PLIST_PATH")
-else
-  skipped+=("launchd agent (not found)")
-fi
+# 4. Unload and remove launchd agent (both current and legacy names)
+for _plist_name in "com.claude.usage-fetch" "com.${USER}.claude-usage-fetch"; do
+  _plist_path="$HOME/Library/LaunchAgents/${_plist_name}.plist"
+  if [ -f "$_plist_path" ]; then
+    launchctl unload "$_plist_path" 2>/dev/null || true
+    rm -f "$_plist_path"
+    removed+=("launchd agent: $_plist_path")
+  fi
+done
 
-# 5. Remove fetcher script
+# 5. Remove fetcher scripts
 _remove_file "Usage fetcher" "${HOME}/.local/bin/claude-usage-fetch.sh"
+_remove_file "Usage fetcher (real)" "${HOME}/.local/bin/claude-usage-fetch-real.sh"
 
 # 6. Remove dream state
 _remove_dir "Dream state" "${HOME}/.claude/dream-state"

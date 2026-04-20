@@ -9,7 +9,7 @@ SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
 PLUGIN_DIR="$HOME/Library/Application Support/SwiftBar/Plugins"
 LOCAL_BIN="$HOME/.local/bin"
 LAUNCH_AGENTS="$HOME/Library/LaunchAgents"
-PLIST_NAME="com.ichigo.claude-usage-fetch"
+PLIST_NAME="com.claude.usage-fetch"
 REFRESH_INTERVAL=180  # 3 minutes in seconds
 SWIFTBAR_INTERVAL="30s"
 

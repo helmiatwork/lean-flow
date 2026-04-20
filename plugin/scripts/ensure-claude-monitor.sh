@@ -76,7 +76,10 @@ detect_claude_bin() {
 
 CLAUDE_BIN=$(detect_claude_bin)
 if [ -z "$CLAUDE_BIN" ]; then
-  exit 0  # Claude not found — skip silently
+  cat <<'EOF'
+{"systemMessage": "[lean-flow] Claude Usage Monitor skipped: claude CLI not found. Install Claude Code to enable usage monitoring."}
+EOF
+  exit 0
 fi
 
 # --- Install ---
@@ -86,6 +89,9 @@ if ! command -v jq &>/dev/null; then
   if command -v brew &>/dev/null; then
     brew install jq 2>/dev/null
   else
+    cat <<'EOF'
+{"systemMessage": "[lean-flow] Claude Usage Monitor skipped: jq not found and Homebrew not available. Install jq to enable usage monitoring."}
+EOF
     exit 0
   fi
 fi
@@ -99,7 +105,12 @@ if [ -z "$SWIFTBAR_APP" ]; then
     brew install --cask swiftbar 2>/dev/null
     [ -d "/Applications/SwiftBar.app" ] && SWIFTBAR_APP="/Applications/SwiftBar.app"
   fi
-  [ -z "$SWIFTBAR_APP" ] && exit 0
+  if [ -z "$SWIFTBAR_APP" ]; then
+    cat <<'EOF'
+{"systemMessage": "[lean-flow] Claude Usage Monitor skipped: SwiftBar not found and could not be installed. Install SwiftBar manually: brew install --cask swiftbar"}
+EOF
+    exit 0
+  fi
 fi
 
 # 3. Create directories
@@ -111,8 +122,7 @@ chmod +x "$LOCAL_BIN/claude-usage-fetch.sh"
 
 # 5. Install SwiftBar plugin
 rm -f "$PLUGIN_DIR"/claude-usage.*.sh 2>/dev/null
-cp "$SRC_DIR/claude-usage.30s.sh" "$PLUGIN_DIR/claude-usage.30s.sh"
-chmod +x "$PLUGIN_DIR/claude-usage.30s.sh"
+ln -sf "$SRC_DIR/claude-usage.3m.sh" "$PLUGIN_DIR/claude-usage.30s.sh"
 
 # 6. Install launchd agent with detected claude path + sane PATH
 launchctl unload "$LAUNCH_AGENTS/$PLIST_NAME.plist" 2>/dev/null || true
