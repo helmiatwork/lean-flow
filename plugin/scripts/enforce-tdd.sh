@@ -31,10 +31,15 @@ esac
 MSG="[TDD ENFORCEMENT]
 You just wrote implementation code in: $(basename "$FILE")
 MANDATORY: Invoke lean-flow:test-driven-development before proceeding.
-- Write failing test FIRST (RED)
-- Then make it pass with minimal code (GREEN)
-- Then refactor (REFACTOR)
-Do NOT mark this step done until tests exist and pass."
+
+Steps (non-negotiable):
+1. RED — write failing unit test first
+2. GREEN — minimal code to pass
+3. REFACTOR — clean up
+4. E2E — add E2E test for user-facing flows
+5. COVERAGE — run coverage report, must be ≥80%
+
+Do NOT mark done until: unit tests pass + E2E tests pass + coverage ≥80%."
 
 jq -n --arg msg "$MSG" \
   '{"hookSpecificOutput":{"hookEventName":"PostToolUse","additionalContext":$msg}}' 2>/dev/null
