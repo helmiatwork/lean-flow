@@ -9,7 +9,7 @@ Menu bar widget that shows Claude Code token usage with color-coded status via S
 - Copies the fetcher script to `~/.local/bin/`
 - Symlinks the SwiftBar plugin
 - Creates and loads the launchd agent (auto-refresh every 3 minutes)
-- Starts SwiftBar
+- Hardens SwiftBar against the macOS 26.x state-restore crash and installs a `KeepAlive` LaunchAgent so SwiftBar auto-restarts if it ever dies
 
 ## Display Format
 
@@ -118,7 +118,16 @@ cat /tmp/claude-usage-fetch.log     # fetcher log
 cat /tmp/claude-usage-cache.json    # cached data
 ```
 
-## Auto-start
+## Auto-start & crash resilience
 
-SwiftBar is added to Login Items and starts automatically on boot.
-The launchd fetcher (`com.ichigo.claude-usage-fetch.plist`) also runs at load.
+SwiftBar is managed by a launchd agent (`com.ameba.SwiftBar.plist`) with `KeepAlive=true`. If SwiftBar crashes — including the macOS 26.x Tahoe `_handleAEGetURLEvent` trap triggered by stale saved state — launchd respawns it within ~10s.
+
+The installer also disables AppKit state restoration (`NSQuitAlwaysKeepsWindows=false`) and wipes `~/Library/Saved Application State/com.ameba.SwiftBar.savedState` to remove the crash's root cause.
+
+**Remove SwiftBar from System Settings → General → Login Items** after install — the LaunchAgent starts it, so a Login Items entry would cause a double-launch.
+
+Logs:
+- `/tmp/swiftbar.out.log`, `/tmp/swiftbar.err.log` — SwiftBar stdout/stderr
+- `launchctl list com.ameba.SwiftBar` — current PID and last exit status
+
+The launchd fetcher (`com.claude.usage-fetch.plist`) also runs at load.

@@ -10,6 +10,7 @@ PLUGIN_DIR="$HOME/Library/Application Support/SwiftBar/Plugins"
 LOCAL_BIN="$HOME/.local/bin"
 LAUNCH_AGENTS="$HOME/Library/LaunchAgents"
 PLIST_NAME="com.claude.usage-fetch"
+SWIFTBAR_PLIST_NAME="com.ameba.SwiftBar"
 REFRESH_INTERVAL=180  # 3 minutes in seconds
 SWIFTBAR_INTERVAL="30s"
 
@@ -17,7 +18,7 @@ echo "=== Claude Usage Monitor Installer ==="
 echo ""
 
 # 1. Check dependencies
-echo "[1/7] Checking dependencies..."
+echo "[1/8] Checking dependencies..."
 
 if ! command -v jq &>/dev/null; then
   echo "  jq not found. Installing via Homebrew..."
@@ -40,7 +41,7 @@ else
 fi
 
 # 2. Install SwiftBar if needed
-echo "[2/7] Checking SwiftBar..."
+echo "[2/8] Checking SwiftBar..."
 if [ ! -d "/Applications/SwiftBar.app" ] && [ ! -d "$HOME/Applications/SwiftBar.app" ]; then
   echo "  SwiftBar not found. Installing via Homebrew..."
   if command -v brew &>/dev/null; then
@@ -54,14 +55,14 @@ else
 fi
 
 # 3. Create directories
-echo "[3/7] Creating directories..."
+echo "[3/8] Creating directories..."
 mkdir -p "$PLUGIN_DIR"
 mkdir -p "$LOCAL_BIN"
 mkdir -p "$LAUNCH_AGENTS"
 echo "  Done"
 
 # 4. Install fetcher script
-echo "[4/7] Installing fetcher..."
+echo "[4/8] Installing fetcher..."
 cp "$SCRIPT_DIR/claude-usage-fetch.sh" "$LOCAL_BIN/claude-usage-fetch-real.sh"
 chmod +x "$LOCAL_BIN/claude-usage-fetch-real.sh"
 # Also create symlink for manual use
@@ -69,14 +70,14 @@ ln -sf "$SCRIPT_DIR/claude-usage-fetch.sh" "$LOCAL_BIN/claude-usage-fetch.sh"
 echo "  Installed to $LOCAL_BIN/claude-usage-fetch-real.sh"
 
 # 5. Install SwiftBar plugin
-echo "[5/7] Installing SwiftBar plugin..."
+echo "[5/8] Installing SwiftBar plugin..."
 # Remove any existing claude-usage plugin symlinks
 rm -f "$PLUGIN_DIR"/claude-usage.*.sh
 ln -sf "$SCRIPT_DIR/claude-usage.3m.sh" "$PLUGIN_DIR/claude-usage.${SWIFTBAR_INTERVAL}.sh"
 echo "  Symlinked as claude-usage.${SWIFTBAR_INTERVAL}.sh"
 
 # 6. Install and load launchd agent
-echo "[6/7] Setting up auto-refresh (every $((REFRESH_INTERVAL / 60)) minutes)..."
+echo "[6/8] Setting up auto-refresh (every $((REFRESH_INTERVAL / 60)) minutes)..."
 # Unload existing if present
 launchctl unload "$LAUNCH_AGENTS/$PLIST_NAME.plist" 2>/dev/null || true
 
@@ -114,11 +115,59 @@ PLIST
 launchctl load "$LAUNCH_AGENTS/$PLIST_NAME.plist"
 echo "  Loaded $PLIST_NAME (every ${REFRESH_INTERVAL}s)"
 
-# 7. Start SwiftBar and set plugin directory
-echo "[7/7] Starting SwiftBar..."
+# 7. Harden SwiftBar against URL-restore crash (macOS 26.x Tahoe)
+echo "[7/8] Hardening SwiftBar (disable state restore, install KeepAlive agent)..."
+# Kill any running instance so the LaunchAgent owns the process
+pkill -9 SwiftBar 2>/dev/null || true
+# Disable AppKit state restoration — crash root cause is _handleAEGetURLEvent
+# replaying a stale URL from saved state.
+defaults write com.ameba.SwiftBar NSQuitAlwaysKeepsWindows -bool false
+rm -rf "$HOME/Library/Saved Application State/com.ameba.SwiftBar.savedState"
+# Pin plugin directory before first launch
 defaults write com.ameba.SwiftBar PluginDirectory "$PLUGIN_DIR"
-open -a SwiftBar
-echo "  SwiftBar started"
+
+# Unload existing SwiftBar LaunchAgent if present
+launchctl unload "$LAUNCH_AGENTS/$SWIFTBAR_PLIST_NAME.plist" 2>/dev/null || true
+
+SWIFTBAR_BIN=""
+if [ -x "/Applications/SwiftBar.app/Contents/MacOS/SwiftBar" ]; then
+  SWIFTBAR_BIN="/Applications/SwiftBar.app/Contents/MacOS/SwiftBar"
+elif [ -x "$HOME/Applications/SwiftBar.app/Contents/MacOS/SwiftBar" ]; then
+  SWIFTBAR_BIN="$HOME/Applications/SwiftBar.app/Contents/MacOS/SwiftBar"
+fi
+
+cat > "$LAUNCH_AGENTS/$SWIFTBAR_PLIST_NAME.plist" << PLIST
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+    <key>Label</key>
+    <string>$SWIFTBAR_PLIST_NAME</string>
+    <key>ProgramArguments</key>
+    <array>
+        <string>$SWIFTBAR_BIN</string>
+    </array>
+    <key>RunAtLoad</key>
+    <true/>
+    <key>KeepAlive</key>
+    <true/>
+    <key>ProcessType</key>
+    <string>Interactive</string>
+    <key>ThrottleInterval</key>
+    <integer>10</integer>
+    <key>StandardOutPath</key>
+    <string>/tmp/swiftbar.out.log</string>
+    <key>StandardErrorPath</key>
+    <string>/tmp/swiftbar.err.log</string>
+</dict>
+</plist>
+PLIST
+echo "  Installed $SWIFTBAR_PLIST_NAME (KeepAlive, throttle 10s)"
+
+# 8. Launch SwiftBar under launchd so it auto-restarts on any crash
+echo "[8/8] Starting SwiftBar via launchd..."
+launchctl load "$LAUNCH_AGENTS/$SWIFTBAR_PLIST_NAME.plist"
+echo "  SwiftBar started (managed by launchd)"
 
 echo ""
 echo "=== Installation Complete ==="
