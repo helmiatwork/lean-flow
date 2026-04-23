@@ -12,7 +12,7 @@ FETCHER="$HOME/.local/bin/claude-usage-fetch.sh"
 if [ -f "$CONFIG_FILE" ]; then
   _secs=$(grep -oE '^refresh_seconds=[0-9]+' "$CONFIG_FILE" | cut -d= -f2)
 fi
-FETCH_INTERVAL=${_secs:-30}
+FETCH_INTERVAL=${_secs:-180}
 
 # --- Handle commands from menu actions ---
 if [ "$1" = "noop" ]; then exit 0; fi
