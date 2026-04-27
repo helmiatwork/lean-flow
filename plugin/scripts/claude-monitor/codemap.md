@@ -1,24 +1,26 @@
 # plugin/scripts/claude-monitor/
 
-# codemap.md — `plugin/scripts/claude-monitor/`
+# claude-monitor/ Codemap
 
 ## Responsibility
-Monitors Claude Code session activity and API usage quotas. Provides SwiftBar menu bar widget showing token consumption across session/weekly/model windows, plus live session viewer. Tracks tool invocations and spawned subagents via event hooks.
+Provides real-time monitoring of Claude Code sessions and API usage quotas for SwiftBar menu bar display. Tracks session state (thinking/running/idle/stopped), tool execution history, and consumption of rate-limited API tokens across multiple time windows (session/5h/7d).
 
 ## Design
-- **Event-driven tracking**: `claude-session-track.sh` receives `UserPromptSubmit`, `PreToolUse`, `PostToolUse`, `Stop` events; writes JSON state file + appends JSONL history per session.
-- **Dual data sources**: API rate-limit headers (`claude-usage-fetch.sh`) + local token accounting (`local-tokens.py` scans `~/.claude/projects/*.jsonl`).
-- **Stateless display**: SwiftBar plugin reads cached JSON (`/tmp/claude-usage-cache.json`), checks blink flag, renders color-coded icon (🟢/🟡/🔴) + percentages.
-- **Lazy subagent support**: Session tracking extracts `Agent` tool summaries; spawned agents get their own `session_id` entries.
+- **Session tracking**: Hook-based event system (`UserPromptSubmit`, `PreToolUse`, `PostToolUse`, `Stop`) writes JSON state + JSONL history logs to `/tmp/claude-sessions/` per session ID
+- **Usage fetching**: `claude-usage-fetch.sh` makes minimal API request to extract rate-limit headers (`anthropic-ratelimit-unified-*`); caches percentages + reset times in `/tmp/claude-usage-cache.json`
+- **Local token stats**: `local-tokens.py` scans `~/.claude/projects/*.jsonl` to build per-model usage breakdowns (no API calls)
+- **Display layer**: SwiftBar plugin reads cache and renders color-coded menu bar (🟢/🟡/🔴) with blink-on-update UX via flag file
+- **Installation**: Single `install.command` script orchestrates symlinks, launchd agent setup, and dependency checks
 
 ## Flow
-1. **Session tracking**: Event hook → `claude-session-track.sh` (stdin JSON) → parses event type + tool details → writes `$SESSION_DIR/{session_id}.json` (current state) + `.log` (JSONL history)
-2. **Usage refresh**: launchd timer (every 3m) → `claude-usage-fetch.sh` → minimal Claude API call → parses `anthropic-ratelimit-unified-*` headers → merges `local-tokens.py` stats → `/tmp/claude-usage-cache.json`
-3. **Display**: SwiftBar calls `claude-usage.30s.sh` → reads cache + blink flag → renders title bar + dropdown menu with reset times
-4. **Session viewer**: `claude-session-view.sh {SESSION_ID}` → reads state + log → live terminal display (last 60 events, colored by event type)
+1. Claude Code CLI emits session events → piped to `claude-session-track.sh` → writes state JSON + appends to log
+2. `claude-usage-fetch.sh` runs on launchd interval (~3min) → hits API with OAuth token → parses headers → writes cache JSON + blink flag
+3. `local-tokens.py` (invoked from fetcher) reads session JSONL files → aggregates tokens by model → merged into cache
+4. `claude-usage.30s.sh` (SwiftBar) reads cache → detects blink flag age → renders menu bar title + dropdown menu
+5. User clicks menu bar → calls `claude-session-view.sh` → displays live session activity log with colors and tool names
 
 ## Integration
-- **Input**: Claude Code CLI event hooks (via stdin JSON); OAuth token from macOS keychain (`security find-generic-password`)
-- **Output**: SwiftBar menu bar icon + dropdown; JSON caches in `/tmp/`; session state in `/tmp/claude-sessions/`
-- **Dependencies**: `jq`, `python3`, `curl`, SwiftBar app, launchd agent for timer (`com.claude.usage-fetch.plist`)
-- **Install**: `install.command` symlinks plugin to `~/Library/Application Support/SwiftBar/Plugins/`, copies fetcher to `~/.local/bin/`, registers launchd agent
+- **Input**: Claude Code CLI hooks (via stdin JSON), macOS keychain (OAuth token), session files in `~/.claude/projects/`
+- **Output**: SwiftBar menu bar widget, cached JSON at `/tmp/claude-usage-cache.json`, session logs at `/tmp/claude-sessions/`
+- **Dependencies**: `jq`, `curl`, `python3`, SwiftBar, launchd
+- **Config**: `~/.config/claude-usage/config` (refresh interval), `~/Library/LaunchAgents/com.claude.usage-fetch.plist` (daemon)
