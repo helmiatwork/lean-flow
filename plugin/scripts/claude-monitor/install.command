@@ -9,10 +9,9 @@ SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
 PLUGIN_DIR="$HOME/Library/Application Support/SwiftBar/Plugins"
 LOCAL_BIN="$HOME/.local/bin"
 LAUNCH_AGENTS="$HOME/Library/LaunchAgents"
-PLIST_NAME="com.claude.usage-fetch"
+LEGACY_FETCH_PLIST="com.claude.usage-fetch"
 SWIFTBAR_PLIST_NAME="com.ameba.SwiftBar"
-REFRESH_INTERVAL=180  # 3 minutes in seconds
-SWIFTBAR_INTERVAL="30s"
+SWIFTBAR_INTERVAL="3m"
 
 echo "=== Claude Usage Monitor Installer ==="
 echo ""
@@ -61,62 +60,22 @@ mkdir -p "$LOCAL_BIN"
 mkdir -p "$LAUNCH_AGENTS"
 echo "  Done"
 
-# 4. Install fetcher script
-echo "[4/8] Installing fetcher..."
-cp "$SCRIPT_DIR/claude-usage-fetch.sh" "$LOCAL_BIN/claude-usage-fetch-real.sh"
-chmod +x "$LOCAL_BIN/claude-usage-fetch-real.sh"
-# Also create symlink for manual use
-ln -sf "$SCRIPT_DIR/claude-usage-fetch.sh" "$LOCAL_BIN/claude-usage-fetch.sh"
-echo "  Installed to $LOCAL_BIN/claude-usage-fetch-real.sh"
+# 4. Remove legacy fetcher daemon + cache (no longer needed; plugin fetches directly)
+echo "[4/6] Removing legacy fetcher daemon..."
+launchctl unload "$LAUNCH_AGENTS/$LEGACY_FETCH_PLIST.plist" 2>/dev/null || true
+rm -f "$LAUNCH_AGENTS/$LEGACY_FETCH_PLIST.plist"
+rm -f "$LOCAL_BIN/claude-usage-fetch-real.sh" "$LOCAL_BIN/claude-usage-fetch.sh"
+rm -f /tmp/claude-usage-cache.json /tmp/claude-usage-fetch.lock /tmp/claude-usage-blink
+echo "  Done"
 
-# 5. Install SwiftBar plugin
-echo "[5/8] Installing SwiftBar plugin..."
-# Remove any existing claude-usage plugin symlinks
+# 5. Install SwiftBar plugin (fetches /api/oauth/usage directly every 3 minutes)
+echo "[5/6] Installing SwiftBar plugin..."
 rm -f "$PLUGIN_DIR"/claude-usage.*.sh
 ln -sf "$SCRIPT_DIR/claude-usage.3m.sh" "$PLUGIN_DIR/claude-usage.${SWIFTBAR_INTERVAL}.sh"
 echo "  Symlinked as claude-usage.${SWIFTBAR_INTERVAL}.sh"
 
-# 6. Install and load launchd agent
-echo "[6/8] Setting up auto-refresh (every $((REFRESH_INTERVAL / 60)) minutes)..."
-# Unload existing if present
-launchctl unload "$LAUNCH_AGENTS/$PLIST_NAME.plist" 2>/dev/null || true
-
-cat > "$LAUNCH_AGENTS/$PLIST_NAME.plist" << PLIST
-<?xml version="1.0" encoding="UTF-8"?>
-<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
-<plist version="1.0">
-<dict>
-    <key>Label</key>
-    <string>$PLIST_NAME</string>
-    <key>ProgramArguments</key>
-    <array>
-        <string>/bin/bash</string>
-        <string>$LOCAL_BIN/claude-usage-fetch-real.sh</string>
-    </array>
-    <key>StartInterval</key>
-    <integer>$REFRESH_INTERVAL</integer>
-    <key>RunAtLoad</key>
-    <true/>
-    <key>StandardOutPath</key>
-    <string>/tmp/claude-usage-fetch.log</string>
-    <key>StandardErrorPath</key>
-    <string>/tmp/claude-usage-fetch.log</string>
-    <key>EnvironmentVariables</key>
-    <dict>
-        <key>PATH</key>
-        <string>/opt/homebrew/bin:/usr/local/bin:/usr/bin:/bin:$LOCAL_BIN</string>
-        <key>HOME</key>
-        <string>$HOME</string>
-    </dict>
-</dict>
-</plist>
-PLIST
-
-launchctl load "$LAUNCH_AGENTS/$PLIST_NAME.plist"
-echo "  Loaded $PLIST_NAME (every ${REFRESH_INTERVAL}s)"
-
-# 7. Harden SwiftBar against URL-restore crash (macOS 26.x Tahoe)
-echo "[7/8] Hardening SwiftBar (disable state restore, install KeepAlive agent)..."
+# 6. Harden SwiftBar against URL-restore crash (macOS 26.x Tahoe)
+echo "[6/6] Hardening SwiftBar (disable state restore, install KeepAlive agent)..."
 # Kill any running instance so the LaunchAgent owns the process
 pkill -9 SwiftBar 2>/dev/null || true
 # Disable AppKit state restoration — crash root cause is _handleAEGetURLEvent
@@ -164,8 +123,6 @@ cat > "$LAUNCH_AGENTS/$SWIFTBAR_PLIST_NAME.plist" << PLIST
 PLIST
 echo "  Installed $SWIFTBAR_PLIST_NAME (KeepAlive, throttle 10s)"
 
-# 8. Launch SwiftBar under launchd so it auto-restarts on any crash
-echo "[8/8] Starting SwiftBar via launchd..."
 launchctl load "$LAUNCH_AGENTS/$SWIFTBAR_PLIST_NAME.plist"
 echo "  SwiftBar started (managed by launchd)"
 
@@ -173,10 +130,8 @@ echo ""
 echo "=== Installation Complete ==="
 echo ""
 echo "  Menu bar plugin: claude-usage.${SWIFTBAR_INTERVAL}.sh"
-echo "  Fetcher:         claude-usage-fetch-real.sh (every $((REFRESH_INTERVAL / 60))min)"
-echo "  Cache:           /tmp/claude-usage-cache.json"
-echo "  Log:             /tmp/claude-usage-fetch.log"
+echo "  Source:          api.anthropic.com/api/oauth/usage (live, no cache)"
+echo "  Refresh:         every 3 minutes (set by filename suffix)"
 echo ""
-echo "First data will appear in ~30 seconds after the fetcher completes."
-echo "Press any key to close..."
+echo "First data appears within seconds. Press any key to close..."
 read -n 1
