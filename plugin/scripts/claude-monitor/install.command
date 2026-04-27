@@ -11,7 +11,7 @@ LOCAL_BIN="$HOME/.local/bin"
 LAUNCH_AGENTS="$HOME/Library/LaunchAgents"
 LEGACY_FETCH_PLIST="com.claude.usage-fetch"
 SWIFTBAR_PLIST_NAME="com.ameba.SwiftBar"
-SWIFTBAR_INTERVAL="30s"
+SWIFTBAR_INTERVAL="3m"
 
 echo "=== Claude Usage Monitor Installer ==="
 echo ""
@@ -68,10 +68,10 @@ rm -f "$LOCAL_BIN/claude-usage-fetch-real.sh" "$LOCAL_BIN/claude-usage-fetch.sh"
 rm -f /tmp/claude-usage-cache.json /tmp/claude-usage-fetch.lock /tmp/claude-usage-blink
 echo "  Done"
 
-# 5. Install SwiftBar plugin (fetches /api/oauth/usage directly every 30 seconds)
+# 5. Install SwiftBar plugin (fetches /api/oauth/usage directly every 3 minutes)
 echo "[5/6] Installing SwiftBar plugin..."
 rm -f "$PLUGIN_DIR"/claude-usage.*.sh
-ln -sf "$SCRIPT_DIR/claude-usage.30s.sh" "$PLUGIN_DIR/claude-usage.${SWIFTBAR_INTERVAL}.sh"
+ln -sf "$SCRIPT_DIR/claude-usage.3m.sh" "$PLUGIN_DIR/claude-usage.${SWIFTBAR_INTERVAL}.sh"
 echo "  Symlinked as claude-usage.${SWIFTBAR_INTERVAL}.sh"
 
 # 6. Harden SwiftBar against URL-restore crash (macOS 26.x Tahoe)
@@ -131,7 +131,7 @@ echo "=== Installation Complete ==="
 echo ""
 echo "  Menu bar plugin: claude-usage.${SWIFTBAR_INTERVAL}.sh"
 echo "  Source:          api.anthropic.com/api/oauth/usage (live, no cache)"
-echo "  Refresh:         every 30 seconds (set by filename suffix)"
+echo "  Refresh:         every 3 minutes (set by filename suffix)"
 echo ""
 echo "First data appears within seconds. Press any key to close..."
 read -n 1
