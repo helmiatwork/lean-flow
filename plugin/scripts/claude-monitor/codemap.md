@@ -1,26 +1,26 @@
 # plugin/scripts/claude-monitor/
 
-## Responsibility
+# claude-monitor/ Codemap
 
-Session and usage tracking for Claude Code via SwiftBar menu bar widget. Monitors active Claude sessions (including subagents), logs tool execution, and periodically fetches token usage metrics from the Claude Code CLI to display usage percentages and reset times.
+## Responsibility
+Provides real-time monitoring of Claude Code sessions and API usage quotas for SwiftBar menu bar display. Tracks session state (thinking/running/idle/stopped), tool execution history, and consumption of rate-limited API tokens across multiple time windows (session/5h/7d).
 
 ## Design
-
-- **Event-driven logging**: `claude-session-track.sh` hooks into Claude events (UserPromptSubmit, PreToolUse, PostToolUse, Stop) via stdin JSON, writes atomic state files and append-only logs per session in `/tmp/claude-sessions/`
-- **Cached display model**: `claude-usage-fetch.sh` runs a headless Claude CLI session, scrapes `/usage` output via ANSI-aware parsing, and writes to `/tmp/claude-usage-cache.json`; SwiftBar plugin reads only the cache, never calls the API
-- **Token accounting**: `local-tokens.py` scans `~/.claude/projects/` JSONL files to tally model usage by window (today/7d) without network calls
-- **Blink-on-update**: Flag file (`/tmp/claude-usage-blink`) signals SwiftBar to show ⚡ icon for 10s after fresh fetch, then revert to color-coded icon
+- **Session tracking**: Hook-based event system (`UserPromptSubmit`, `PreToolUse`, `PostToolUse`, `Stop`) writes JSON state + JSONL history logs to `/tmp/claude-sessions/` per session ID
+- **Usage fetching**: `claude-usage-fetch.sh` makes minimal API request to extract rate-limit headers (`anthropic-ratelimit-unified-*`); caches percentages + reset times in `/tmp/claude-usage-cache.json`
+- **Local token stats**: `local-tokens.py` scans `~/.claude/projects/*.jsonl` to build per-model usage breakdowns (no API calls)
+- **Display layer**: SwiftBar plugin reads cache and renders color-coded menu bar (🟢/🟡/🔴) with blink-on-update UX via flag file
+- **Installation**: Single `install.command` script orchestrates symlinks, launchd agent setup, and dependency checks
 
 ## Flow
-
-1. Claude Code events → `claude-session-track.sh` stdin → JSON state + append log per session
-2. launchd timer (every 3min) → `claude-usage-fetch.sh` → spawns Claude CLI `/usage` → ANSI stripping → percentage/reset parsing → `/tmp/claude-usage-cache.json` + blink flag
-3. SwiftBar plugin (30s refresh) → reads cache + blink flag → renders menu bar icon + dropdown menu
-4. Optional: `local-tokens.py` merges local token stats into cache for detailed breakdown
+1. Claude Code CLI emits session events → piped to `claude-session-track.sh` → writes state JSON + appends to log
+2. `claude-usage-fetch.sh` runs on launchd interval (~3min) → hits API with OAuth token → parses headers → writes cache JSON + blink flag
+3. `local-tokens.py` (invoked from fetcher) reads session JSONL files → aggregates tokens by model → merged into cache
+4. `claude-usage.30s.sh` (SwiftBar) reads cache → detects blink flag age → renders menu bar title + dropdown menu
+5. User clicks menu bar → calls `claude-session-view.sh` → displays live session activity log with colors and tool names
 
 ## Integration
-
-- **Input**: Claude Code CLI events (via hooks), launchd scheduler, SwiftBar menu actions (refresh_now, set_interval)
-- **Output**: SwiftBar menu bar display, session logs in `/tmp/claude-sessions/`, usage cache JSON
-- **Dependencies**: SwiftBar plugin framework, jq (JSON parsing), perl (ANSI cleanup), Claude Code CLI binary, Python 3
-- **Installation**: `install.command` symlinks plugin, copies fetcher to `~/.local/bin/`, creates launchd plist for daemon operation
+- **Input**: Claude Code CLI hooks (via stdin JSON), macOS keychain (OAuth token), session files in `~/.claude/projects/`
+- **Output**: SwiftBar menu bar widget, cached JSON at `/tmp/claude-usage-cache.json`, session logs at `/tmp/claude-sessions/`
+- **Dependencies**: `jq`, `curl`, `python3`, SwiftBar, launchd
+- **Config**: `~/.config/claude-usage/config` (refresh interval), `~/Library/LaunchAgents/com.claude.usage-fetch.plist` (daemon)
