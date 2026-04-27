@@ -1,26 +1,24 @@
 # plugin/scripts/claude-monitor/
 
-## Responsibility
+# codemap.md — `plugin/scripts/claude-monitor/`
 
-Session and usage tracking for Claude Code via SwiftBar menu bar widget. Monitors active Claude sessions (including subagents), logs tool execution, and periodically fetches token usage metrics from the Claude Code CLI to display usage percentages and reset times.
+## Responsibility
+Monitors Claude Code session activity and API usage quotas. Provides SwiftBar menu bar widget showing token consumption across session/weekly/model windows, plus live session viewer. Tracks tool invocations and spawned subagents via event hooks.
 
 ## Design
-
-- **Event-driven logging**: `claude-session-track.sh` hooks into Claude events (UserPromptSubmit, PreToolUse, PostToolUse, Stop) via stdin JSON, writes atomic state files and append-only logs per session in `/tmp/claude-sessions/`
-- **Cached display model**: `claude-usage-fetch.sh` runs a headless Claude CLI session, scrapes `/usage` output via ANSI-aware parsing, and writes to `/tmp/claude-usage-cache.json`; SwiftBar plugin reads only the cache, never calls the API
-- **Token accounting**: `local-tokens.py` scans `~/.claude/projects/` JSONL files to tally model usage by window (today/7d) without network calls
-- **Blink-on-update**: Flag file (`/tmp/claude-usage-blink`) signals SwiftBar to show ⚡ icon for 10s after fresh fetch, then revert to color-coded icon
+- **Event-driven tracking**: `claude-session-track.sh` receives `UserPromptSubmit`, `PreToolUse`, `PostToolUse`, `Stop` events; writes JSON state file + appends JSONL history per session.
+- **Dual data sources**: API rate-limit headers (`claude-usage-fetch.sh`) + local token accounting (`local-tokens.py` scans `~/.claude/projects/*.jsonl`).
+- **Stateless display**: SwiftBar plugin reads cached JSON (`/tmp/claude-usage-cache.json`), checks blink flag, renders color-coded icon (🟢/🟡/🔴) + percentages.
+- **Lazy subagent support**: Session tracking extracts `Agent` tool summaries; spawned agents get their own `session_id` entries.
 
 ## Flow
-
-1. Claude Code events → `claude-session-track.sh` stdin → JSON state + append log per session
-2. launchd timer (every 3min) → `claude-usage-fetch.sh` → spawns Claude CLI `/usage` → ANSI stripping → percentage/reset parsing → `/tmp/claude-usage-cache.json` + blink flag
-3. SwiftBar plugin (30s refresh) → reads cache + blink flag → renders menu bar icon + dropdown menu
-4. Optional: `local-tokens.py` merges local token stats into cache for detailed breakdown
+1. **Session tracking**: Event hook → `claude-session-track.sh` (stdin JSON) → parses event type + tool details → writes `$SESSION_DIR/{session_id}.json` (current state) + `.log` (JSONL history)
+2. **Usage refresh**: launchd timer (every 3m) → `claude-usage-fetch.sh` → minimal Claude API call → parses `anthropic-ratelimit-unified-*` headers → merges `local-tokens.py` stats → `/tmp/claude-usage-cache.json`
+3. **Display**: SwiftBar calls `claude-usage.30s.sh` → reads cache + blink flag → renders title bar + dropdown menu with reset times
+4. **Session viewer**: `claude-session-view.sh {SESSION_ID}` → reads state + log → live terminal display (last 60 events, colored by event type)
 
 ## Integration
-
-- **Input**: Claude Code CLI events (via hooks), launchd scheduler, SwiftBar menu actions (refresh_now, set_interval)
-- **Output**: SwiftBar menu bar display, session logs in `/tmp/claude-sessions/`, usage cache JSON
-- **Dependencies**: SwiftBar plugin framework, jq (JSON parsing), perl (ANSI cleanup), Claude Code CLI binary, Python 3
-- **Installation**: `install.command` symlinks plugin, copies fetcher to `~/.local/bin/`, creates launchd plist for daemon operation
+- **Input**: Claude Code CLI event hooks (via stdin JSON); OAuth token from macOS keychain (`security find-generic-password`)
+- **Output**: SwiftBar menu bar icon + dropdown; JSON caches in `/tmp/`; session state in `/tmp/claude-sessions/`
+- **Dependencies**: `jq`, `python3`, `curl`, SwiftBar app, launchd agent for timer (`com.claude.usage-fetch.plist`)
+- **Install**: `install.command` symlinks plugin to `~/Library/Application Support/SwiftBar/Plugins/`, copies fetcher to `~/.local/bin/`, registers launchd agent
