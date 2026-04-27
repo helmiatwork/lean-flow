@@ -2,26 +2,29 @@
 
 ## Responsibility
 
-This directory provides SwiftBar menu bar widgets and data collection scripts for monitoring Claude API usage and session activity on macOS. It tracks token consumption against quotas, displays live Claude Code session state, and auto-refreshes via launchd.
+Session monitoring and token usage tracking for Claude Code via SwiftBar menu bar widget. Captures real-time Claude activity (prompts, tool use, subagents) into per-session JSON logs and provides live viewing; separately tracks OAuth API quota consumption with color-coded status indicator.
 
 ## Design
 
-- **SwiftBar plugins** (`claude-usage.30s.sh`, `claude-session-view.sh`) — stateless renderers that fetch current state and format for menu bar display; update every 30 seconds
-- **State tracking** (`claude-session-track.sh`) — event-driven hook that writes JSON state files and append-only logs per session to `/tmp/claude-sessions/`
-- **Local analysis** (`local-tokens.py`) — reads project `.jsonl` files and aggregates token usage by model for a time window ("today" or "7d")
-- **Installation** (`install.command`) — bash installer that wires SwiftBar plugins into `~/Library/Application Support/SwiftBar/Plugins/`, manages LaunchAgents, and hardens against macOS 26.x state-restore crashes
+**Session tracking** (`claude-session-track.sh`): Event-driven hook that parses stdin JSON (session_id, tool_name, prompt, etc.), writes atomic state files (`/tmp/claude-sessions/{id}.json`) for current status, and appends JSONL history logs (`/tmp/claude-sessions/{id}.log`). Handles five event types (UserPromptSubmit, PreToolUse, PostToolUse, Stop) with tool-specific summary extraction (Bash commands, file paths, search queries, subagent descriptions).
+
+**Session viewer** (`claude-session-view.sh`): ANSI-colored terminal UI rendering live state + last 60 events with timestamps, tool icons, and truncated details. Embedded Python post-processor formats event logs into colorized rows.
+
+**Usage monitor** (`claude-usage.30s.sh`): SwiftBar plugin fetching `/api/oauth/usage` directly via Bearer token from macOS keychain every 30s. Computes percentages for 5-hour session and 7-day windows (all models + Sonnet-specific), formats reset times ("3d", "11am"), maps thresholds to traffic-light icons (🟢/🟡/🔴).
+
+**Local token counter** (`local-tokens.py`): Aggregates token usage from Claude Code project JSONL logs (`~/.claude/projects/**/*.jsonl`) by model, filtering by window ("today" or "7d"), reporting input/output/cache metrics.
 
 ## Flow
 
-1. **Usage monitoring**: `claude-usage.30s.sh` queries `api.anthropic.com/api/oauth/usage` directly (reads OAuth token from macOS keychain), formats percentages + reset times, renders color-coded icon (🟢/🟡/🔴 based on max utilization ≥50%/≥80%)
-2. **Session tracking**: Claude Code CLI pipes JSON events (UserPromptSubmit, PreToolUse, PostToolUse, Stop) to `claude-session-track.sh`, which extracts tool names/summaries and writes to `$SESSION_DIR/{session_id}.json` (state) and `.log` (history)
-3. **Session viewer**: `claude-session-view.sh` reads state + log files for a session ID, renders formatted terminal UI with live status, tool execution timeline, and activity age
-4. **Local token accounting**: `local-tokens.py` scans `~/.claude/projects/*.jsonl`, sums input/output/cache tokens by model within a time window, outputs JSON with per-model percentages
+1. Claude Code subprocess emits events → stdin of `claude-session-track.sh`
+2. Hook parses session_id + event type → updates `/tmp/claude-sessions/{id}.json` + appends to `.log`
+3. User clicks session ID in SwiftBar → invokes `claude-session-view.sh` → renders live state + history tail
+4. SwiftBar plugin tick (30s) → reads keychain token → calls `api.anthropic.com/api/oauth/usage` → caches percentages + reset times → menu bar renders icon + tooltip
+5. Manual token audit: `local-tokens.py` scans JSONL projects → aggregates by model + window → JSON output
 
 ## Integration
 
-- **SwiftBar**: plugins symlinked into Plugins directory and executed on 30s interval; CLI actions (refresh, menu clicks) invoke bash subcommands with `refresh=true` parameter
-- **Claude Code CLI**: hooks pipe structured JSON events to `claude-session-track.sh` via stdin; session state is queried by `claude-session-view.sh` for live display
-- **macOS keychain**: OAuth token read via `security find-generic-password` from 'Claude Code-credentials' entry
-- **LaunchAgent**: installer optionally creates `com.ameba.SwiftBar.plist` for crash recovery with `KeepAlive` flag
-- **Local projects**: `local-tokens.py` reads `.claude/projects/` directory structure for off-API token analysis
+- **Entrypoint**: `install.command` (double-click installer) symlinks plugin to `~/Library/Application Support/SwiftBar/Plugins/`, ensures jq + SwiftBar present, hardens SwiftBar LaunchAgent against state-restore crash
+- **Keychain**: OAuth token stored by Claude Code CLI under "Claude Code-credentials" key; `claude-usage.30s.sh` reads via `security find-generic-password`
+- **Claude Code CLI hooks**: Subprocess dispatch expects `claude-session-track.sh` as pre/post-tool and session stop handler
+- **File storage**: Session state/logs in `/tmp/claude-sessions/` (ephemeral); local JSONL audit trails in `~/.claude/projects/` (persistent)
