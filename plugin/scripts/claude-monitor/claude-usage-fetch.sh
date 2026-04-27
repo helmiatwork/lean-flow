@@ -1,8 +1,8 @@
 #!/bin/bash
 
-# Claude Usage Fetcher — direct API rate-limit headers (no TTY, no subprocess)
-# Reads OAuth token from macOS keychain, POSTs minimal request to api.anthropic.com,
-# parses anthropic-ratelimit-unified-* response headers.
+# Claude Usage Fetcher — OAuth /api/oauth/usage (matches claude.ai dashboard)
+# Reads OAuth token from macOS keychain, GETs api.anthropic.com/api/oauth/usage,
+# returns the same numbers shown at claude.ai/settings/usage.
 
 CACHE_FILE="/tmp/claude-usage-cache.json"
 LOCK_FILE="/tmp/claude-usage-fetch.lock"
@@ -39,72 +39,61 @@ if [ -z "$TOKEN" ]; then
   exit 1
 fi
 
-# Epoch → "3pm" / "Apr 29" style, local TZ
+# ISO timestamp → "3pm" / "11:30am" / "1d" style, local TZ
 _format_reset() {
-  local epoch="$1"
-  [ -z "$epoch" ] || [ "$epoch" = "null" ] && echo "?" && return
-  local now today_end reset_day diff_days
-  now=$(date +%s)
+  local iso="$1"
+  [ -z "$iso" ] || [ "$iso" = "null" ] && echo "?" && return
+  local epoch
+  # Strip fractional seconds and trailing zone suffix variants
+  epoch=$(date -juf "%Y-%m-%dT%H:%M:%S" "${iso%%.*}" +%s 2>/dev/null)
+  [ -z "$epoch" ] && echo "?" && return
+  local today_end diff_days
   today_end=$(date -j -v23H -v59M -v59S +%s)
   diff_days=$(( (epoch - today_end) / 86400 ))
   if [ "$epoch" -le "$today_end" ]; then
-    # Same day — show time like "3pm" or "11:30am"
     local h m ampm
     h=$(date -jr "$epoch" +%-I)
     m=$(date -jr "$epoch" +%M)
     ampm=$(date -jr "$epoch" +%p | tr '[:upper:]' '[:lower:]')
-    if [ "$m" = "00" ]; then
-      echo "${h}${ampm}"
-    else
-      echo "${h}:${m}${ampm}"
-    fi
+    if [ "$m" = "00" ]; then echo "${h}${ampm}"; else echo "${h}:${m}${ampm}"; fi
   else
     echo "$(( diff_days + 1 ))d"
   fi
 }
 
-# Hit API with minimal payload — only headers matter
-HEADERS_FILE=$(mktemp)
-http_code=$(curl -sS -o /dev/null -D "$HEADERS_FILE" -w '%{http_code}' -X POST https://api.anthropic.com/v1/messages \
+# Hit OAuth usage endpoint — same data as claude.ai/settings/usage
+RESP_FILE=$(mktemp)
+http_code=$(curl -sS -o "$RESP_FILE" -w '%{http_code}' \
+  "https://api.anthropic.com/api/oauth/usage" \
   -H "authorization: Bearer $TOKEN" \
   -H "anthropic-beta: oauth-2025-04-20" \
   -H "anthropic-version: 2023-06-01" \
-  -H "content-type: application/json" \
-  --max-time 15 \
-  -d '{"model":"claude-haiku-4-5-20251001","max_tokens":1,"messages":[{"role":"user","content":"."}]}' 2>>"$LOG_FILE")
+  --max-time 15 2>>"$LOG_FILE")
 
-if [ "$http_code" != "200" ] && [ "$http_code" != "429" ]; then
-  _log "API returned $http_code"
-  rm -f "$HEADERS_FILE"
+if [ "$http_code" != "200" ]; then
+  _log "API returned $http_code: $(head -c 200 "$RESP_FILE")"
+  rm -f "$RESP_FILE"
   _merge_token_stats
   exit 0
 fi
 
-# Parse headers (case-insensitive)
-get_header() { grep -i "^$1:" "$HEADERS_FILE" | tail -1 | sed "s/^[^:]*:[[:space:]]*//" | tr -d '\r'; }
-
-util_5h=$(get_header "anthropic-ratelimit-unified-5h-utilization")
-util_7d=$(get_header "anthropic-ratelimit-unified-7d-utilization")
-reset_5h=$(get_header "anthropic-ratelimit-unified-5h-reset")
-reset_7d=$(get_header "anthropic-ratelimit-unified-7d-reset")
-rm -f "$HEADERS_FILE"
-
-# Convert 0.28 → 28
+# Round 27.0 → 27, treat null as "-"
 to_pct() {
   local v="$1"
-  [ -z "$v" ] && echo "?" && return
-  awk -v v="$v" 'BEGIN { printf "%d", v * 100 + 0.5 }'
+  if [ -z "$v" ] || [ "$v" = "null" ]; then echo "-"; return; fi
+  awk -v v="$v" 'BEGIN { printf "%d", v + 0.5 }'
 }
 
-session_pct=$(to_pct "$util_5h")
-week_all_pct=$(to_pct "$util_7d")
-week_sonnet_pct="-"
-session_reset=$(_format_reset "$reset_5h")
-week_all_reset=$(_format_reset "$reset_7d")
-week_sonnet_reset="-"
+session_pct=$(to_pct "$(jq -r '.five_hour.utilization // empty' "$RESP_FILE")")
+week_all_pct=$(to_pct "$(jq -r '.seven_day.utilization // empty' "$RESP_FILE")")
+week_sonnet_pct=$(to_pct "$(jq -r '.seven_day_sonnet.utilization // empty' "$RESP_FILE")")
+session_reset=$(_format_reset "$(jq -r '.five_hour.resets_at // empty' "$RESP_FILE")")
+week_all_reset=$(_format_reset "$(jq -r '.seven_day.resets_at // empty' "$RESP_FILE")")
+week_sonnet_reset=$(_format_reset "$(jq -r '.seven_day_sonnet.resets_at // empty' "$RESP_FILE")")
+rm -f "$RESP_FILE"
 
 # Only write cache if we got numeric session + week
-if [[ "$session_pct" =~ ^[0-9]+$ ]] && [[ "$week_all_pct" =~ ^[0-9]+$ ]]; then
+if [[ "$session_pct" =~ ^[0-9-]+$ ]] && [[ "$week_all_pct" =~ ^[0-9-]+$ ]]; then
   cat > "$CACHE_FILE" <<JSON
 {"session": "$session_pct", "week_all": "$week_all_pct", "week_sonnet": "$week_sonnet_pct", "session_reset": "$session_reset", "week_all_reset": "$week_all_reset", "week_sonnet_reset": "$week_sonnet_reset", "updated": "$(date '+%H:%M')"}
 JSON
