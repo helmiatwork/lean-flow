@@ -28,10 +28,15 @@ count_open_steps() {
 
   while IFS= read -r skel; do
     [ -f "$skel" ] || continue
-    local plan_open
-    plan_open=$(grep -cE '^- \[ \]' "$skel" 2>/dev/null || echo 0)
-    local plan_total
-    plan_total=$(grep -cE '^- \[[ x]\]' "$skel" 2>/dev/null || echo 0)
+    # grep -c always prints the count (including 0) but exits 1 when count is 0.
+    # We must NOT use `|| echo 0` here because that appends a literal "0" to the
+    # already-printed "0", producing the multi-line value "0\n0" and breaking
+    # the arithmetic on the next line. Capture grep's stdout and ignore its
+    # non-zero exit via a separate fallback.
+    local plan_open=0
+    local plan_total=0
+    plan_open=$(grep -cE '^- \[ \]' "$skel" 2>/dev/null) || plan_open=0
+    plan_total=$(grep -cE '^- \[[ x]\]' "$skel" 2>/dev/null) || plan_total=0
     open=$((open + plan_open))
     total=$((total + plan_total))
 
