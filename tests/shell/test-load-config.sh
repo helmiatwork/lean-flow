@@ -4,6 +4,9 @@
 
 set -e
 
+# Resolve repo root so tests are portable across machines/CI
+REPO_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)"
+
 PASS=0
 FAIL=0
 
@@ -36,7 +39,7 @@ source_config() {
     unset LEAN_FLOW_EXPLORER_MODEL LEAN_FLOW_DREAM_SESSIONS LEAN_FLOW_DREAM_HOURS
     unset LEAN_FLOW_ENABLE_PLAYWRIGHT LEAN_FLOW_ENABLE_MONITOR LEAN_FLOW_ENABLE_KNOWLEDGE
     unset LEAN_FLOW_ENABLE_RTK LEAN_FLOW_BRANCH_PREFIXES
-    source /Users/theresiaputri/repo/lean-flow/plugin/scripts/load-config.sh
+    source "${REPO_ROOT}/plugin/scripts/load-config.sh"
     echo "PROTECTED_BRANCHES=$LEAN_FLOW_PROTECTED_BRANCHES"
     echo "FIXER_MODEL=$LEAN_FLOW_FIXER_MODEL"
     echo "ORACLE_MODEL=$LEAN_FLOW_ORACLE_MODEL"
@@ -179,7 +182,7 @@ output=$(
   unset LEAN_FLOW_EXPLORER_MODEL LEAN_FLOW_DREAM_SESSIONS LEAN_FLOW_DREAM_HOURS
   unset LEAN_FLOW_ENABLE_PLAYWRIGHT LEAN_FLOW_ENABLE_MONITOR LEAN_FLOW_ENABLE_KNOWLEDGE
   unset LEAN_FLOW_ENABLE_RTK LEAN_FLOW_BRANCH_PREFIXES
-  source /Users/theresiaputri/repo/lean-flow/plugin/scripts/load-config.sh
+  source "${REPO_ROOT}/plugin/scripts/load-config.sh"
   echo "FIXER_MODEL=$LEAN_FLOW_FIXER_MODEL"
   echo "ORACLE_MODEL=$LEAN_FLOW_ORACLE_MODEL"
 )

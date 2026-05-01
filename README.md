@@ -610,6 +610,24 @@ lean-flow/
 
 ---
 
+## Testing
+
+Run the full suite locally:
+
+```bash
+bash tests/run-all.sh
+```
+
+Coverage:
+- **Bash hooks/scripts** — `tests/shell/` (workflow router, load-workflow, ensure-* scripts, block-* hooks, TDD enforcement, full hook lifecycle)
+- **Skill cross-reference linter** — `tests/shell/test-skill-references.sh` catches dangling `*.md` references inside skills/workflows
+- **Python** — `tests/python/` (cartographer, scan-codebase)
+- **Node** — `tests/node/` (plan-server, plan-viewer)
+
+CI runs the full suite on every push and PR via `.github/workflows/test.yml`.
+
+---
+
 ## Inspired By
 
 > lean-flow stands on the shoulders of these projects — taking their best ideas and distilling them into a lightweight plugin.

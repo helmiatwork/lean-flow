@@ -164,6 +164,52 @@ else
   fi
 fi
 
+# ── Suites added in test/comprehensive-suite ──────────────────────────
+run_shell_suite() {
+  local rel="$1"
+  local name
+  name=$(basename "$rel")
+  echo -n "Running $rel... "
+  TOTAL=$((TOTAL+1))
+  start_time=$(date +%s)
+  if bash "$rel" > "/tmp/$name.log" 2>&1; then
+    elapsed=$(( $(date +%s) - start_time ))
+    printf "${GREEN}✓${RESET} $name (${elapsed}s)\n"
+    PASS=$((PASS+1))
+  else
+    elapsed=$(( $(date +%s) - start_time ))
+    printf "${RED}✗${RESET} $name (${elapsed}s)\n"
+    FAIL=$((FAIL+1))
+    cat "/tmp/$name.log"
+  fi
+}
+
+run_shell_suite "tests/shell/test-load-workflow.sh"
+run_shell_suite "tests/shell/test-skill-references.sh"
+run_shell_suite "tests/shell/test-integration-lifecycle.sh"
+
+if command -v node &>/dev/null; then
+  for nt in tests/node/*.mjs; do
+    [ -f "$nt" ] || continue
+    name=$(basename "$nt")
+    echo -n "Running $nt... "
+    TOTAL=$((TOTAL+1))
+    start_time=$(date +%s)
+    if node --test "$nt" > "/tmp/$name.log" 2>&1; then
+      elapsed=$(( $(date +%s) - start_time ))
+      printf "${GREEN}✓${RESET} $name (${elapsed}s)\n"
+      PASS=$((PASS+1))
+    else
+      elapsed=$(( $(date +%s) - start_time ))
+      printf "${RED}✗${RESET} $name (${elapsed}s)\n"
+      FAIL=$((FAIL+1))
+      cat "/tmp/$name.log"
+    fi
+  done
+else
+  echo "⊘ Node tests skipped (node not found)"
+fi
+
 echo ""
 echo "================================"
 if [ "$FAIL" -eq 0 ]; then
@@ -174,6 +220,6 @@ fi
 echo "================================"
 
 # Cleanup temp logs
-rm -f /tmp/test-load-config.log /tmp/test-claude-monitor.log /tmp/test-hooks-pretooluse.log /tmp/test-workflow-hooks.log /tmp/test-ensure-scripts.log /tmp/test_cartographer.log /tmp/test_scan_codebase.log
+rm -f /tmp/test-*.log /tmp/test_*.log
 
 [ "$FAIL" -eq 0 ]
