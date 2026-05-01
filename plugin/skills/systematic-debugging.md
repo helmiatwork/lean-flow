@@ -111,7 +111,7 @@ You MUST complete each phase before proceeding to the next.
 
    **WHEN error is deep in call stack:**
 
-   See `root-cause-tracing.md` in this directory for the complete backward tracing technique.
+   See `superpowers:systematic-debugging` (Phase 2 — backward tracing) for the complete technique.
 
    **Quick version:**
    - Where does bad value originate?
@@ -277,11 +277,11 @@ If systematic investigation reveals issue is truly environmental, timing-depende
 
 ## Supporting Techniques
 
-These techniques are part of systematic debugging and available in this directory:
+These techniques are integrated into `superpowers:systematic-debugging`:
 
-- **`root-cause-tracing.md`** - Trace bugs backward through call stack to find original trigger
-- **`defense-in-depth.md`** - Add validation at multiple layers after finding root cause
-- **`condition-based-waiting.md`** - Replace arbitrary timeouts with condition polling
+- **Root-cause tracing** — trace bugs backward through call stack to original trigger → `superpowers:systematic-debugging` (Phase 2)
+- **Defense in depth** — add validation at multiple layers after finding root cause → `superpowers:systematic-debugging` (post-fix hardening)
+- **Condition-based waiting** — replace arbitrary timeouts with condition polling → `superpowers:systematic-debugging` (timing/race conditions)
 
 **Related skills:**
 - **superpowers:test-driven-development** - For creating failing test case (Phase 4, Step 1)
