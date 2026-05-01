@@ -79,6 +79,12 @@
         ]
       },
       {
+        "matcher": "Task",
+        "hooks": [
+          { "type": "command", "command": "bash ${CLAUDE_PLUGIN_ROOT}/scripts/delegate-task-retry.sh", "timeout": 3000 }
+        ]
+      },
+      {
         "hooks": [
           { "type": "command", "command": "bash ${CLAUDE_PLUGIN_ROOT}/scripts/claude-monitor/claude-session-track.sh PostToolUse" }
         ]
@@ -92,6 +98,11 @@
       }
     ],
     "Stop": [
+      {
+        "hooks": [
+          { "type": "command", "command": "bash ${CLAUDE_PLUGIN_ROOT}/scripts/todo-hygiene.sh stop", "timeout": 3000 }
+        ]
+      },
       {
         "hooks": [
           { "type": "command", "command": "bash ${CLAUDE_PLUGIN_ROOT}/scripts/claude-monitor/claude-session-track.sh Stop" }
@@ -114,6 +125,11 @@
       {
         "hooks": [
           { "type": "command", "command": "bash ${CLAUDE_PLUGIN_ROOT}/scripts/workflow-hook.sh UserPromptSubmit", "timeout": 15000 }
+        ]
+      },
+      {
+        "hooks": [
+          { "type": "command", "command": "bash ${CLAUDE_PLUGIN_ROOT}/scripts/todo-hygiene.sh user-prompt-submit", "timeout": 3000 }
         ]
       },
       {

@@ -610,6 +610,32 @@ lean-flow/
 
 ---
 
+## Model Presets
+
+Switch all 3 model env vars at once with `lean-preset.sh`:
+
+```bash
+bash plugin/scripts/lean-preset.sh             # show current + available
+bash plugin/scripts/lean-preset.sh cheap       # haiku everywhere
+bash plugin/scripts/lean-preset.sh balanced    # haiku + sonnet + opus
+bash plugin/scripts/lean-preset.sh powerful    # sonnet + sonnet + opus
+bash plugin/scripts/lean-preset.sh thinking    # opus everywhere
+```
+
+Custom presets at `~/.claude/lean-flow-presets.json`:
+
+```json
+{ "myteam": { "haiku": "claude-haiku-4-5-20251001", "sonnet": "claude-sonnet-4-6", "opus": "claude-opus-4-7" } }
+```
+
+## Hooks worth knowing
+
+| Hook | Trigger | What it does |
+|---|---|---|
+| `delegate-task-retry.sh` | PostToolUse Task | When a Task call fails (missing subagent_type, unknown agent, validation error), appends inline retry guidance with a corrected example |
+| `todo-hygiene.sh` | Stop + UserPromptSubmit | If you stop with open `[ ]` steps in `~/.claude/plans/`, the next prompt gets a reminder pointing at the unfinished plan |
+| `enforce-tdd.sh` | PostToolUse Write/Edit | Reminds about test-driven development on code creation |
+
 ## Testing
 
 Run the full suite locally:

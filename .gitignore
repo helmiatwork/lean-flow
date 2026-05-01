@@ -4,3 +4,5 @@ node_modules/
 *.db-shm
 .claude/dream-state/
 .slim/
+__pycache__/
+*.pyc
