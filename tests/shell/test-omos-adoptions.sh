@@ -102,6 +102,42 @@ assert_eq "$exit_code" "0" "stop mode exits 0"
 rm -rf "$TEST_HOME"
 
 echo ""
+echo "=== todo-hygiene: stop mode survives a fully-complete plan alongside open ones ==="
+# Regression for issue surfaced 2026-05-01: when a plan has 0 open steps,
+# grep -cE prints "0" and exits 1. Earlier code used `|| echo 0` which
+# appended a SECOND "0", producing "0\n0" and breaking the arithmetic on
+# the next line. Result: any plan alphabetically AFTER a fully-complete
+# plan was silently skipped and no marker was written. Fixture below
+# reproduces that exact ordering.
+TEST_HOME=$(mktemp -d)
+mkdir -p "$TEST_HOME/.claude/plans/aaa-all-done" "$TEST_HOME/.claude/plans/zzz-has-open"
+cat > "$TEST_HOME/.claude/plans/aaa-all-done/skeleton.md" <<'EOF'
+# aaa-all-done
+
+- [x] step 1
+- [x] step 2
+EOF
+cat > "$TEST_HOME/.claude/plans/zzz-has-open/skeleton.md" <<'EOF'
+# zzz-has-open
+
+- [x] step 1
+- [ ] step 2
+- [ ] step 3
+EOF
+HOME="$TEST_HOME" bash "${REPO_ROOT}/plugin/scripts/todo-hygiene.sh" stop > /dev/null 2>&1
+if [ -f "$TEST_HOME/.claude/.todo-hygiene-pending" ]; then
+  marker=$(cat "$TEST_HOME/.claude/.todo-hygiene-pending")
+  echo "✓ marker created despite zero-count plan in scan: $marker"
+  PASS=$((PASS+1))
+  assert_contains "$marker" "zzz-has-open" "marker references the open-step plan"
+  assert_contains "$marker" "2|" "marker counts 2 open steps from zzz-has-open"
+else
+  echo "✗ marker NOT created — zero-count plan broke the loop (regression)"
+  FAIL=$((FAIL+1))
+fi
+rm -rf "$TEST_HOME"
+
+echo ""
 echo "=== todo-hygiene: stop mode writes marker when open steps exist ==="
 TEST_HOME=$(mktemp -d)
 mkdir -p "$TEST_HOME/.claude/plans/my-plan"
