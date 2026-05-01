@@ -1,29 +1,32 @@
 # plugin/scripts/
 
-# plugin/scripts/ Codemap
-
 ## Responsibility
-Hook system for workflow enforcement and automation. Intercepts tool calls (PreToolUse/PostToolUse), git operations, and session lifecycle events to apply guardrails (block unsafe patterns), auto-optimize (compress output, update codemaps), and collect observability (session patterns). Dual-layer: blocking hooks exit with code 2; guidance hooks emit JSON with `.hookSpecificOutput` for in-turn feedback.
+
+`plugin/scripts/` contains git hooks, automation triggers, and workflow enforcement rules that run at key lifecycle points (SessionStart, PreToolUse, PostToolUse, git events). These scripts gate risky operations, optimize token usage, consolidate memory, auto-update documentation, and guide users toward TDD/planning patterns. They act as guardrails and efficiency multipliers without requiring explicit user action.
 
 ## Design
-**Hook multiplexing**: Each script is a focused single-concern validator/transformer on a specific event (e.g., `block-protected-push.sh` on git push, `enforce-tdd.sh` on Write/Edit, `auto-dream.sh` on SessionStop). **Config loading**: Common settings (`LEAN_FLOW_PROTECTED_BRANCHES`, `LEAN_FLOW_DREAM_SESSIONS`) sourced from `load-config.sh`. **Stateful gates**: `auto-dream.sh` uses dual-gate (session count + elapsed hours) with lockfile to prevent concurrent memory consolidations. **Token optimization**: `auto-compress-output.sh` runs high-output commands directly (bash, git log, test runners) and substitutes haiku summaries for large output. **Cartography**: `cartographer.py` maintains `.slim/cartography.json` hash state of source files and codemaps for change detection without tree walking.
+
+**Hook-triggered architecture**: Each script is a standalone bash/Python executable matching Claude Code's hook event model (SessionStart, PreToolUse, PostToolUse, git hooks). Scripts read JSON stdin, emit JSON stdout, use exit codes to signal decisions (0=pass, 1=error, 2=block).
+
+**Token optimization**: `auto-compress-output.sh` intercepts high-output commands (git log, test runs, grep), executes them directly, and summarizes large output via Haiku API. `auto-observe.sh` silently logs session patterns to SQLite without API calls.
+
+**Memory/doc automation**: `auto-dream.sh` triggers memory consolidation (via `auto-dream-prompt.md`) using dual gates (N sessions + N hours). `auto-update-codemaps.py` reads changed directories from git diff-tree, indexes file contents, and calls Claude API to regenerate codemap.md sections.
+
+**Permission/safety blocks**: `block-*.sh` scripts enforce policy (no --no-verify flags, no direct pushes to protected branches, no secret files staged, no Claude identity in commits). `enforce-tdd.sh` reminds users to write tests after implementation.
+
+**Cartography & change detection**: `cartographer.py` manages repository state snapshots (.slim/cartography.json) for tracking which directories changed, enabling granular codemap updates.
 
 ## Flow
-**PreToolUse hooks** (block/compress layer):
-- `block-*.sh` scripts inspect `jq .tool_input.command` and exit 2 to deny unsafe patterns (no-verify, protected branch push, secret files, Claude identity in commits).
-- `auto-compress-output.sh` detects high-output commands, runs them directly, substitutes haiku summaries if >25 lines, returns code 2 to prevent duplicate execution.
 
-**PostToolUse hooks** (guidance/retry layer):
-- `enforce-tdd.sh` reminds on Write/Edit of implementation files without tests; emits TDD phase guidance.
-- `delegate-task-retry.sh` parses Task tool failures, pattern-matches error messages, appends concrete retry hints (missing parameters, rate limits, agent types).
-- `auto-update-codemaps.py` (invoked by `.sh` wrapper) runs post-commit: reads `git diff-tree HEAD`, discovers changed directories, calls Claude API to fill/update `codemap.md` sections.
-
-**SessionStart/Stop hooks**:
-- `check-dependencies.sh` audits REQUIRED (superpowers, jq) and RECOMMENDED (omni, gitnexus, rtk) companion tools; emits actionable install guidance.
-- `auto-observe.sh` captures session log into patterns DB on SessionStop (repo name, branch, tool counts, key commands, duration).
-- `auto-dream.sh` dual-gates on session count + elapsed hours; triggers memory consolidation via `auto-dream-prompt.md` prompt routed to Haiku model.
+1. **SessionStart**: `check-dependencies.sh` audits missing plugins/tools; emits systemMessage with install hints (cached by dep-key hash).
+2. **PreToolUse**: Bash commands route through `auto-compress-output.sh` (intercept high-output, execute, compress); `block-*.sh` rules check for forbidden patterns (secrets, --no-verify, protected branch pushes).
+3. **PostToolUse**: `delegate-task-retry.sh` detects Task tool failures and appends retry hints; `enforce-tdd.sh` reminds on implementation without tests; `auto-observe.sh` logs session events to patterns.db.
+4. **Git commit/push**: `auto-update-codemaps.py` (invoked by `auto-update-codemaps.sh`) reads changed dirs, generates new codemap sections.
+5. **Session stop**: `auto-dream.sh` checks dual gates (time elapsed + session count), triggers memory consolidation in background with 5-min timeout.
 
 ## Integration
-- **OAuth fallback chain**: `auto-update-codemaps.py` reads token from macOS keychain (`security find-generic-password`) or `ANTHROPIC_API_KEY` env var.
-- **Config**: all scripts source `load-config.sh` for runtime settings; scripts assume `CLAUDE_PLUGIN_ROOT` env var points to plugin root.
-- **Git hooks integration**: block/compress scripts are wired as PreToolUse mat
+
+- **Claude Code settings** (`~/.claude/settings.json`): `block-*.sh` hooks registered in permissions model; `check-dependencies.sh` reads to validate plugin/tool setup.
+- **Knowledge system**: `auto-observe.sh` writes to `~/.claude/knowledge/patterns.db` (SQLite); `auto-dream.sh` reads from `~/.claude/dream-state/` and consolidates memory files.
+- **Git workflow**: Hooks called via git config post-commit, pre-push (installed by ensure-* bootstrap); `cartographer.py` reads .gitignore and git metadata.
+- **Claude API**: `auto-compress-output.sh
