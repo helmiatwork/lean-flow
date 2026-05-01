@@ -1,15 +1,25 @@
 # plugin/skills/
 
-# plugin/skills/ Codemap
+# Codemap: `plugin/skills/`
 
 ## Responsibility
-Provides 15 specialized orchestration skills that guide engineers through structured workflows for different task types: design (brainstorming), planning (discuss, assumptions-analyzer, phase-researcher, plan-checker), execution (test-driven-development, systematic-debugging), verification (finishing-a-development-branch), and codebase analysis (map-codebase, ingest-docs, cartography). Each skill encapsulates a repeatable decision framework or investigation process to prevent common mistakes (skipped tests, unvalidated assumptions, scope creep, symptom fixes).
+Skill definitions for the lean-flow orchestration system. Each `.md` file defines a reusable task pattern—from pre-work discussion and research through implementation, testing, and completion. Skills are invoked by the orchestrator to guide structured work on software projects.
 
 ## Design
-**Skill anatomy:** Each `.md` file is a self-contained workflow with a hardcoded process flow, decision gates, and output templates. Skills follow **Iron Law patterns** (e.g., "NO FIXES WITHOUT ROOT CAUSE" in systematic-debugging, "NO CODE BEFORE FAILING TEST" in test-driven-development) that enforce prerequisite completion. Skills decompose into 3–6 **numbered phases** with clear handoff points. Output always uses structured templates (tables, sections, yes/no gates) to reduce interpretation. No skill invokes another directly—orchestrator routes based on task classification (using-lean-flow acts as dispatch table). Heavy tasks trigger skill chains (discuss → phase-researcher → assumptions-analyzer → plan-checker) where each adds one validation layer.
+- **Skill as declarative template**: Each file defines when to invoke, process steps, rules, and output formats—not implementation code
+- **Nested skill composition**: Complex work chains simple skills (e.g., `discuss` → `phase-researcher` → `map-codebase` → `write-plans`)
+- **Agent routing patterns**: Skills dispatch work to appropriate agents (explorer/haiku for reads, fixer/haiku for writes, librarian for research)
+- **Verification-first architecture**: Many skills include explicit "verify before proceeding" gates (test-driven-development, plan-checker, systematic-debugging)
 
 ## Flow
-**Task entry → classification (using-lean-flow) → conditional skill dispatch → structured process → confirmation gate → next skill or execution.** For medium/heavy tasks: discuss locks decisions → phase-researcher validates technical feasibility → assumptions-analyzer checks codebase evidence → plan-checker verifies plan completeness before fixer touches code. For bugs: systematic-debugging Phase 1 (root cause) is mandatory before any fix attempt. For features: test-driven-development enforces RED (failing test) before GREEN (implementation). Verification skills (finishing-a-development-branch, nyquist-auditor) run post-execution. Skills that need codebase reads delegate to explorer/fixer agents (delegate-to-haiku pattern) to keep orchestrator context clean.
+1. **Pre-work skills** (`discuss`, `assumptions-analyzer`, `ingest-docs`, `phase-researcher`) — lock decisions and context before planning
+2. **Planning skills** (`map-codebase`, `cartography`) — understand the codebase structure
+3. **Execution skills** (`test-driven-development`, `brainstorming`, `spike`) — guided implementation with validation
+4. **Completion skills** (`plan-checker`, `nyquist-auditor`, `finishing-a-development-branch`) — verify work before shipping
+5. **Operational skills** (`systematic-debugging`, `simplify`, `delegate-to-haiku`) — maintenance and debugging patterns
 
 ## Integration
-Connects to agent orchestration layer: each skill dispatches haiku agents (explorer for reads, fixer for writes) or sonnet subagents (oracle for review, designer for UI). Skills consume decision output from prior steps (discuss decisions feed into phase-researcher; codebase map feeds into plan-checker). Cartography (Tier 2) depends on cartographer.py and .slim/cartography.json state file for incremental updates. Skills output structured context (decision summaries, assumption tables, test coverage gaps) that become input to downstream implementation (plans, test files, PRs). Brainstorming is terminal entry point for creative work; all output is a design doc that feeds to writing-plans (not implemented here, orchestrator invokes). Skills are read-only on their own structure—no skill modifies another skill's process.
+- Skills reference each other (e.g., `assume-analyzer` invokes `spike` for unclear assumptions; `brainstorming` hands off to `write-plans`)
+- All skills use consistent agent patterns: explorer (read-only), fixer (write-capable), librarian (research)
+- Output from one skill feeds into the next (e.g., `discuss` decisions flow into `assumptions-analyzer`, which flows into planning)
+- `delegate-to-haiku` is a cross-cutting pattern used within all skills to keep orchestrator context efficient

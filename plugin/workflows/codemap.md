@@ -1,39 +1,22 @@
 # plugin/workflows/
 
-# Codemap: `plugin/workflows/`
+# plugin/workflows/ Codemap
 
 ## Responsibility
-
-Defines Claude's operational workflows and rule enforcement:
-- **claude-rules.md**: Mandatory skill triggers (TDD, verification, debugging), escalation rules, branch naming conventions, and triage logic for simple/complex/greenfield/hotfix tasks
-- **standard-development-flow.md**: Full orchestration flowchart (STAR triage → pattern search → planning → step execution → verification) with parallel agent dispatch (explorer, librarian, researcher, fixer)
+Defines the canonical development workflows and rules that Claude agents follow when executing tasks in the lean-flow system. These files establish non-negotiable skill triggers, branching strategy, triage logic, and execution patterns across simple/complex/greenfield/hotfix paths.
 
 ## Design
-
-**Two-layer workflow model:**
-1. **Rules layer** (claude-rules.md): Deterministic rules — when to invoke skills (`lean-flow:systematic-debugging`, `lean-flow:test-driven-development`), escalation thresholds (3 failures → oracle), branch strategy (feature/name/step-N)
-2. **Flow layer** (standard-development-flow.md): Decision-tree orchestration — auto-recall patterns, STAR complexity classification, triage branching (simple→direct, complex→plan, greenfield→docs-first, hotfix→fast-path), parallel dispatch of fixer/explorer/librarian agents
-
-**Key patterns:**
-- TDD mandatory before implementation (RED→GREEN→REFACTOR→E2E→coverage ≥80%)
-- Brownfield orientation: `map-codebase` + `ingest-docs` before planning
-- Plan verification gated by `plan-checker` (8-dimension validation)
-- Escalation on repeated failures (3× same step blocks, oracle escalates 3× for human intervention)
+- **claude-rules.md**: Prescriptive ruleset — mandatory skill invocations (TDD, debugging, verification), escalation thresholds (3 failures → oracle → human), branch naming conventions (feature/fix/hotfix/docs with kebab-case), and sequential step-branching strategy (parent → step-1 → step-2 → main).
+- **standard-development-flow.md**: Visual flowchart (Mermaid) mapping user prompt → auto-recall → STAR triage → four paths (simple/complex/greenfield/hotfix) with decision gates, skill invocations (map-codebase, brainstorming, plan-checker, verifier, nyquist-auditor), and merge logic.
 
 ## Flow
-
-User prompt → Auto pattern recall (FTS5) → STAR clarify (haiku complexity) → Orchestrator triage:
-- **Simple** (1-2 files): fixer → tests → PR
-- **Complex**: pattern search → research (assumptions/pitfalls) → plan (EnterPlanMode) → plan-checker → branching → parallel step execution (fixer + tests)
-- **Greenfield**: brainstorm → PRD/HLA/TRD → same complex path
-- **Hotfix**: minimal planning, fast hotfix/ branch, inline oracle review
-
-Verification gates: TDD red/green, `verification-before-completion` (unit+E2E+coverage), `plan-checker` post-plan, `nyquist-auditor` for coverage gaps.
+Entry point: user prompt triggers `UserPromptSubmit` hook → auto-recall (pattern.db FTS5 lookup) → STAR clarification (haiku classifies complexity) → orchestrator triage. Branches into:
+- **Simple**: fixer → tests → PR main (no planning).
+- **Complex**: pattern search → codebase mapping → research → brainstorming → planning (with plan-checker gate) → branching (parent + step branches) → fixer execution + verification.
+- **Greenfield**: brainstorm → doc-first (PRD/HLA/TRD) → planning → execution.
+- **Hotfix**: minimal fix on hotfix/ branch → inline oracle review → merge + cherry-pick.
 
 ## Integration
-
-- **Skills system**: references lean-flow commands (`systematic-debugging`, `test-driven-development`, `verification-before-completion`, `code-reviewer`, `map-codebase`, `ingest-docs`, `brainstorming`, `phase-researcher`, `spike`, `finishing-a-development-branch`)
-- **Knowledge MCP**: pattern search (pattern_search knowledge), ADR/PRD/SPEC ingestion
-- **Branching**: interfaces with Git strategy (parent + step branches, PR workflow)
-- **Agent dispatch**: orchestrates explorer (haiku), librarian (haiku), researcher, fixer agents in parallel for complex tasks
-- **Verification layer**: `plan-checker`, `nyquist-auditor` validate completeness before merge
+- **claude-rules.md** enforces constraints on all agent behaviors (fixer, oracle, explorer, librarian, haiku classifiers) and feeds branch strategy to git operations.
+- **standard-development-flow.md** orchestrates skill dispatch across `lean-flow:*` commands (TDD, debugging, verification-before-completion, finishing-a-development-branch), knowledge MCP pattern search, and downstream agents (plan-checker, verifier, nyquist-auditor).
+- Both files are read during task triage and referenced during step execution to validate compliance with branching, escalation, and skill-trigger rules.
