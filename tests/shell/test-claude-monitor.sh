@@ -6,7 +6,8 @@ set -e
 
 PASS=0
 FAIL=0
-SCRIPT_PATH="/Users/theresiaputri/repo/lean-flow/plugin/scripts/claude-monitor/claude-usage.3m.sh"
+REPO_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)"
+SCRIPT_PATH="${REPO_ROOT}/plugin/scripts/claude-monitor/claude-usage.3m.sh"
 
 assert_eq() {
   if [ "$1" = "$2" ]; then
@@ -41,6 +42,15 @@ assert_not_contains() {
 # Check if jq is available
 if ! command -v jq &> /dev/null; then
   echo "⚠ jq not found. Skipping tests."
+  exit 0
+fi
+
+# Skip in CI / non-macOS / no-keychain environments — the SwiftBar plugin
+# requires a Claude OAuth token in the macOS keychain which CI cannot provide.
+# Tests rely on the script producing usage-icon output, which the script
+# short-circuits to "no-auth" without keychain access.
+if [ -n "${CI:-}" ] || [ "$(uname)" != "Darwin" ] || ! /usr/bin/security find-generic-password -s "claude-oauth-token" >/dev/null 2>&1; then
+  echo "⊘ test-claude-monitor: skipped (requires macOS keychain with claude-oauth-token)"
   exit 0
 fi
 

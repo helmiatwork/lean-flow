@@ -44,7 +44,7 @@ cd "$REPO_ROOT"
 # Create temporary test home and plugin root
 TEST_HOME=$(mktemp -d)
 TEST_PLUGIN_ROOT=$(mktemp -d)
-trap "rm -rf '$TEST_HOME' '$TEST_PLUGIN_ROOT'" EXIT
+trap "rm -rf '$TEST_HOME' '$TEST_PLUGIN_ROOT' 2>/dev/null || true" EXIT
 
 export HOME="$TEST_HOME"
 export CLAUDE_PLUGIN_ROOT="$TEST_PLUGIN_ROOT"
@@ -87,8 +87,12 @@ if [ -f "$HOME/.claude/settings.json" ]; then
   if command -v jq &>/dev/null; then
     has_superpowers=$(jq -e '.enabledPlugins["superpowers@claude-plugins-official"]' "$HOME/.claude/settings.json" 2>/dev/null || echo "false")
     has_plan_plus=$(jq -e '.enabledPlugins["plan-plus@plan-plus"]' "$HOME/.claude/settings.json" 2>/dev/null || echo "false")
+    has_plan_plus_marketplace=$(jq -e '.extraKnownMarketplaces["plan-plus"]' "$HOME/.claude/settings.json" 2>/dev/null || echo "false")
     assert_contains "$has_superpowers" "true" "ensure-plugins: superpowers plugin enabled"
-    assert_contains "$has_plan_plus" "true" "ensure-plugins: plan-plus plugin enabled"
+    # Regression: ensure-plugins must NOT auto-enable plan-plus (PR #20).
+    # superpowers:writing-plans + executing-plans replace plan-plus as the canonical planning system.
+    assert_contains "$has_plan_plus" "false" "ensure-plugins: plan-plus NOT auto-enabled"
+    assert_contains "$has_plan_plus_marketplace" "false" "ensure-plugins: plan-plus marketplace NOT auto-added"
   else
     echo "⊘ ensure-plugins: jq not available, skipping settings verification"
   fi
