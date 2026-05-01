@@ -67,7 +67,7 @@ flowchart TD
     REVIEW -->|"No"| WRITE
     REVIEW -->|"Yes"| EXITPLAN
 
-    EXITPLAN["📋 ExitPlanMode\nplan-plus restructures\ninto skeleton + steps"] --> PLANCHECK
+    EXITPLAN["📋 ExitPlanMode\nsuperpowers:writing-plans\nproduces structured plan"] --> PLANCHECK
     PLANCHECK["✅ plan-checker\n8-dimension verification\ngoal-backward analysis"] --> PLANCHECKRESULT{"Issues?"}
     PLANCHECKRESULT -->|"Blockers"| WRITE
     PLANCHECKRESULT -->|"Passed"| VIEWER
@@ -90,7 +90,7 @@ flowchart TD
     FINISHING --> AUDITSCAN
     STEP -->|"Plan invalid"| REPLAN
 
-    REPLAN["📋 Revise remaining\nsteps in plan-plus"] --> STEP
+    REPLAN["📋 Revise remaining\nsteps via superpowers:writing-plans"] --> STEP
 
     RESEARCH{"Needs research?"}
     RESEARCH -->|"Unfamiliar code"| EXPLORER["🔍 Explorer\n(haiku)"]
@@ -330,13 +330,13 @@ Before brainstorming on complex tasks in existing codebases:
 ### 2. Pattern Search (knowledge MCP)
 - `pattern_search` for previously solved patterns
 - Match found: fixer applies pattern, skip planning, enter step loop
-- No match: proceed to brainstorming + plan-plus
+- No match: proceed to brainstorming + `superpowers:writing-plans`
 
 ### 3. Brainstorming
 - **`lean-flow:brainstorming`** — auto-invoked before planning for complex tasks
 - Explores user intent, requirements, and design before implementation
 - Hard gate: no implementation until design is approved
-- Output feeds into plan-plus
+- Output feeds into `superpowers:writing-plans`
 
 ### 3a. Pre-Planning Research
 Before EnterPlanMode on medium/heavy tasks:
@@ -358,16 +358,17 @@ For new projects (empty repos), generate project documentation **before** planni
 3. **Split TRD per repo** — in multi-repo projects, keep docs scoped per repo to avoid token bloat
 4. **Plan from docs** — use generated docs as the reference for implementation planning
 
-> **Why docs first?** Generated docs become the single source of truth for all agents. The TRD feeds directly into plan-plus steps. Without docs, each agent re-derives requirements from scratch — wasting tokens and introducing inconsistencies.
+> **Why docs first?** Generated docs become the single source of truth for all agents. The TRD feeds directly into `superpowers:writing-plans` task breakdown. Without docs, each agent re-derives requirements from scratch — wasting tokens and introducing inconsistencies.
 
-### 4. Planning (plan-plus + writing-plans quality)
+### 4. Planning (superpowers:writing-plans)
 - `EnterPlanMode` — opens plan file at `~/.claude/plans/`
-- Invoke `writing-plans` skill for quality guidance (exact file paths, code blocks, TDD steps, no placeholders)
+- Invoke **`superpowers:writing-plans`** for the structured plan (exact file paths, code blocks, TDD steps, no placeholders)
 - Write the plan to the plan mode file (wrong directory blocked by `block-wrong-plan-dir.sh` hook)
 - User MUST review and approve before execution
-- `ExitPlanMode` — plan-plus restructures into skeleton + step files
+- `ExitPlanMode` — finalize plan
 - **`lean-flow:plan-checker`** runs after ExitPlanMode — 8-dimension goal-backward verification before any fixer is dispatched. BLOCKER issues send plan back for revision.
 - Plan viewer opens at localhost:3456
+- Execute via **`superpowers:executing-plans`** (replaces deprecated plan-plus)
 
 ### 5. Branching
 - Create parent branch: `<prefix>/<name>` from main
@@ -393,8 +394,8 @@ For new projects (empty repos), generate project documentation **before** planni
 When working solo (no team reviewers, no CI per step), per-step PRs are pure overhead:
 
 - **Work on parent branch** — no step branches, no per-step PRs. Commit once at the end or per logical group
-- **Still use plan-plus steps** — steps structure the work, but don't need separate branches
-- **Run plan-plus-executor agents per step** — each step dispatched as an agent call
+- **Still use `superpowers:writing-plans` steps** — steps structure the work, but don't need separate branches
+- **Run `superpowers:executing-plans` per step** — each step dispatched with checkpoints
 - **Parallel independent steps** — steps with no dependency can run as parallel agents
 - **Single PR: parent → main** — oracle review + audit on the final diff
 
@@ -406,7 +407,7 @@ When working solo (no team reviewers, no CI per step), per-step PRs are pure ove
 ### 7. Re-planning (mid-execution escape hatch)
 - If a step reveals the plan is wrong (assumptions broken, scope changed):
   - Pause execution at the STEP decision node
-  - Re-invoke plan-plus to revise remaining steps
+  - Re-invoke `superpowers:writing-plans` to revise remaining steps
   - User reviews revised plan
   - Continue execution from the revised steps
 

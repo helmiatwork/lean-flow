@@ -61,7 +61,7 @@ main
 ### 2. Pattern Search
 - Search knowledge MCP for previously solved patterns
 - Match found: fixer applies pattern, skip planning
-- No match: brainstorm → plan-plus
+- No match: brainstorm → `superpowers:writing-plans`
 
 ### 3. Brainstorming
 - Auto-invoked before planning for complex tasks
@@ -77,9 +77,10 @@ Generate before writing code: PRD → HLA → TRD (Database Design + API Design 
 Split TRD per repo in multi-repo projects.
 
 ### 4. Planning
-- `EnterPlanMode` → invoke `writing-plans` skill → write plan → `ExitPlanMode`
+- `EnterPlanMode` → invoke `superpowers:writing-plans` → write plan → `ExitPlanMode`
 - `lean-flow:plan-checker` runs after ExitPlanMode — 8-dimension verification. BLOCKER = revise plan
 - User MUST approve before execution
+- Execute the plan via `superpowers:executing-plans` (replaces deprecated plan-plus)
 
 ### 5. Branching
 - Create parent branch from main, step branches from parent
@@ -97,12 +98,12 @@ Split TRD per repo in multi-repo projects.
 
 ### 6a. Solo Dev
 - Work on parent branch, no step PRs
-- Still use plan-plus steps to structure work
+- Still use `superpowers:writing-plans` to structure work
 - Parallel agents for independent steps
 - Single PR: parent → main with oracle review
 
 ### 7. Re-planning
-If a step breaks assumptions: pause → revise plan with plan-plus → user approves → continue.
+If a step breaks assumptions: pause → revise plan with `superpowers:writing-plans` → user approves → continue.
 
 ### 8. Agent Model Routing
 
