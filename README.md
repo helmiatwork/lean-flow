@@ -610,6 +610,25 @@ lean-flow/
 
 ---
 
+## Companion Tools (auto-bootstrapped)
+
+On `SessionStart`, lean-flow ensures these tools are installed and wired. Each is **opt-out** via env var (e.g. `LEAN_FLOW_ENABLE_OMNI=false` or `~/.claude/lean-flow.json`).
+
+| Tool | What it does | Bootstrap | Install method |
+|---|---|---|---|
+| **RTK** | Rewrites Bash commands to faster Rust equivalents | `ensure-rtk.sh` | brew (auto) |
+| **OMNI** | Distills Bash output via 36 filters + FTS5 (~93% token savings) | `ensure-omni.sh` | brew (auto) |
+| **GitNexus** | Indexes the repo into a queryable knowledge graph (MCP) | `ensure-gitnexus.sh` | npx (registers MCP; index built on-demand via `npx gitnexus analyze`) |
+| **Knowledge MCP** | SQLite + FTS5 pattern memory | `ensure-knowledge-mcp.sh` | bundled |
+| **Cartography** | Two-tier codebase mapping | `ensure-cartography.sh` | bundled |
+| **Plan viewer** | localhost:3456 plan dashboard | `ensure-plan-viewer.sh` | bundled |
+| **Playwright MCP** | Browser automation for E2E tests | `ensure-playwright-mcp.sh` | npx |
+| **Claude Monitor** | SwiftBar usage menu bar plugin (macOS) | `ensure-claude-monitor.sh` | brew + SwiftBar |
+
+Idempotent — each script detects existing install/registration and silently skips. Failures (e.g. brew unavailable) emit a one-line `systemMessage` and exit 0 — they never block the session.
+
+---
+
 ## Model Presets
 
 Switch all 3 model env vars at once with `lean-preset.sh`:
