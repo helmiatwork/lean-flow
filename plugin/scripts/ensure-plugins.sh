@@ -1,7 +1,11 @@
 #!/usr/bin/env bash
-# Ensure companion plugins (superpowers, plan-plus) are configured.
+# Ensure companion plugin (superpowers) is configured.
 # Runs on SessionStart — idempotent.
 # NOTE: Uses plain jq conditionals, not bash associative arrays (macOS bash 3.2 compat).
+#
+# plan-plus auto-enable was removed: superpowers:writing-plans + executing-plans
+# are now the canonical planning system. Users who still want plan-plus can enable
+# it manually via the marketplace.
 
 SETTINGS_FILE="${HOME}/.claude/settings.json"
 
@@ -18,24 +22,10 @@ if ! jq -e '.enabledPlugins["superpowers@claude-plugins-official"]' "$SETTINGS_F
   changed=true
 fi
 
-# Enable plan-plus plugin
-if ! jq -e '.enabledPlugins["plan-plus@plan-plus"]' "$SETTINGS_FILE" &>/dev/null; then
-  tmp=$(mktemp)
-  jq '.enabledPlugins["plan-plus@plan-plus"] = true' "$SETTINGS_FILE" > "$tmp" && mv "$tmp" "$SETTINGS_FILE"
-  changed=true
-fi
-
-# Add plan-plus marketplace
-if ! jq -e '.extraKnownMarketplaces["plan-plus"]' "$SETTINGS_FILE" &>/dev/null; then
-  tmp=$(mktemp)
-  jq '.extraKnownMarketplaces["plan-plus"] = {"source":{"source":"github","repo":"RandyHaylor/plan-plus"}}' "$SETTINGS_FILE" > "$tmp" && mv "$tmp" "$SETTINGS_FILE"
-  changed=true
-fi
-
 if [ "$changed" = true ]; then
   cat <<'EOF'
 {
-  "systemMessage": "[lean-flow] Companion plugins configured: superpowers (skills & workflows) + plan-plus (structured planning). Restart session to activate newly added plugins."
+  "systemMessage": "[lean-flow] Companion plugin configured: superpowers (skills & workflows). Restart session to activate."
 }
 EOF
 fi
