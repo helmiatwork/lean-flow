@@ -15,6 +15,9 @@ mkdir -p "$(dirname "$CACHE_FILE")"
 [ "$1" = "noop" ] && exit 0
 
 TOKEN=$(security find-generic-password -s 'Claude Code-credentials' -w 2>/dev/null | jq -r '.claudeAiOauth.accessToken // empty' 2>/dev/null)
+if [ -z "$TOKEN" ] && [ -f "$HOME/.claude/.credentials.json" ]; then
+  TOKEN=$(jq -r '.claudeAiOauth.accessToken // empty' "$HOME/.claude/.credentials.json" 2>/dev/null)
+fi
 
 if [ -z "$TOKEN" ]; then
   echo "☁️ no-auth | color=#888888"
