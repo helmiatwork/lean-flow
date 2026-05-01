@@ -627,6 +627,8 @@ On `SessionStart`, lean-flow ensures these tools are installed and wired. Each i
 
 Idempotent — each script detects existing install/registration and silently skips. Failures (e.g. brew unavailable) emit a one-line `systemMessage` and exit 0 — they never block the session.
 
+After the bootstrap chain, `check-dependencies.sh` audits everything and emits a single warning if anything is **missing** (REQUIRED), **misconfigured** (RECOMMENDED), or **deprecated** (e.g. plan-plus still enabled). Cached by finding-set hash so it only warns when the missing set actually changes.
+
 ---
 
 ## Model Presets
