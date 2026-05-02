@@ -3,26 +3,42 @@
 # codemap.md — `plugin/agents/`
 
 ## Responsibility
-Lean-flow specialist agent definitions. Each `.md` file is a contract defining a single agent's role, constraints, skills, off-scope routing, and tool access. Agents are Claude instances with different model sizes, tool permissions, and behavioral guidelines — used by the orchestrator to delegate tasks by type (code review, architecture, search, implementation, research, UI, scoping).
+
+This directory defines the lean-flow plugin's six specialized agents and the orchestrator's coordination logic. Each agent is a Claude system prompt (YAML frontmatter + markdown) that defines a narrow role, required skills, tools, and off-scope routing rules. Together they form a delegation framework that decomposes code tasks by expertise domain (implementation, design, review, search, research, architecture) to optimize for speed, cost, and quality.
 
 ## Design
-- **Contract-driven dispatch**: Each agent's `.md` is a system-context file injected into Claude at runtime. No runtime code — pure declarative contracts.
-- **Tool-gated permissions**: Each agent declares `tools: []` in frontmatter; orchestrator enforces which agent runs which task based on tool availability and scope.
-- **Off-scope routing**: Every agent includes an off-scope table and returns `OFF-SCOPE: dispatch to <agent> — <brief>` if work falls outside its contract.
-- **Cost/speed tiers**: haiku agents (explorer, librarian, fixer) for fast/cheap search and execution; sonnet agents (code-reviewer, oracle, designer) for quality reasoning.
-- **Skill injection**: Each agent declares required superpowers (e.g., `superpowers:test-driven-development`, `frontend-design:frontend-design`) — orchestrator verifies availability before dispatch.
+
+**Agent contract pattern:** Each agent file follows a consistent structure:
+- YAML frontmatter (`name`, `description`, `model`, `tools`)
+- Role statement (who the agent is, what it does)
+- Required Skills (superpowers or tool capabilities)
+- Workflow section (entry points, decision rules, step-by-step execution)
+- Rules (project-specific constraints, off-scope boundaries)
+- Off-scope Routing table (when to dispatch to another agent, with exact re-dispatch format: `OFF-SCOPE: dispatch to <agent> — <brief>`)
+
+**Delegation rules:**
+- `fixer.md` — primary implementation (haiku, fast, cost-effective for concrete execution)
+- `designer.md` — frontend/UI only (sonnet, uses project's actual CSS framework, never assumes Tailwind)
+- `code-reviewer.md` — diff-level quality (sonnet, SOLID/patterns/coverage, separate from oracle)
+- `oracle.md` — architecture decisions, security, complex debugging (sonnet think-only, **zero tools**, receives summaries only)
+- `explorer.md` — codebase search, fast navigation (haiku, read-only, produces summaries for oracle)
+- `librarian.md` — library/API research (haiku, WebSearch/WebFetch, current docs via Context7)
+- `discuss.md` — pre-work scoping (gathers ambiguous decisions into multiple-choice options, locks scope before any implementation)
+- `plan-plus-executor.md` — ephemeral step executor (inherits model, works on a single plan step in isolation, updates context files)
+- `orchestrator.md` — session coordinator (opus, never writes code directly for medium/heavy, routes to agents, manages review loops)
 
 ## Flow
-1. Orchestrator classifies task → determines agent(s) needed (explorer for search, librarian for docs, fixer for code, code-reviewer/oracle for review).
-2. Orchestrator reads agent contract (e.g., `fixer.md`) → extracts role, rules, required skills, tool list.
-3. Orchestrator injects contract as system context → instantiates agent → passes task.
-4. Agent reads contract rules → executes work within constraints → returns result or `OFF-SCOPE` dispatch instruction.
-5. On off-scope: orchestrator parses return string → re-dispatches to named agent.
-6. Agent reports back: work done, files changed, any blockers.
 
-## Integration
-- **orchestrator.md**: Documents the main session; references all agents, decision rules for delegation (when to dispatch vs. do-it-yourself), and Tier routing (simple/medium/heavy).
-- **Tier execution**: Fixer (`fixer.md`) owns end-to-end chain on medium/heavy tasks (implement → test → lint → commit → PR → code-reviewer → oracle → merge); designer (`designer.md`) stops before PR (fixer takes over).
-- **Code review chain**: On parent → main PRs, code-reviewer runs first (diff-level quality), then oracle (architecture); both must return APPROVED before merge (§9–10 in fixer.md).
-- **Explorer dispatch**: After fixer/designer commits, orchestrator auto-dispatches explorer (`explorer.md`) to update affected `codemap.md` files (cartography rule).
-- **Off-scope cascade**: If an agent receives out-of-scope work, it returns a re-dispatch instruction; orchestrator reads it and re-instantiates the correct agent mid-conversation.
+**Task dispatch sequence (medium/heavy task):**
+1. User submits task → Orchestrator classifies (STAR: simple/medium/heavy/greenfield/hotfix)
+2. Orchestrator runs `lean-flow:discuss` if scope is ambiguous → locks decisions with user
+3. Orchestrator writes a structured plan with exact paths, commands, code snippets
+4. Orchestrator dispatches `lean-flow:fixer` (haiku) with the plan
+5. Fixer executes all steps, runs tests + linters, commits, pushes, creates PR
+6. Fixer spawns `lean-flow:code-reviewer` (sonnet) for diff-level quality review
+7. Fixer spawns `lean-flow:oracle` (sonnet, think-only) for architecture + security review
+8. Oracle and code-reviewer return APPROVED or numbered issues; fixer applies fixes, loops until both APPROVED (hard cap: 3 combined rounds)
+9. Fixer runs `cartographer.py changes` → dispatches `lean-flow:explorer` to fill affected `codemap.md` templates
+10. Fixer merges PR once CI passes and oracle/code-reviewer approve
+
+**Search/research
