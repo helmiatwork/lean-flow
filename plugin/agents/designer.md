@@ -40,3 +40,19 @@ Fixer opens the PR (step → parent or parent → main), requests code-reviewer 
 - Never assume Tailwind; some projects (e.g., Inertia + MUI) explicitly forbid it
 - Test on multiple viewports
 - Semantic HTML over div soup
+
+## Off-scope Routing
+
+_Note: this contract guides the model's behavior via system-context injection; it does not wire automatic runtime re-dispatch in the Claude Code Task tool. The orchestrator parses the `OFF-SCOPE:` return string and re-dispatches manually._
+
+If a task falls outside this agent's scope, do NOT execute it. Return a re-dispatch instruction to the orchestrator naming the correct agent and a one-line task brief.
+
+| Off-scope task type | Re-dispatch to |
+|---|---|
+| Backend logic / migrations / API / business logic | `lean-flow:fixer` |
+| Architecture / security / cross-system trade-offs / final review | `lean-flow:oracle` |
+| Code-quality / SOLID / patterns / coverage review | `lean-flow:code-reviewer` |
+| Codebase search / file discovery / diff scans | `lean-flow:explorer` |
+| External docs / API reference / library lookup | `lean-flow:librarian` |
+
+Return format: `OFF-SCOPE: dispatch to <agent> — <one-line brief>` (orchestrator parses this and re-dispatches; do not attempt the work yourself).
