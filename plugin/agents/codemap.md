@@ -1,50 +1,25 @@
 # plugin/agents/
 
-# codemap.md — `plugin/agents/`
+# plugin/agents/ Codemap
 
 ## Responsibility
-
-The agents directory defines the lean-flow plugin's specialist agents—each with a specific role in the development workflow. Each `.md` file declares an agent's name, description, model, tools, required skills, and behavioral rules. The orchestrator (main session) reads these definitions to classify tasks and dispatch appropriate agents.
+This directory defines the lean-flow plugin's seven specialized agent roles. Each agent is a Claude prompt template (`*.md`) that describes a specific responsibility: code review (code-reviewer), UI/UX implementation (designer), pre-work scoping (discuss), codebase navigation (explorer), primary code execution (fixer), documentation lookup (librarian), think-only architecture review (oracle), orchestration (orchestrator), and single-step execution (plan-plus-executor). Together they form a delegation system for the main orchestrator to route tasks efficiently by cost, speed, and quality.
 
 ## Design
-
-**Agent Pattern**: Each file follows a YAML frontmatter + Markdown body structure:
-- `name:` — agent identifier (e.g., `code-reviewer`, `fixer`)
-- `description:` — 1-2 sentence when-to-use guidance
-- `model:` — LLM choice (`haiku`, `sonnet`, `opus`, or `inherit`)
-- `tools:` — list of enabled MCP tools (e.g., `["Read", "Write", "Agent"]`); empty `[]` means think-only (oracle)
-- `superpowers:` (optional) — skill dependencies declared in role sections
-
-**Key Distinctions**:
-- **fixer** (haiku) — executes plans end-to-end; owns impl + tests + PR chain
-- **oracle** (sonnet, `tools: []`) — think-only architect; never reads files directly, receives summaries
-- **code-reviewer** (sonnet, read-only) — diff-level quality review; SOLID + patterns + coverage
-- **designer** (sonnet) — UI/UX specialist; stops before PR (fixer takes over)
-- **explorer** (haiku, read-only) — parallel search; finds files, populates codemaps
-- **librarian** (haiku, read-only) — docs/API lookup; WebSearch + WebFetch
-- **discuss** (sonnet, stateless) — pre-work scoping; surfaces decisions, captures user choices, stops before impl
-- **plan-plus-executor** (ephemeral context) — executes single plan steps with isolated context files
+- **Agent as Markdown**: Each agent is defined in a frontmatter-plus-body `.md` file. Frontmatter (`name`, `description`, `model`, `tools`) specifies the agent's identity, dispatch trigger, LLM size, and tool access. Body contains the agent's full system prompt (role, skills, rules, checklist).
+- **Tool-gated permissions**: Each agent declares `tools: []` (oracle: no file/shell access) or `tools: ["Read", "Write", "Edit", "Bash", "Grep", "Glob", "Agent", "WebSearch", "WebFetch"]` (fixer/designer: full write). Explorer, librarian, oracle are read-only or think-only by design.
+- **Skill declarations**: Agents declare required superpowers (e.g., `superpowers:executing-plans`, `superpowers:test-driven-development`) to signal what orchestrator must verify before dispatch.
+- **Hard constraints**: Fixer has explicit end-to-end contracts (steps 1–12); oracle has hard prohibitions (never Write/Edit/Bash); designer never opens PRs. Code-reviewer always runs before oracle on parent→main PRs.
 
 ## Flow
-
-**Dispatch chain** (medium/heavy task):
-1. Orchestrator classifies task → calls `discuss` if ambiguous (scope alignment)
-2. Orchestrator writes detailed plan → dispatches **fixer** with full contract
-3. Fixer implements all steps, runs tests/linters, commits, pushes branch
-4. Fixer creates PR → spawns **code-reviewer** (haiku plan exists; use sonnet for actual review)
-5. Code-reviewer issues returned → fixer routes to self or **designer** (IssueRoutingRules)
-6. Fixer re-tests/re-lints, pushes fixes → PR updated
-7. Fixer spawns **oracle** (sonnet, think-only) with diff summary from **explorer**
-8. Oracle returns `APPROVED` or issues → loop steps 5–7 (max 3 rounds combined)
-9. Fixer runs `cartographer.py`, dispatches **explorer** to fill affected codemaps
-10. Fixer merges once CI green + oracle approved
-
-**Designer flow** (UI/UX tasks):
-- Orchestrator dispatches **designer** with impl steps
-- Designer implements + tests (≥90% coverage), commits, pushes
-- Designer **stops** — fixer takes the branch, opens PR, routes reviews
+1. **Orchestrator classifies** a user task into simple/medium/heavy/greenfield/hotfix.
+2. **Simple tasks**: Orchestrator edits directly; no agent dispatch.
+3. **Medium/heavy tasks**: Orchestrator writes a structured plan with exact code/paths/commands, then dispatches `lean-flow:fixer` with the plan.
+4. **Parallel discovery** (if needed): Orchestrator dispatches `lean-flow:explorer` to scan, `lean-flow:librarian` to research, `lean-flow:discuss` to scope ambiguities — results feed back to orchestrator before fixer dispatch.
+5. **Fixer execution**: Fixer executes plan steps, writes tests, runs linters, commits, pushes, creates PR.
+6. **Code review chain**: Fixer dispatches `lean-flow:code-reviewer` (sonnet) for diff-level quality, then `lean-flow:oracle` (sonnet, think-only) for architecture/security. Fixer applies feedback, re-runs tests/linters, loops until both APPROVED (max 3 combined rounds; escalate on round 4).
+7. **Merge**: Once CI is green and oracle is APPROVED, fixer merges with `gh pr merge --squash`.
+8. **Cartography**: After fixer commits, orchestrator dispatches `lean-flow:explorer` to fill affected `codemap.md` templates (Tier 2 cheap update; Tier 1 conditional if structural changes).
 
 ## Integration
-
-- **orchestrator.md** (not in this dir; main session) — reads all agents/ definitions, routes tasks via dispatch rules
-- **Agents call each other via `Agent
+- **Orchestrator** (never a subagent; the main session) reads all agent `.md` files to understand available specializations and rules

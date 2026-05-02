@@ -1,24 +1,17 @@
 # plugin/workflows/
 
-# Codemap: `plugin/workflows/`
+# codemap.md — `plugin/workflows/`
 
 ## Responsibility
-Defines the canonical workflows and rule enforcement for Claude-based development. `claude-rules.md` establishes mandatory lean-flow commands, escalation policies, and branching conventions. `standard-development-flow.md` provides the mermaid orchestration diagram showing how orchestrator (opus) coordinates with fixer (haiku) and reviewers (sonnet) across simple/complex/hotfix/greenfield paths.
+Defines the mandatory workflow rules and development processes for all Claude agents in this codebase. `claude-rules.md` enforces lean-flow commands, escalation discipline, and branching strategy; `standard-development-flow.md` documents the full orchestrator-fixer coordination model with mermaid diagrams showing session lifecycle, dispatch patterns, and CI gates.
 
 ## Design
-- **Rules-as-contract**: `claude-rules.md` establishes non-negotiable skill triggers (e.g., TDD before implementation, systematic-debugging on failure), escalation limits (3 retries → oracle diagnosis), and branch naming conventions (`feature/*/step-N`, `hotfix/*`, `docs/*`)
-- **Orchestrated async execution**: `standard-development-flow.md` shows role separation — orchestrator never edits code, dispatches fixers/designers in parallel, gates on CI/coverage/code-review before merge
-- **Pattern reuse**: Pattern search (FTS5 → patterns.db) short-circuits planning; matching patterns skip to dispatch-adapt; no match → brainstorm → plan
+Two complementary documents:
+- **claude-rules.md**: Command-driven ruleset with escalation thresholds (3 retries → oracle → human), branch naming conventions (`feature/name/step-N`), and mandatory skill triggers (e.g., TDD before code, `verification-before-completion` before PR).
+- **standard-development-flow.md**: Mermaid flowchart modeling the full session—orchestrator (opus) coordinates via pattern recall + STAR triage, dispatches fixers/designers in parallel, gates on coverage ≥90% and CI, requires code-reviewer + oracle sign-off before main merge.
 
 ## Flow
-1. **Session start** → orchestrator loads rules, user submits prompt
-2. **Auto-recall + STAR classify** → pattern search (FTS5) → found (dispatch adapt) or not (brainstorm)
-3. **Branching strategy**: parent branch off main → step branches off parent (sequential, each step PRs to parent) → final parent PR to main (oracle-gated)
-4. **Parallel dispatch** where applicable: designer + fixer in step branches, both writing code; orchestrator only coordinates and verifies
-5. **Escalation**: fixer fails 3× on same step → oracle diagnoses (think-only); oracle escalates 3× → flag human
+User prompt → SessionStart hook → Orchestrator loads rules + auto-recalls patterns → STAR classify (simple/medium/heavy/greenfield/hotfix) → Route to: direct PR (simple), plan+steps (medium/heavy), doc-first (greenfield), or hotfix fast-path. Each step branch runs fixer (TDD + tests) + optional designer in parallel, then gates on coverage + CI before step PR to parent. Final parent→main PR requires code-reviewer + oracle + codemap update.
 
 ## Integration
-- Imported by session-briefing.sh into `orchestrator.md` context (opus role declaration)
-- Validates against `docs/CODEBASE_MAP.md` (triage checks it exists; cartographer regenerates changed folders)
-- Feeds patterns back to `patterns.db` (FTS5 knowledge store) after merge
-- Gate checks: plan-checker (8-dimension verification), coverage ≥80–90%, CI green, code-review approval, oracle final sign-off before codemap + pattern_store update
+Central policy hub: referenced in session-briefing.sh (injects orchestrator.md via additionalContext), gates all dispatch decisions in standard-development-flow.md, and enforces lean-flow command vocabulary across fixer/oracle/designer agents. Codemap updates (§12a) feed patterns back to patterns.db for future pattern_search recall.
