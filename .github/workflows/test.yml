@@ -30,5 +30,5 @@ jobs:
           CI: "true"
         run: bash tests/run-all.sh
 
-      - name: Check shell script coverage
-        run: bash tests/coverage.sh
+      - name: Check shell script presence
+        run: bash tests/coverage-presence-check.sh

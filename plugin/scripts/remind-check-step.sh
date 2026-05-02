@@ -19,7 +19,7 @@ plan_name=""
 while IFS= read -r f; do
   [ -f "$f" ] || continue
   # Only consider files with step checkboxes
-  if grep -qE '^\s*\d+\.\s+\[[ xX]\]' "$f" 2>/dev/null; then
+  if grep -qE '^\s*[0-9]+\.\s+\[[ xX]\]' "$f" 2>/dev/null; then
     if [ "$(uname)" = "Darwin" ]; then
       mtime=$(stat -f%m "$f" 2>/dev/null || echo 0)
     else
@@ -38,7 +38,7 @@ done < <(find "$PLANS_DIR" -maxdepth 2 -name 'skeleton.md' 2>/dev/null)
 for f in "$PLANS_DIR"/*.md; do
   [ -f "$f" ] || continue
   # Only consider files with step checkboxes
-  if grep -qE '^\s*\d+\.\s+\[[ xX]\]' "$f" 2>/dev/null; then
+  if grep -qE '^\s*[0-9]+\.\s+\[[ xX]\]' "$f" 2>/dev/null; then
     if [ "$(uname)" = "Darwin" ]; then
       mtime=$(stat -f%m "$f" 2>/dev/null || echo 0)
     else
@@ -55,8 +55,8 @@ done
 [ -z "$latest" ] && exit 0
 
 # Count checked and unchecked
-total=$(grep -cE '^\s*\d+\.\s+\[[ xX]\]' "$latest" 2>/dev/null || echo 0)
-checked=$(grep -cE '^\s*\d+\.\s+\[[xX]\]' "$latest" 2>/dev/null || echo 0)
+total=$(grep -cE '^\s*[0-9]+\.\s+\[[ xX]\]' "$latest" 2>/dev/null || echo 0)
+checked=$(grep -cE '^\s*[0-9]+\.\s+\[[xX]\]' "$latest" 2>/dev/null || echo 0)
 unchecked=$((total - checked))
 
 if [ "$unchecked" -gt 0 ]; then

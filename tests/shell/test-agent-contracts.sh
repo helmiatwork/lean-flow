@@ -61,6 +61,33 @@ orchestrator_content=$(cat plugin/agents/orchestrator.md)
 # Expected agent configurations from CLAUDE.md and lean-flow docs
 # (Using simple globals instead of associative arrays for portability)
 
+# Helper: get expected model for agent
+get_expected_model() {
+  case "$1" in
+    fixer|explorer|librarian) echo "haiku" ;;
+    designer|oracle|code-reviewer) echo "sonnet" ;;
+    *) echo "" ;;
+  esac
+}
+
+# Helper: get expected tools for agent
+get_expected_tools() {
+  case "$1" in
+    fixer) echo '["Read", "Write", "Edit", "Bash", "Grep", "Glob", "Agent"]' ;;
+    designer) echo '["Read", "Write", "Edit", "Bash", "Grep", "Glob", "WebSearch"]' ;;
+    oracle) echo '[]' ;;
+    code-reviewer) echo '["Read", "Grep", "Glob"]' ;;
+    explorer) echo '["Read", "Glob", "Grep", "Bash"]' ;;
+    librarian) echo '["Read", "Glob", "Grep", "Bash", "WebSearch", "WebFetch"]' ;;
+    *) echo "" ;;
+  esac
+}
+
+# Helper: normalize whitespace in JSON for comparison
+normalize_json() {
+  echo "$1" | tr -d ' '
+}
+
 # Check each agent file exists and has correct frontmatter
 for agent in fixer designer oracle code-reviewer explorer librarian; do
   agent_file="plugin/agents/${agent}.md"
@@ -69,7 +96,7 @@ for agent in fixer designer oracle code-reviewer explorer librarian; do
   if [ -f "$agent_file" ]; then
     agent_content=$(cat "$agent_file")
 
-    # Check frontmatter
+    # Check frontmatter name
     if echo "$agent_content" | head -10 | grep -q "^name: $agent"; then
       echo "✓ $agent has correct 'name:' in frontmatter"
       PASS=$((PASS+1))
@@ -78,21 +105,28 @@ for agent in fixer designer oracle code-reviewer explorer librarian; do
       FAIL=$((FAIL+1))
     fi
 
-    # Check model is documented
-    if echo "$agent_content" | head -10 | grep -q "^model:"; then
-      echo "✓ $agent has 'model:' field in frontmatter"
+    # Extract and verify exact model value
+    actual_model=$(echo "$agent_content" | head -10 | grep "^model:" | sed 's/^model: //' | tr -d ' ')
+    expected_model=$(get_expected_model "$agent")
+    if [ "$actual_model" = "$expected_model" ]; then
+      echo "✓ $agent has correct 'model: $actual_model'"
       PASS=$((PASS+1))
     else
-      echo "✗ $agent missing 'model:' field in frontmatter"
+      echo "✗ $agent model mismatch (expected: $expected_model, got: $actual_model)"
       FAIL=$((FAIL+1))
     fi
 
-    # Check tools field exists
-    if echo "$agent_content" | head -10 | grep -q "^tools:"; then
-      echo "✓ $agent has 'tools:' field in frontmatter"
+    # Extract and verify exact tools value (normalized for whitespace)
+    actual_tools=$(echo "$agent_content" | head -10 | grep "^tools:" | sed 's/^tools: //')
+    actual_tools_normalized=$(normalize_json "$actual_tools")
+    expected_tools=$(get_expected_tools "$agent")
+    expected_tools_normalized=$(normalize_json "$expected_tools")
+
+    if [ "$actual_tools_normalized" = "$expected_tools_normalized" ]; then
+      echo "✓ $agent has correct 'tools' specification"
       PASS=$((PASS+1))
     else
-      echo "✗ $agent missing 'tools:' field in frontmatter"
+      echo "✗ $agent tools mismatch (expected: $expected_tools, got: $actual_tools)"
       FAIL=$((FAIL+1))
     fi
   fi
@@ -207,7 +241,7 @@ echo ""
 echo "=== Consistency Cross-Checks ==="
 echo ""
 
-# Check that fixer and designer have end-to-end execution contracts
+# Check that fixer has end-to-end execution contract
 fixer_content=$(cat plugin/agents/fixer.md)
 if echo "$fixer_content" | grep -q "End-to-End Execution Contract"; then
   echo "✓ Fixer has End-to-End Execution Contract section"
@@ -217,23 +251,24 @@ else
   FAIL=$((FAIL+1))
 fi
 
+# Check that designer has required content (responsibilities and stops before PR)
 designer_content=$(cat plugin/agents/designer.md)
-if echo "$designer_content" | grep -q "end-to-end\|contract\|responsibility"; then
-  echo "✓ Designer has contract/responsibility documentation"
+if echo "$designer_content" | grep -q "Stops Before PR\|stops before"; then
+  echo "✓ Designer has Stops Before PR section"
   PASS=$((PASS+1))
 else
-  echo "⊘ Designer may need explicit contract documentation"
-  PASS=$((PASS+1))
+  echo "✗ Designer missing Stops Before PR section"
+  FAIL=$((FAIL+1))
 fi
 
-# Check that oracle explicitly has no tools
+# Check that oracle explicitly documents tools: []
 oracle_content=$(cat plugin/agents/oracle.md)
-if echo "$oracle_content" | grep -qE "(no tools|tools.*\[\]|\[\\s*\\])"; then
-  echo "✓ Oracle explicitly documents no tools (think-only)"
+if echo "$oracle_content" | grep -q "tools: \[\]"; then
+  echo "✓ Oracle frontmatter explicitly declares tools: []"
   PASS=$((PASS+1))
 else
-  echo "⊘ Oracle should explicitly state 'no tools' / 'think-only'"
-  PASS=$((PASS+1))
+  echo "✗ Oracle frontmatter missing tools: []"
+  FAIL=$((FAIL+1))
 fi
 
 echo ""
