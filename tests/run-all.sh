@@ -190,6 +190,8 @@ run_shell_suite "tests/shell/test-integration-lifecycle.sh"
 run_shell_suite "tests/shell/test-omos-adoptions.sh"
 run_shell_suite "tests/shell/test-ensure-companions.sh"
 run_shell_suite "tests/shell/test-check-dependencies.sh"
+run_shell_suite "tests/shell/test-tier-routing.sh"
+run_shell_suite "tests/shell/test-agent-contracts.sh"
 
 if command -v node &>/dev/null; then
   for nt in tests/node/*.mjs; do
