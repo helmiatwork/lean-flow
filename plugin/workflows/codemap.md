@@ -1,25 +1,34 @@
 # plugin/workflows/
 
-# plugin/workflows/ Codemap
+# Codemap: `plugin/workflows/`
 
 ## Responsibility
-Defines Claude's operational workflows and rule-based decision engines. `claude-rules.md` enforces mandatory skill triggers (TDD, debugging, verification) and branch governance. `standard-development-flow.md` orchestrates the session lifecycle: STAR classification → pattern recall → planning → fixer dispatch → verification, with distinct lanes for orchestrator (opus) vs. execution (haiku/sonnet fixer).
+Defines the two core operational frameworks for Claude-based development:
+- **claude-rules.md**: Mandatory command triggers, escalation rules, branch naming conventions, and the 6-step triage-to-merge workflow (Triage → Pattern Search → Brainstorm → Plan → Branch → Execute).
+- **standard-development-flow.md**: Mermaid-driven orchestration model showing the two-lane execution pattern (Orchestrator opus coordinates; Fixer haiku + Designer/Reviewer sonnets execute code changes), with hooks for auto-recall, STAR classification, dispatch routing, and CI gates.
+
+Together, these enforce deterministic, repeatable development discipline: lean-flow commands gate all major decisions, escalation rules prevent infinite retries, and parallel dispatch (fixer + optional designer) enables efficient multi-person workflows.
 
 ## Design
-- **Dual-layer governance**: `claude-rules.md` sets hard constraints (escalation rules, branching schema, mandatory lean-flow commands); `standard-development-flow.md` provides the control-flow diagram.
-- **Swim-lane separation**: Orchestrator (coordinator, no code edits) vs. Execution (fixer/designer/reviewer, all writes).
-- **Context-aware dispatch**: Simple tasks skip planning; complex tasks trigger brainstorm → plan-checker gate; greenfield tasks auto-generate PRD/HLA/TRD first.
-- **Escalation gate**: Failures at same step ≥3 times block retry; oracle diagnoses root cause.
+- **Rules as state machine**: claude-rules.md encodes mandatory skill triggers (TDD, systematic-debugging, verification-before-completion) as lookup table — each situation maps to exactly one lean-flow command.
+- **Two-lane architecture**: Orchestrator (decision-making, no code edits) stays in op-context; Execution lane (fixer haiku + reviewers sonnet) handles all writes. Dispatch calls decouple roles.
+- **STAR triage gates complexity**: Simple (→ direct PR) vs. Medium/Heavy (→ planning) vs. Greenfield (→ doc-first) vs. Hotfix (→ fast path). Prevents over-engineering simple fixes.
+- **Step branching with merge gating**: Parent branch coordinates; step branches isolate work; step PRs auto-merge to parent (no oracle), final parent→main PR gets full code review + oracle + CLAUDE.md validation.
+- **Hook-based auto-recall**: UserPromptSubmit triggers pattern_search (FTS5 on patterns.db); SessionStart loads orchestrator.md. No manual context loading.
 
 ## Flow
-1. SessionStart hook loads `orchestrator.md` role + `claude-rules.md` constraints.
-2. User prompt triggers auto-recall (FTS5 pattern search).
-3. STAR classify → route: simple (direct fixer PR), hotfix (fast path), or complex (brainstorm → plan-checker → execute via step branches).
-4. Fixer implements with TDD, verifies coverage ≥90%, commits with orchestrator-dispatched cartography.
-5. Step PRs auto-merge to parent; parent PR to main requires code-reviewer + oracle approval + CLAUDE.md validation.
+1. **Session start**: Orchestrator (opus) loaded via session-briefing.sh, awaits user prompt.
+2. **Auto-recall**: UserPromptSubmit hook fires → pattern_search + map-codebase + ingest-docs (for heavy tasks).
+3. **STAR classify**: Orchestrator determines simple/medium/heavy + greenfield/hotfix; user confirms breakdown.
+4. **Dispatch routing**:
+   - Simple → fixer direct PR to main (no planning).
+   - Medium/Heavy + pattern match → fixer applies pattern, creates parent branch.
+   - No pattern match → brainstorm + researcher + assumptions-analyzer, then plan (with plan-checker gate), then branch + step loop.
+   - Greenfield → parallel doc generation (PRD/HLA/TRD), then plan.
+   - Hotfix → fixer minimal fix off main, minimal review.
+5. **Step execution**: For each step: TDD if applicable → fixer + optional designer parallel → tests + coverage ≥90% gate → step PR to parent (auto-merge) → orchestrator verifies.
+6. **Final PR**: Parent → main, code-reviewer (sonnet) + oracle (sonnet, tools:[]) validation, CLAUDE.md check, pattern_store update.
+7. **Escalation breakout**: 3 same-step failures → oracle diagnose; 3 oracle escalations → flag human.
 
 ## Integration
-- **Consumed by**: SessionStart hook (loads rules), UserPromptSubmit hook (STAR classify), fixer dispatch (lean-flow:* commands), oracle review (verification-before-completion, code-reviewer).
-- **Reads from**: `docs/CODEBASE_MAP.md` (triage gate), `docs/orchestrator.md` (role config), knowledge MCP (pattern search).
-- **Writes to**: pattern_store, codemap updates (§12a hybrid merge), branch naming reflects schema.
-- **Dependencies**: lean-flow skill triggers (TDD, debugging, finishing), superpowers:writing-plans/executing-plans, cartography for changed folders.
+- **Invokes**: lean-flow command suite (systematic-debugging
