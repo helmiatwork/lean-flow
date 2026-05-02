@@ -10,19 +10,23 @@ PASS=0
 FAIL=0
 
 assert_contains() {
-  # Bash glob match (no pipe → no SIGPIPE / pipefail interaction with large $1)
-  case "$1" in
-    *"$2"*) echo "✓ $3"; PASS=$((PASS+1)) ;;
-    *) echo "✗ $3 (missing: '$2')"; FAIL=$((FAIL+1)) ;;
-  esac
+  # Bash regex match (no pipe → no SIGPIPE / pipefail interaction with large $1).
+  # Pattern is treated as ERE; callers can use alternation like 'foo|bar'.
+  local pat="${2//\\|/|}"  # accept callers' escaped pipes too
+  if [[ "$1" =~ $pat ]]; then
+    echo "✓ $3"; PASS=$((PASS+1))
+  else
+    echo "✗ $3 (missing: '$2')"; FAIL=$((FAIL+1))
+  fi
 }
 
 assert_not_contains() {
-  case "$1" in
-    *"$2"*) echo "✗ $3 (unexpected: '$2')"; FAIL=$((FAIL+1)) ;;
-    *) echo "✓ $3"; PASS=$((PASS+1)) ;;
-  esac
-  return 0  # short-circuit any caller's set -e
+  local pat="${2//\\|/|}"
+  if [[ "$1" =~ $pat ]]; then
+    echo "✗ $3 (unexpected: '$2')"; FAIL=$((FAIL+1))
+  else
+    echo "✓ $3"; PASS=$((PASS+1))
+  fi
 }
 
 echo "=== STAR Classifier Tier Routing Tests ==="
