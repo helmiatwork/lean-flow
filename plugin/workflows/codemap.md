@@ -3,23 +3,19 @@
 # Codemap: `plugin/workflows/`
 
 ## Responsibility
-Defines the operational playbooks and rule frameworks for Claude agents executing development tasks. `claude-rules.md` is the **mandatory skill trigger matrix** and **branching/escalation discipline**, while `standard-development-flow.md` documents the **session orchestration pattern** (STAR classification → pattern recall → planning → execution) with explicit role separation (orchestrator vs. fixer vs. designer).
+Defines the operational rules and decision frameworks that govern Claude's development workflow. `claude-rules.md` prescribes mandatory lean-flow skill triggers, escalation discipline, and branching conventions. `standard-development-flow.md` documents the complete session orchestration flow, distinguishing the orchestrator (opus, coordinates only) from execution lanes (fixer/designer haiku, reviewers sonnet). Together they form the "laws of motion" for the codebase.
 
 ## Design
-- **claude-rules.md**: Lookup table (skills by situation) + decision trees (triage complexity, branching strategy, escalation thresholds). Enforces lean-flow command discipline and 3-strike rule before oracle escalation.
-- **standard-development-flow.md**: Mermaid swimlane diagram encoding the full session lifecycle—role declaration (opus/fixer/haiku) → auto-recall → STAR triage → parallel execution lanes (orchestrator coordinates, fixer/designer execute, oracle gate-keeps final PR).
-- Both files are **prescriptive, not descriptive**—they block invalid operations (e.g., `/gsd-*` commands, retries without diagnosis) rather than document existing behavior.
+Two complementary rule documents:
+- **claude-rules.md**: Tabular reference (mandatory triggers, branch naming, flow phases) — triage → pattern search → brainstorm → planning → branching → execution steps → verification.
+- **standard-development-flow.md**: Mermaid flowchart showing role separation (orchestrator/fixer/designer/oracle), STAR classification (simple/medium/heavy/greenfield/hotfix), dispatch routing, parallel execution (designer + fixer), and gating (coverage ≥80–90%, CI green, oracle approval before main PR merge).
+
+Key patterns: TDD-first (RED→GREEN→REFACTOR), step-branch sequencing (step-N → parent only after step-N−1 merged), escalation caps (fixer fails 3× → oracle diagnoses), and hybrid codemap updates post-merge.
 
 ## Flow
-1. User submits prompt → `claude-rules.md` lookup determines **which lean-flow skill** (systematic-debugging, test-driven-development, etc.)
-2. Orchestrator auto-classifies via STAR → consults `standard-development-flow.md` swimlanes to route (simple → direct PR; complex → plan → step branches; hotfix → fast path)
-3. Fixer dispatches follow the **branching strategy** from `claude-rules.md` (parent + step branches, kebab-case naming)
-4. Each step gates on coverage ≥80%, escalation after 3 failures
-5. Final merge triggers codemap update (post-execution cartography)
+User prompt → auto pattern recall (STAR classify) → orchestrator decides path (simple: direct PR; complex: map/brainstorm/plan; greenfield: doc-first PRD/HLA/TRD; hotfix: fast bypass) → orchestrator dispatches fixer/designer to step branches (parallel when independent) → step PR → parent (auto-merge) → loop next step → final parent PR → oracle code review + finish checklist → CI gate → merge to main.
+
+Escalation: fixer stuck 3× → oracle (think-only systematic-debugging) → human flag if oracle escalates 3×.
 
 ## Integration
-- **Entry point**: SessionStart hook loads `claude-rules.md` as mandatory context via `session-briefing.sh`
-- **Orchestration**: `standard-development-flow.md` is the control flow diagram; `claude-rules.md` is the decision lookup
-- **Dispatch target**: Fixer agents receive the relevant **skill trigger** (e.g., `lean-flow:test-driven-development`) from the orchestrator's STAR → flow-diagram decision
-- **Escalation**: 3-strike rule (from `claude-rules.md`) feeds back to oracle gate-keep step in `standard-development-flow.md` (oracle inline review on hotfix, oracle think-only on systematic-debugging)
-- **Artifacts**: Plans, PRs, and codemap updates are committed; pattern matches are stored to `patterns.db` for future FTS5 recall
+Enforces discipline across `lean-flow:*` commands (systematic-debugging, test-driven-development, code-reviewer, finishing-a-development-branch, plan-checker, phase-researcher, etc.). Orchestrator lane reads from `docs/CODEBASE_MAP.md` (via `/cartographer`) and patterns.db (FTS5 pattern recall). Post-merge, step-branch commits trigger `lean-flow:cartography` for hybrid codemap updates (§12a). Branch naming and PR strategy drive CI/release-notes generation. Hotfix path bypasses planning but still runs oracle inline review; all other paths gate on coverage ≥80–90% and oracle final approval.
