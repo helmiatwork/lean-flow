@@ -58,6 +58,20 @@ For medium/heavy tasks, the fixer executes the full end-to-end chain:
 - Never include Claude/AI/Co-Authored-By attribution in commits, PR titles, or PR bodies.
 - Hard cap is **3 combined rounds** of code-reviewer + oracle. Round 4+ → human escalation, no exceptions.
 
+## Off-scope Routing
+
+If a task falls outside this agent's scope, do NOT execute it. Return a re-dispatch instruction to the orchestrator naming the correct agent and a one-line task brief.
+
+| Off-scope task type | Re-dispatch to |
+|---|---|
+| Frontend / UI / styling / interaction / a11y | `lean-flow:designer` |
+| Architecture / security / cross-system trade-offs / final review | `lean-flow:oracle` |
+| Code-quality / SOLID / patterns / coverage review | `lean-flow:code-reviewer` |
+| Codebase search / file discovery / diff scans | `lean-flow:explorer` |
+| External docs / API reference / library lookup | `lean-flow:librarian` |
+
+Return format: `OFF-SCOPE: dispatch to <agent> — <one-line brief>` (orchestrator parses this and re-dispatches; do not attempt the work yourself).
+
 ## Done Checklist
 
 **Always:**

@@ -151,36 +151,52 @@ for agent in fixer designer oracle code-reviewer explorer librarian; do
   agent_file="plugin/agents/${agent}.md"
 
   if [ ! -f "$agent_file" ]; then
+    echo "✗ $agent_file missing"
+    FAIL=$((FAIL+1))
     continue
   fi
 
   agent_content=$(cat "$agent_file")
 
-  # Check for off-scope routing section
-  if echo "$agent_content" | grep -qE "(Off-scope|off-scope|Out of scope|scope.*routing|re-dispatch)"; then
-    echo "✓ $agent has off-scope routing guidance"
+  # Assert: Off-scope routing section exists with correct heading
+  if echo "$agent_content" | grep -q "## Off-scope Routing"; then
+    echo "✓ $agent has '## Off-scope Routing' section"
     PASS=$((PASS+1))
+  else
+    echo "✗ $agent missing '## Off-scope Routing' section"
+    FAIL=$((FAIL+1))
+    continue
+  fi
 
-    # Check for agent name references (at least 2 other agents mentioned)
-    agent_mentions=0
-    for other in fixer designer oracle code-reviewer explorer librarian; do
-      [ "$other" = "$agent" ] && continue
-      if echo "$agent_content" | grep -q "lean-flow:$other"; then
-        agent_mentions=$((agent_mentions + 1))
-      fi
-    done
+  # Assert: "do NOT execute" or equivalent refusal language is present
+  if echo "$agent_content" | grep -qE "(do NOT execute|do not execute|Do NOT|refusal|off-scope.*re-dispatch)"; then
+    echo "✓ $agent has refusal language (do NOT execute)"
+    PASS=$((PASS+1))
+  else
+    echo "✗ $agent missing refusal language"
+    FAIL=$((FAIL+1))
+  fi
 
-    if [ "$agent_mentions" -ge 1 ]; then
-      echo "✓ $agent references at least one peer agent in routing"
+  # Assert: OFF-SCOPE return format is documented
+  if echo "$agent_content" | grep -q "OFF-SCOPE: dispatch to"; then
+    echo "✓ $agent documents OFF-SCOPE return format"
+    PASS=$((PASS+1))
+  else
+    echo "✗ $agent missing 'OFF-SCOPE: dispatch to' format"
+    FAIL=$((FAIL+1))
+  fi
+
+  # Assert: All 5 other peer agents are mentioned by lean-flow:<name>
+  for other in fixer designer oracle code-reviewer explorer librarian; do
+    [ "$other" = "$agent" ] && continue
+    if echo "$agent_content" | grep -q "lean-flow:$other"; then
+      echo "✓ $agent mentions peer agent lean-flow:$other"
       PASS=$((PASS+1))
     else
-      echo "⊘ $agent could mention peer agents in routing guidance"
-      PASS=$((PASS+1))
+      echo "✗ $agent does not mention peer agent lean-flow:$other"
+      FAIL=$((FAIL+1))
     fi
-  else
-    echo "⊘ $agent lacks explicit off-scope guidance (may inherit from role)"
-    PASS=$((PASS+1))
-  fi
+  done
 done
 echo ""
 
