@@ -29,21 +29,24 @@ For medium/heavy tasks, the fixer executes the full end-to-end chain:
 
 1. **Implement every step** of the orchestrator's plan. Do not stop mid-plan.
 2. **Write tests** covering new code at **minimum 90% line coverage**. Use the repo's existing test framework and style.
-3. **Run the full test suite**. If any test fails, debug and fix. Iterate until all tests pass (0 failures).
-4. **Run linters/type-checkers** (e.g., `bin/rubocop`, `bunx tsc --noEmit`, `eslint`, etc.). Fix all offenses.
-5. **Commit** with conventional messages (type: description). Never include Claude/AI/Co-Authored-By attribution lines — pre-commit hooks will block it.
-6. **Push the branch** to the remote.
-7. **Create a PR** via `gh pr create`, matching the repo's PR template (look for `.github/PULL_REQUEST_TEMPLATE*.md`). For parent → main PRs, include release notes written for end users.
-8. **Spawn the oracle agent** (sonnet, think-only) for review. Pass: PR number, list of files changed, and a brief summary of intent. Oracle returns either `APPROVED` or a numbered list of issues (severity + exact file/line locations).
-9. **Apply oracle fixes**: For each issue returned, apply the fix, re-run tests + linters, commit, push. Loop back to step 8 until oracle returns `APPROVED`. Hard cap: 3 oracle rounds max; if still not approved, return to orchestrator with a blocker note.
-10. **Merge the PR** once oracle is `APPROVED` and CI is green. Update PR title/description if scope drifted, then merge (use `gh pr merge --squash --delete-branch` unless the repo convention says otherwise).
+3. **Run the full test suite**. Iterate until 0 failures.
+4. **Coverage gate** — confirm new code is at ≥ 90% line coverage. If below, add more tests and re-run.
+5. **Run linters / type-checkers** (`bin/rubocop`, `bunx tsc --noEmit`, `eslint`, etc.). Fix all offenses.
+6. **Commit** with conventional messages. Never include Claude/AI/Co-Authored-By attribution — pre-commit hooks block it.
+7. **Push the branch**.
+8. **Create the PR** via `gh pr create`, matching the repo's PR template. For parent → main PRs, include release notes for end users.
+9. **Code review pass** — spawn `lean-flow:code-reviewer` (sonnet) for code-quality / SOLID / patterns review. Apply any issues raised, re-run tests + linters, push.
+10. **Architecture review pass** — spawn the `oracle` agent (sonnet, think-only) with PR number + files-changed list + summary. Oracle returns `APPROVED` or numbered issues. Apply fixes, re-run tests + linters, push, update PR title/description if scope drifted. Loop steps 9–10 until both return `APPROVED`. **Hard cap: 3 combined rounds.** If still not approved after 3 rounds → escalate to **HUMAN INTERVENTION**: stop, post a comment on the PR summarizing what's blocked, and return to orchestrator. Do not keep looping.
+11. **Hybrid codemap update** (§12a) — run `cartographer.py changes`, dispatch explorer to fill any affected `codemap.md`, fixer writes; if structural changes happened, fixer updates `docs/CODEBASE_MAP.md` (§12a Tier 1).
+12. **CI gate + merge** — wait for GitHub Actions CI to be green on the PR. If red, treat as a code-review issue (loop back to step 9). Once green AND oracle is `APPROVED`, merge with `gh pr merge --squash --delete-branch` (or the repo's convention).
 
-**Step PRs note:** Step branch → parent PRs skip the oracle review loop — only the final parent → main PR triggers the full oracle cycle. This preserves token efficiency in the standard development flow.
+**Step PRs note:** Step branch → parent PRs skip steps 9, 10, 11 (no code-reviewer, no oracle, no codemap). They auto-merge after CI passes. Only the final parent → main PR triggers the full review chain.
 
 ### Hard Constraints
-- Never push to `main` directly. A guard rail blocks it.
+- Never push to `main` directly (a guard rail blocks it).
 - Never use `--no-verify` or skip pre-commit hooks.
 - Never include Claude/AI/Co-Authored-By attribution in commits, PR titles, or PR bodies.
+- Hard cap is **3 combined rounds** of code-reviewer + oracle. Round 4+ → human escalation, no exceptions.
 
 ## Done Checklist
 
