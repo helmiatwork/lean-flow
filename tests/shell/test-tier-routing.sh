@@ -46,10 +46,10 @@ if [ ! -f "plugin/workflows/standard-development-flow.md" ]; then
   echo "✗ standard-development-flow.md not found"
   FAIL=$((FAIL+1))
 else
-  flow_doc=$(cat plugin/workflows/standard-development-flow.md)
+  WORKFLOW_DOC="plugin/workflows/standard-development-flow.md"
 
   # Test 1: Simple tier must be documented
-  if echo "$flow_doc" | grep -qE "simple|DIRECTFIX"; then
+  if grep -qE "simple|DIRECTFIX" "$WORKFLOW_DOC"; then
     echo "✓ Test 1: Simple tier documented in workflow"
     PASS=$((PASS+1))
   else
@@ -58,7 +58,7 @@ else
   fi
 
   # Test 2: Medium tier must be documented
-  if echo "$flow_doc" | grep -q "medium"; then
+  if grep -q "medium" "$WORKFLOW_DOC"; then
     echo "✓ Test 2: Medium tier documented in workflow"
     PASS=$((PASS+1))
   else
@@ -67,7 +67,7 @@ else
   fi
 
   # Test 3: Heavy tier must be documented
-  if echo "$flow_doc" | grep -q "heavy"; then
+  if grep -q "heavy" "$WORKFLOW_DOC"; then
     echo "✓ Test 3: Heavy tier documented in workflow"
     PASS=$((PASS+1))
   else
@@ -76,7 +76,7 @@ else
   fi
 
   # Test 4: Greenfield tier must be documented
-  if echo "$flow_doc" | grep -q "greenfield\|GREENFIELD"; then
+  if grep -qE "greenfield|GREENFIELD" "$WORKFLOW_DOC"; then
     echo "✓ Test 4: Greenfield tier documented in workflow"
     PASS=$((PASS+1))
   else
@@ -85,7 +85,7 @@ else
   fi
 
   # Test 5: Hotfix tier must be documented
-  if echo "$flow_doc" | grep -q "hotfix\|HOTFIX"; then
+  if grep -qE "hotfix|HOTFIX" "$WORKFLOW_DOC"; then
     echo "✓ Test 5: Hotfix tier documented in workflow"
     PASS=$((PASS+1))
   else
@@ -123,16 +123,16 @@ echo ""
 # Test 7: standard-development-flow.md documents tier routing in prose
 echo "Test 7: Tier Routing documentation in standard-development-flow.md"
 if [ -f "plugin/workflows/standard-development-flow.md" ]; then
-  flow_doc=$(cat plugin/workflows/standard-development-flow.md)
+  WORKFLOW_DOC="plugin/workflows/standard-development-flow.md"
 
   # Check that workflow doc has Tier Routing or equivalent section
-  if echo "$flow_doc" | grep -qE "Tier Routing|tier.*routing|STAR.*classify"; then
+  if grep -qE "Tier Routing|tier.*routing|STAR.*classify" "$WORKFLOW_DOC"; then
     echo "✓ standard-development-flow.md has Tier Routing section"
     PASS=$((PASS+1))
 
     # Verify routing table includes all tiers
-    if echo "$flow_doc" | grep -qE "simple.*medium.*heavy" && \
-       echo "$flow_doc" | grep -qE "greenfield|hotfix"; then
+    if grep -qE "simple.*medium.*heavy" "$WORKFLOW_DOC" && \
+       grep -qE "greenfield|hotfix" "$WORKFLOW_DOC"; then
       echo "✓ Tier Routing documentation includes all five tiers"
       PASS=$((PASS+1))
     else
