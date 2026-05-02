@@ -1,22 +1,24 @@
 # plugin/workflows/
 
-# plugin/workflows/ Codemap
+# Codemap: `plugin/workflows/`
 
 ## Responsibility
-Defines the canonical development workflows and rules that Claude agents follow when executing tasks in the lean-flow system. These files establish non-negotiable skill triggers, branching strategy, triage logic, and execution patterns across simple/complex/greenfield/hotfix paths.
+Defines the canonical workflows and rule enforcement for Claude-based development. `claude-rules.md` establishes mandatory lean-flow commands, escalation policies, and branching conventions. `standard-development-flow.md` provides the mermaid orchestration diagram showing how orchestrator (opus) coordinates with fixer (haiku) and reviewers (sonnet) across simple/complex/hotfix/greenfield paths.
 
 ## Design
-- **claude-rules.md**: Prescriptive ruleset — mandatory skill invocations (TDD, debugging, verification), escalation thresholds (3 failures → oracle → human), branch naming conventions (feature/fix/hotfix/docs with kebab-case), and sequential step-branching strategy (parent → step-1 → step-2 → main).
-- **standard-development-flow.md**: Visual flowchart (Mermaid) mapping user prompt → auto-recall → STAR triage → four paths (simple/complex/greenfield/hotfix) with decision gates, skill invocations (map-codebase, brainstorming, plan-checker, verifier, nyquist-auditor), and merge logic.
+- **Rules-as-contract**: `claude-rules.md` establishes non-negotiable skill triggers (e.g., TDD before implementation, systematic-debugging on failure), escalation limits (3 retries → oracle diagnosis), and branch naming conventions (`feature/*/step-N`, `hotfix/*`, `docs/*`)
+- **Orchestrated async execution**: `standard-development-flow.md` shows role separation — orchestrator never edits code, dispatches fixers/designers in parallel, gates on CI/coverage/code-review before merge
+- **Pattern reuse**: Pattern search (FTS5 → patterns.db) short-circuits planning; matching patterns skip to dispatch-adapt; no match → brainstorm → plan
 
 ## Flow
-Entry point: user prompt triggers `UserPromptSubmit` hook → auto-recall (pattern.db FTS5 lookup) → STAR clarification (haiku classifies complexity) → orchestrator triage. Branches into:
-- **Simple**: fixer → tests → PR main (no planning).
-- **Complex**: pattern search → codebase mapping → research → brainstorming → planning (with plan-checker gate) → branching (parent + step branches) → fixer execution + verification.
-- **Greenfield**: brainstorm → doc-first (PRD/HLA/TRD) → planning → execution.
-- **Hotfix**: minimal fix on hotfix/ branch → inline oracle review → merge + cherry-pick.
+1. **Session start** → orchestrator loads rules, user submits prompt
+2. **Auto-recall + STAR classify** → pattern search (FTS5) → found (dispatch adapt) or not (brainstorm)
+3. **Branching strategy**: parent branch off main → step branches off parent (sequential, each step PRs to parent) → final parent PR to main (oracle-gated)
+4. **Parallel dispatch** where applicable: designer + fixer in step branches, both writing code; orchestrator only coordinates and verifies
+5. **Escalation**: fixer fails 3× on same step → oracle diagnoses (think-only); oracle escalates 3× → flag human
 
 ## Integration
-- **claude-rules.md** enforces constraints on all agent behaviors (fixer, oracle, explorer, librarian, haiku classifiers) and feeds branch strategy to git operations.
-- **standard-development-flow.md** orchestrates skill dispatch across `lean-flow:*` commands (TDD, debugging, verification-before-completion, finishing-a-development-branch), knowledge MCP pattern search, and downstream agents (plan-checker, verifier, nyquist-auditor).
-- Both files are read during task triage and referenced during step execution to validate compliance with branching, escalation, and skill-trigger rules.
+- Imported by session-briefing.sh into `orchestrator.md` context (opus role declaration)
+- Validates against `docs/CODEBASE_MAP.md` (triage checks it exists; cartographer regenerates changed folders)
+- Feeds patterns back to `patterns.db` (FTS5 knowledge store) after merge
+- Gate checks: plan-checker (8-dimension verification), coverage ≥80–90%, CI green, code-review approval, oracle final sign-off before codemap + pattern_store update

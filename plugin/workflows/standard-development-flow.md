@@ -58,10 +58,15 @@ flowchart TD
       %% Adapt-pattern shortcut
       DISPATCH_ADAPT --> BRANCH_CREATE
 
-      %% Step branch loop
+      %% Step branch loop — with optional parallel designer
       subgraph step_branch ["🌿 step branch per step"]
         DISPATCH_STEP --> STEPBR["🌿 Step branch<br/>optional research:<br/>explorer / librarian"]
-        STEPBR --> TESTFIRST{"TDD?"}
+        STEPBR --> HAS_FRONTEND{"Frontend work<br/>in step?"}
+        HAS_FRONTEND -->|"yes"| DESIGNER_DISPATCH["📤 Dispatch designer<br/>(parallel to fixer)"]
+        HAS_FRONTEND -->|"no"| TESTFIRST
+        DESIGNER_DISPATCH --> DESIGNER_IMPL["🎨 designer: frontend-design<br/>+ tdd + verification<br/>commits to step branch"]
+        DESIGNER_IMPL --> DESIGNER_WAIT["⏳ Designer done<br/>waiting for fixer"]
+        TESTFIRST{"TDD?"}
         TESTFIRST -->|"yes"| TDDTEST["RED → GREEN → REFACTOR"] --> IMPLEMENT
         TESTFIRST -->|"no"| IMPLEMENT
         IMPLEMENT["🔧 fixer impl + tests + self-verify"] --> TEST["Run tests"]
@@ -69,18 +74,21 @@ flowchart TD
         TEST -->|"fail × 3"| ORACLE_ESC["🔮 oracle (think-only)<br/>systematic-debugging"]
         ORACLE_ESC --> IMPLEMENT
         COVERAGE_GATE -->|"< 90%"| IMPLEMENT
+        COVERAGE_GATE -->|"≥ 90%"| FIXER_CARTO["🔧 fixer commits<br/>orchestrator dispatches<br/>explorer: lean-flow:cartography<br/>(changed folders only)"]
+        DESIGNER_WAIT --> FIXER_CARTO
       end
-      COVERAGE_GATE -->|"≥ 90%"| STEPPR["PR step → parent<br/>auto-merge, no oracle"]
+      FIXER_CARTO --> STEPPR["PR step → parent<br/>auto-merge, no oracle"]
 
       %% Parent → main final PR
       subgraph parent_branch ["🌿 parent branch (off main)"]
         DISPATCH_FINAL --> POSTSTEPS["✅ Post-step gate<br/>verifier + nyquist + finishing"]
         POSTSTEPS --> MAINPR["🔧 fixer opens PR<br/>parent → main<br/>+ release notes"]
         MAINPR --> CODEREVIEW["📋 lean-flow:code-reviewer<br/>(sonnet)"]
-        CODEREVIEW -->|"issues"| FIXFINAL["🔧 fixer applies feedback<br/>+ updates PR title/desc<br/>+ pushes"]
+        CODEREVIEW -->|"issues"| ISSUE_ROUTE["🔀 fixer routes issues<br/>backend → fixer<br/>frontend → designer<br/>cross-cutting → both parallel"]
+        ISSUE_ROUTE --> FIXFINAL["🔧 + 🎨 apply fixes<br/>+ re-verify<br/>+ push"]
         FIXFINAL --> CODEREVIEW
-        CODEREVIEW -->|"approved"| FINAL["🔮 lean-flow:oracle<br/>(sonnet, tools:[])"]
-        FINAL -->|"issues"| FIXFINAL
+        CODEREVIEW -->|"approved"| FINAL["🔮 lean-flow:oracle<br/>(sonnet, tools:[])<br/>also validates CLAUDE.md"]
+        FINAL -->|"issues"| ISSUE_ROUTE
         FINAL -->|"approved"| CODEMAP_UPDATE["🔧 Hybrid codemap update §12a<br/>+ pattern_store"]
         CODEMAP_UPDATE --> CI_GATE{"⏳ CI green?"}
         CI_GATE -->|"red"| FIXFINAL
@@ -135,16 +143,22 @@ flowchart TD
     style HOTFIXPR fill:#2ECC71,color:#fff
     style CI_HOTFIX fill:#F39C12,color:#fff
     style STEPBR fill:#1ABC9C,color:#fff
+    style HAS_FRONTEND fill:#F39C12,color:#fff
+    style DESIGNER_DISPATCH fill:#D35400,color:#fff
+    style DESIGNER_IMPL fill:#9B59B6,color:#fff
+    style DESIGNER_WAIT fill:#8E44AD,color:#fff
     style TESTFIRST fill:#F39C12,color:#fff
     style TDDTEST fill:#3498DB,color:#fff
     style IMPLEMENT fill:#3498DB,color:#fff
     style TEST fill:#7B68EE,color:#fff
     style COVERAGE_GATE fill:#F39C12,color:#fff
     style ORACLE_ESC fill:#9B59B6,color:#fff
+    style FIXER_CARTO fill:#E67E22,color:#fff
     style STEPPR fill:#2ECC71,color:#fff
     style POSTSTEPS fill:#27AE60,color:#fff
     style MAINPR fill:#2ECC71,color:#fff
     style CODEREVIEW fill:#8E44AD,color:#fff
+    style ISSUE_ROUTE fill:#E91E63,color:#fff
     style FIXFINAL fill:#E67E22,color:#fff
     style FINAL fill:#9B59B6,color:#fff
     style CODEMAP_UPDATE fill:#9B59B6,color:#fff
@@ -159,6 +173,27 @@ flowchart TD
 > - **📤 Dispatch nodes** (orange diamonds) — the boundary where the orchestrator hands work to `lean-flow:fixer`. Five dispatch points: simple, hotfix, adapt-pattern, step, and final-PR.
 > - **🔧 Execution lane** — everything `lean-flow:fixer` (haiku) and reviewers (sonnet) do: implement, test, lint, commit, push, PR, code-review, oracle review, codemap, merge.
 > - **Loop-back** — `STEPPR → STEP` and `MERGE_MAIN → VERIFY → DONE` arrows show execution reporting back into the orchestrator lane for next-step control / final verification.
+> - **🎨 Designer node** — parallel to fixer on step branches when frontend work is present. Designer commits to step branch, fixer opens the PR. No separate designer PR.
+> - **🔀 Issue routing** — fixer classifies review feedback: backend → fixer, frontend → designer, cross-cutting → both parallel. Re-verify and re-request review until both APPROVED.
+> - **Explorer cartography** — after each fixer/designer commit, orchestrator dispatches explorer to update `codemap.md` for changed folders (scoped, not full repo).
+
+## Skill → Agent Mapping
+
+| Agent | Required Skills | Model | Dispatched When |
+|---|---|---|---|
+| **orchestrator** | `superpowers:using-superpowers` → `superpowers:writing-plans` → `superpowers:dispatching-parallel-agents` | opus | Main session — never spawned. Coordinates tier routing, planning, dispatch. |
+| **fixer** | `superpowers:executing-plans` → `superpowers:test-driven-development` → `superpowers:verification-before-completion` → `superpowers:finishing-a-development-branch` → `superpowers:requesting-code-review` | haiku | Medium/heavy tasks. Owns full impl → test → lint → commit → PR → review loop → merge. Routes review feedback to fixer/designer/both. |
+| **designer** | `frontend-design:frontend-design` → `superpowers:executing-plans` → `superpowers:test-driven-development` → `superpowers:verification-before-completion` | sonnet | Step has frontend work. Implements UI/components, writes tests, commits to step branch. **Stops before PR** — fixer opens PR and manages review. |
+| **oracle** | `superpowers:receiving-code-review` + `claude-md-management:claude-md-improver` (when diff touches CLAUDE.md / agents/*.md / workflows/*.md) | sonnet | PR review after code-reviewer. Think-only (tools:[]). Architecture + security audit. Final approval gate before merge. |
+| **code-reviewer** | `superpowers:receiving-code-review` + `superpowers:verification-before-completion` | sonnet | Step or parent PR review. Code-quality, SOLID, patterns, coverage. Returns APPROVED or numbered issues. |
+| **explorer** | `lean-flow:cartography` (post-commit per-folder) + on-demand: `lean-flow:map-codebase`, `lean-flow:phase-researcher`, `lean-flow:assumptions-analyzer` | haiku | After every fixer/designer commit, orchestrator dispatches explorer for cartography on changed folders only. Also on-demand for discovery/research. |
+| **librarian** | Context7 MCP + WebSearch + WebFetch (tools = the skill) | haiku | When researching library APIs, documentation, best practices. No plugin-defined skill — tool-native. |
+
+**Key contracts:**
+- Designer commits + stops; fixer opens PR and manages feedback loops
+- Oracle validates CLAUDE.md / agents/*.md / workflows/*.md during rule-file PRs
+- Explorer cartography is mandatory per-commit (scoped to changed folders), not optional
+- Fixer routes review feedback per IssueRoutingRules (orchestrator.md) — backend to fixer, frontend to designer, cross-cutting to both parallel
 
 ## Branch Naming Convention
 
