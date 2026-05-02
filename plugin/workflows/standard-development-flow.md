@@ -87,7 +87,8 @@ flowchart TD
     FIXVERIFY --> VERIFY
     VERIFYRESULT -->|"Passed"| NYQUIST["🧪 nyquist-auditor\nFill test coverage gaps\ntest-only, no impl changes"]
     NYQUIST --> FINISHING["🏁 lean-flow:finishing-a-development-branch\nmerge/PR/cleanup decision"]
-    FINISHING --> AUDITSCAN
+    FINISHING --> FIXERDRIVEN["🔧 Fixer-driven final PR\n(medium/heavy tasks)\nOrchestrator hands off"]
+    FIXERDRIVEN --> AUDITSCAN
     STEP -->|"Plan invalid"| REPLAN
 
     REPLAN["📋 Revise remaining\nsteps via superpowers:writing-plans"] --> STEP
@@ -130,19 +131,19 @@ flowchart TD
 
     FIXAUDIT --> AUDITSCAN
 
-    MAINPR["PR parent → main\n+ release notes"] --> FINALSCAN
+    MAINPR["🔧 Fixer creates PR\nparent → main\n+ release notes"] --> FINALSCAN
 
-    FINALSCAN["🔍 Explorer\n(haiku)\nScan PR diff\n→ summary"] --> CODEREVIEW["📋 lean-flow:code-reviewer\n(sonnet)\ncode quality, patterns,\nsecurity, SOLID"]
-    CODEREVIEW -->|"Issues"| FIXFINAL["🔧 Fixer\nfix on parent"]
+    FINALSCAN["🔍 Explorer (haiku)\nScans PR diff\n→ summary for fixer"] --> CODEREVIEW["📋 Fixer dispatches\nlean-flow:code-reviewer\n(sonnet)\ncode quality / SOLID"]
+    CODEREVIEW -->|"Issues"| FIXFINAL["🔧 Fixer applies feedback\n+ pushes update\n(max 3 rounds combined)"]
     CODEREVIEW -->|"Passed"| FINAL
 
-    FINAL["🔮 Oracle\n(sonnet, think-only)\nArchitecture review\nfrom explorer summary\n🚫 no Write/Edit/Bash"]
+    FINAL["🔮 Fixer dispatches Oracle\n(sonnet, think-only)\nArchitecture review\n🚫 no Write/Edit/Bash"]
     FINAL -->|"Issues"| FIXFINAL
     FINAL -->|"Approved"| CMAPSCAN
 
     FIXFINAL --> FINALSCAN
 
-    CMAPSCAN["📋 cartographer.py changes\n→ list affected folders"] --> CODEMAP
+    CMAPSCAN["🔧 Fixer runs\ncartographer.py changes"] --> CODEMAP
 
     CODEMAP{"Affected\ncodemap.md files?"}
     CODEMAP -->|"Yes"| CMAPSYNTH["🔍 Explorer fills\naffected codemap.md\n→ 🔧 Fixer writes\n→ cartographer.py update"]
@@ -154,7 +155,7 @@ flowchart TD
     T1CHECK -->|"No"| LEARN
     T1UPDATE --> LEARN
 
-    LEARN["🧠 pattern_store\nSave patterns"] --> MERGE_MAIN(["✅ Merge to main"])
+    LEARN["🧠 pattern_store\nSave patterns"] --> MERGE_MAIN(["✅ Fixer merges PR\n(squash + delete branch)"])
 
     MERGE_MAIN --> CICODEMAP["🤖 CI: auto-update codemaps\n(GitHub Actions)\nHaiku regenerates codemap.md\nfor each changed directory"]
     MERGE_MAIN --> AUTOOBSERVE["📊 Auto-observe\n(Stop hook)\nRecord tool usage stats\nto patterns.db — zero tokens"]
@@ -245,6 +246,7 @@ flowchart TD
     style SYSDBG fill:#C0392B,color:#fff
     style FINISHING fill:#1ABC9C,color:#fff
     style CODEREVIEW fill:#8E44AD,color:#fff
+    style FIXERDRIVEN fill:#16A085,color:#fff
 ```
 
 ## Branch Naming Convention
