@@ -1,31 +1,26 @@
 # plugin/agents/
 
-# codemap.md — `plugin/agents/`
+# codemap.md
 
 ## Responsibility
-Defines nine specialized agent roles for the lean-flow plugin orchestrator. Each agent file (e.g., `fixer.md`, `explorer.md`, `oracle.md`) documents a single agent's purpose, required superpowers, permissions, and operational rules. Together they form a division-of-labor model: orchestrator classifies work → delegates to appropriate agent(s) → agent executes within its scope → result feeds back to orchestrator or user.
+The `plugin/agents/` directory defines specialized agent personas for the lean-flow plugin orchestration system. Each agent is a focused Claude instance (via `Agent` tool) with specific capabilities, tools, and role constraints. The orchestrator dispatches agents based on task classification — agents are NOT invoked as subagents by each other, only by the main orchestrator session.
 
 ## Design
-- **Agent-as-spec pattern:** Each `.md` file is a YAML frontmatter + Markdown spec. Frontmatter declares `name`, `description`, `model` (haiku/sonnet/opus), and `tools` (list of available MCPs). Body documents role, required skills (superpowers), rules, and end-to-end contract (for fixer) or workflow (for orchestrator).
-- **Specialization by cost/speed:** Haiku agents (explorer, librarian, fixer) handle fast search/impl; sonnet agents (code-reviewer, designer, oracle) handle synthesis/review; opus orchestrator (orchestrator.md) handles delegation logic.
-- **Permission boundaries:** Oracle has `tools: []` (think-only); explorer/librarian are read-only; fixer/designer have write; orchestrator has full toolset for dispatch.
-- **Superpowers as skill contracts:** Each agent lists required superpowers (e.g., `superpowers:executing-plans`, `superpowers:test-driven-development`) — these map to learned behaviors in the plugin's LLM fine-tuning or prompt injection layer.
+- **Agent-per-role pattern**: Each `.md` file declares one agent persona with `name`, `description`, `model` (claude-3-5-sonnet, haiku, opus), and `tools` array. The agent's instructions are in the file body.
+- **Skill/capability declarations**: Agents declare required superpowers (e.g., `superpowers:executing-plans`, `frontend-design:frontend-design`) that map to orchestrator's knowledge base.
+- **Off-scope routing rules**: Every agent includes an identical routing table redirecting out-of-scope tasks to the correct agent (e.g., code-reviewer routes frontend tasks to designer). Format: `OFF-SCOPE: dispatch to <agent> — <brief>`.
+- **Tool restrictions by agent**: Read-only agents (explorer, librarian, code-reviewer) lack Write/Edit; oracle has no tools at all (think-only); fixer and designer are full-capability.
+- **Hard constraints documented inline**: Fixer's 3-round review cap, oracle's prohibition on file/shell tools, designer's stop-before-PR rule.
 
 ## Flow
-1. User submits task → orchestrator classifies (simple/medium/heavy/greenfield/hotfix).
-2. Simple: orchestrator edits directly.
-3. Medium/heavy: orchestrator runs `lean-flow:discuss` (discuss.md) for scope confirmation, then writes a structured plan.
-4. Orchestrator dispatches appropriate agent(s):
-   - `explorer.md`: Pre-work discovery (file locations, codebase map, diff summaries for oracle).
-   - `librarian.md`: API/docs research (WebSearch, Context7 MCP for current library docs).
-   - `fixer.md`: End-to-end implementation (code, tests, commits, PR, code-reviewer/oracle dispatch, merge).
-   - `designer.md`: UI/UX polish (components, styling, a11y, tests — stops before PR).
-   - `code-reviewer.md`: Code-quality/SOLID/coverage review (diff-level, before oracle on parent→main PRs).
-   - `oracle.md`: Architecture/security/design review (think-only, receives summaries from explorer, returns APPROVED or issues).
-5. Agent executes, reports completion or blockers.
-6. Fixer loops: code-reviewer → apply fixes → oracle → apply fixes → CI gate → merge. Max 3 combined rounds before escalation.
-7. Post-merge: explorer scans changed folders, fills `codemap.md` templates (hybrid cartography, § 12a).
+1. **Orchestrator receives user task** → classifies via STAR (simple/medium/heavy) → routes per tier.
+2. **For medium/heavy tasks**: Orchestrator writes a structured plan with exact code/paths/commands, optionally dispatches explorer/librarian/discuss for pre-work, then **dispatches fixer with the plan** as the execution contract.
+3. **Fixer executes the plan end-to-end**: implements → tests → linters → commits → PR → dispatches code-reviewer (sonnet, diff-level quality) → dispatches oracle (sonnet, architecture/security) → applies feedback loops (max 3 combined rounds) → merges CI-green PR.
+4. **After merge**: Explorer cartographer updates affected `codemap.md` templates, oracle decides if Tier 1 (docs/CODEBASE_MAP.md) needs update.
+5. **Designer and oracle never write code** — designer commits to branch, fixer opens PR; oracle only thinks and advises.
 
 ## Integration
-- **Orchestrator hub:** `orchestrator.md` documents the orchestrator role and agent dispatch rules — it is the canonical reference for delegation logic, not invoked as a subagent itself.
-- **Plan contract:** `fixer.md` executes plans written by orchestrator in step-by-step detail (files, line numbers, exact
+- **With orchestrator**: Agents are invoked via `Agent` tool in prompts; orchestrator owns the dispatch logic, plan creation, and verification loops. Agents report findings/status back to orchestrator, which continues the session.
+- **With each other**: Agents don't call agents — only orchestrator dispatches. Code-reviewer and oracle are run sequentially on the same PR (code-reviewer first, oracle second). Explorer pre-work (codebase maps, diff scans) feeds into oracle's summaries.
+- **With plugin infrastructure**: Agents read `CLAUDE.md` for project context, follow project-specific patterns detected in existing code, and respect pre-commit hooks (no Co-Authored-By attribution).
+- **With CI/codemap system**: Fixer pushes branches; explorer runs cartographer.py changes to populate affected `codemap.md` stubs; oracle flags structural changes for Tier 1 docs update.
