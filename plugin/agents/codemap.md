@@ -1,30 +1,29 @@
 # plugin/agents/
 
-# plugin/agents/ Codemap
+# codemap.md — `plugin/agents/`
 
 ## Responsibility
-Defines the lean-flow plugin's specialist agents and their roles in the orchestration system. Each `.md` file is an agent specification that describes a single agent's purpose, required skills, tools, constraints, and operational rules. The folder serves as the canonical reference for agent behavior and dispatch decisions.
+Defines nine specialized agent personas for the lean-flow plugin, each optimized for a specific type of work in the development cycle. The orchestrator dispatches these agents based on task classification (simple/medium/heavy) and required skillset. Each agent is a Claude model instance with scoped permissions and required superpowers.
 
 ## Design
-- **Agent-as-markdown pattern**: Each agent is a standalone `.md` file with YAML frontmatter (`name`, `description`, `model`, `tools`) and markdown role/rules sections
-- **Skill-based capability declaration**: Agents declare required superpowers (e.g., `superpowers:executing-plans`, `superpowers:test-driven-development`) that orchestrator validates before dispatch
-- **Think-only vs read-write separation**: Oracle is pure think (`tools: []`); explorer/librarian are read-only; fixer/designer are full read-write; orchestrator coordinates
-- **Tiered specialization**: Each agent is optimized for cost/speed in its domain (haiku for search/read, sonnet for review/architecture, inherited/opus for execution)
+- **Agent-per-concern pattern**: Each `.md` file defines one agent with distinct role, required skills, tools, model size, and hard constraints
+- **Skill-based dispatch**: Agents declare mandatory superpowers (e.g., `superpowers:test-driven-development`, `superpowers:receiving-code-review`) that orchestrator matches to task requirements
+- **Model-cost tradeoffs**: Haiku agents (explorer, librarian, fixer) handle parallel search/execution; Sonnet agents (oracle, code-reviewer, designer) handle complex reasoning; Opus reserved for orchestrator only
+- **Tool restrictions**: Read-only agents (explorer, librarian, oracle) prevent accidental writes; executor agents (fixer, designer) have edit permissions bounded by plan constraints
+- **End-to-end contracts**: Fixer and designer document full execution chains (TDD → tests → linters → PR → reviews → merge), not single-step work
 
 ## Flow
-1. **Orchestrator classifies** user request → STAR tier (simple/medium/heavy/greenfield/hotfix)
-2. **Dispatch decision**: Simple work stays in orchestrator; medium/heavy delegates to `lean-flow:fixer`
-3. **Supporting agents** called on-demand: `explorer` for codebase scans, `librarian` for docs, `oracle` for architecture, `code-reviewer` for quality, `designer` for UI/UX
-4. **Fixer end-to-end flow**: implement → test → lint → commit → PR → dispatch `code-reviewer` + `oracle` → apply feedback loops (max 3 rounds) → merge
-5. **Post-merge**: `explorer` fills `codemap.md` per changed folders; `oracle` decides if Tier 1 updates needed
+1. **Orchestrator receives task** → classifies via STAR (simple/medium/heavy)
+2. **Simple tasks**: Orchestrator executes directly
+3. **Medium/heavy tasks**: Orchestrator writes plan, dispatches `fixer` (haiku) with exact code/paths/commands
+4. **During execution**: Fixer may spawn `code-reviewer` (sonnet) for diff review, `oracle` (sonnet) for architecture review, `designer` (sonnet) for UI work
+5. **Pre-work research**: Dispatch `explorer` (haiku) for codebase discovery or `librarian` (haiku) for API docs before planning
+6. **Post-merge**: `explorer` fills codemaps from changed folders; `oracle` decides if `docs/CODEBASE_MAP.md` (Tier 1) needs update
+7. **Stuck escalation**: If fixer fails 3+ times, dispatch `oracle` for diagnosis; if still blocked after oracle, human intervention
 
 ## Integration
-- **Orchestrator** (orchestrator.md) references all agents and decides when to dispatch each
-- **Fixer** (fixer.md) is the primary executor; spawns `code-reviewer` and `oracle` agents
-- **Code-reviewer** (code-reviewer.md) validates implementation against plan and standards before merge
-- **Oracle** (oracle.md) provides architecture/security review, synthesizes explorer scans into codemaps, decides codemap updates
-- **Explorer** (explorer.md) scans diffs post-commit, discovers unknowns before planning
-- **Librarian** (librarian.md) fetches library docs for unfamiliar APIs
-- **Designer** (designer.md) implements UI/UX; commits to step branch and halts before PR (fixer takes over)
-- **Discuss** (discuss.md) pre-work scoping; surfaces decisions before implementation begins
-- **Plan-plus-executor** (plan-plus-executor.md) ephemeral agent for single plan steps with context files; does not persist in main thread
+- **Orchestrator** (main session, not an agent file) reads this folder to understand dispatch rules and agent capabilities
+- **Superpowers MCP**: Each agent declares required superpowers (defined in `/plugin/superpowers/`) that must exist
+- **Skill mappings**: `code-reviewer.md` → `superpowers:receiving-code-review` + `superpowers:verification-before-completion`; `fixer.md` → `superpowers:executing-plans` + `superpowers:test-driven-development` + (3 more)
+- **PR workflow**: `fixer.md` owns full chain; spawns `code-reviewer` then `oracle` in sequence; both must `APPROVED` before merge (hard cap 3 rounds)
+- **Cartography**: `explorer.md` runs per-commit after fixer/designer pushes; fills `codemap.md` templates via `lean-flow:cartography` skill; fixer writes results
