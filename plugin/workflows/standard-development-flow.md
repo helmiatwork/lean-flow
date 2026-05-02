@@ -416,7 +416,7 @@ When working solo (no team reviewers, no CI per step), per-step PRs are pure ove
 |-------|-------|-------------|---------------|------|
 | Explorer | haiku | Yes | No | File discovery, codebase navigation, codebase map scanning, pre-oracle diff reading |
 | Librarian | haiku | Yes | No | Docs, API lookup, web search |
-| Fixer | haiku | Yes | Yes | All implementation: features, bug fixes, refactors, tests, mechanical changes |
+| Fixer | haiku | Yes | Yes | All implementation + 90% test coverage + run tests + linters + commit + push + PR creation + oracle review loop + merge — full end-to-end for medium/heavy tasks |
 | Oracle | sonnet | **No** | **No** | Architecture decisions, code review, security audit, codebase map synthesis (think-only) |
 | Designer | sonnet | Yes | Yes | UI/UX, frontend components |
 | Orchestrator | opus | — | — | Triage, PR creation, reviews auditor fixes (no agent cost) |
@@ -522,6 +522,19 @@ Types: `feat`, `fix`, `test`, `docs`, `chore`, `refactor`, `perf`, `security`
 - **Explorer** scans PR diff → **`lean-flow:code-reviewer`** reviews code quality → **Oracle** reviews architecture
 - Issues → fix on parent → re-review cycle
 - Approved → hybrid codemap update → learn + merge
+
+### 12a-prefix. Fixer-Driven Final PR (medium/heavy tasks)
+
+For medium/heavy tasks, the orchestrator does not manually drive the final PR cycle. Instead, the fixer who executed the plan owns it end-to-end:
+
+1. **Fixer creates the parent → main PR** with release notes.
+2. **Fixer dispatches `lean-flow:code-reviewer`** (sonnet) for code quality review.
+3. **Fixer dispatches `oracle`** (sonnet, think-only) for architecture review.
+4. **Fixer applies issues** from both reviews, re-runs tests + linters, pushes, and re-requests review until clean (max 3 rounds combined).
+5. **Fixer triggers the hybrid codemap update** (§12a) before merge.
+6. **Fixer merges the PR**.
+
+The orchestrator only intervenes if fixer hits the 3-round cap or surfaces an explicit blocker.
 
 ### 12a. Hybrid Codemap Update (after Oracle approval)
 
