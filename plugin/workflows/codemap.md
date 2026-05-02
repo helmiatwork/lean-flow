@@ -3,13 +3,21 @@
 # Codemap: `plugin/workflows/`
 
 ## Responsibility
-Defines Claude's operational playbooks and mandatory skill invocation rules. `claude-rules.md` establishes non-negotiable workflows (TDD, verification gates, escalation paths, branch naming). `standard-development-flow.md` documents the session orchestration architecture (STAR classification, pattern recall, fixer/designer dispatch, PR gates).
+Defines the orchestration rules and development workflows that Claude agents follow across all sessions. `claude-rules.md` enforces mandatory skill triggers (TDD, debugging, verification), branching strategy, and escalation policies. `standard-development-flow.md` provides the end-to-end session flow with role assignment (orchestrator vs. fixer/designer), dispatch patterns, and CI integration points.
 
 ## Design
-**Two-lane architecture**: Orchestrator (opus, coordinates via hooks/MCPs—never edits code) + Execution (fixer/designer haiku implement in parallel, sonnet reviewers gate merges). **Skill gates** enforce TDD→verification→code-review→oracle-sign-off. **Branch model** uses parent + step-N sequential PRs, with hybrid solo-dev shortcut. **Escalation**: 3-strike fixer retry → oracle diagnosis → human flag. **Classification**: STAR (simple/medium/heavy) routes to different fastpaths (direct PR, hotfix, or full planning).
+- **Dual-track architecture**: Orchestrator lane (opus, coordinates only) and Execution lane (fixer haiku + reviewers sonnet, all writes) run in parallel
+- **STAR classification** gates task complexity: simple (direct PR) → medium/heavy (planning) → greenfield (doc-first) → hotfix (fast path)
+- **Pattern recall first**: FTS5 knowledge search before brainstorming; matching pattern skips planning and goes straight to dispatch
+- **Mandatory gates**: `lean-flow:test-driven-development` (RED→GREEN→REFACTOR + ≥80% coverage), `lean-flow:verification-before-completion`, `lean-flow:code-reviewer`, `lean-flow:plan-checker` (8-dimension verification)
+- **Escalation capped**: fixer fails 3× same step → oracle diagnoses; oracle escalates 3× → flag for human intervention
 
 ## Flow
-**Session start** → auto-recall patterns (FTS5 `patterns.db`) → STAR classify → route (simple→direct PR; hotfix→minimal fix; complex→map-codebase/brainstorm/plan). **Plan approval** → orchestrator creates parent branch → fixer dispatches per step (TDD RED→GREEN→REFACTOR, ≥90% coverage gate). **Step PR merges to parent**, orchestrator advances to next step. **Final PR parent→main** → lean-flow:code-reviewer (sonnet) → fixer routes issues (backend/frontend/cross-cutting) → lean-flow:oracle signs off → cartography updates codemap.
+User prompt → AutoRecall (pattern_search.db) → STAR classify → Pattern match? → Yes: Dispatch fixer with pattern / No: Brainstorm (researcher + assumptions-analyzer + spike if blocked) → Plan (EnterPlanMode → superpowers:writing-plans → plan-checker gate → approve) → Create parent branch → For each step: Create step branch → TDD (RED→GREEN→REFACTOR) → Fixer implements + self-verifies (coverage ≥90%) → PR step→parent (auto-merge) → Back to orchestrator STEP loop → Final: Dispatch post-steps (verifier + nyquist + finishing) → Open PR parent→main → Code review (lean-flow:code-reviewer sonnet) → Oracle final gate → Hybrid codemap update + pattern_store → CI green → Merge.
 
 ## Integration
-Imported via `session-briefing.sh` (additionalContext) into orchestrator.md role declaration. Hooks: `SessionStart`, `UserPromptSubmit` trigger auto-recall and STAR classification. MCPs: knowledge (pattern_search), explorer (cartography, map-codebase), phase-researcher (verify APIs). Commands invoked: `lean-flow:*` (TDD, debugging, code-review, oracle). Output: branch structure, PR gates, codemap updates feed back to `docs/CODEBASE_MAP.md` and `patterns.db`.
+- **Entry**: SessionStart hook loads `orchestrator.md` via session-briefing.sh; UserPromptSubmit hook fires AutoRecall
+- **Knowledge tier**: Feeds pattern_search.db (FTS5); outputs to `pattern_store` post-merge
+- **Dispatch contracts**: Rules specify which superpowers each role invokes (`superpowers:writing-plans`, `superpowers:executing-plans`, `lean-flow:*` skills)
+- **CI/Coverage gates**: Coverage ≥90% blocks step completion; CI red triggers fixer loop or oracle escalation
+- **Docs dependency**: Requires `docs/CODEBASE_MAP.md` pre-check; greenfield tasks output PRD/HLA/TRD to docs before planning
