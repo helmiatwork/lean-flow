@@ -42,10 +42,13 @@ count_open_steps() {
 
     if [ "$plan_open" -gt 0 ]; then
       local mtime
-      mtime=$(stat -f %m "$skel" 2>/dev/null || stat -c %Y "$skel" 2>/dev/null || echo 0)
+      # Linux GNU stat first (-c %Y); fall back to BSD stat (-f %m) on macOS.
+      # Inverting this order silently misreports mtime on Linux because BSD-style
+      # `-f %m` prints filesystem status data and exits 0, blocking the fallback.
+      mtime=$(stat -c %Y "$skel" 2>/dev/null || stat -f %m "$skel" 2>/dev/null || echo 0)
       if [ "$mtime" -gt "$most_recent_mtime" ]; then
         most_recent_mtime="$mtime"
-        most_recent_plan=$(dirname "$skel" | xargs basename 2>/dev/null)
+        most_recent_plan=$(basename "$(dirname "$skel")")
       fi
     fi
   done < <(find "$plans_dir" -maxdepth 3 -name 'skeleton.md' 2>/dev/null)
