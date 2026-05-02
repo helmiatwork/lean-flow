@@ -42,50 +42,82 @@ assert_not_contains() {
 }
 
 # ────────────────────────────────────────────────────────────────────
-# C.1: Frontmatter consistency with orchestrator.md Agent Cast
+# C.1: Frontmatter consistency with orchestrator.md Agent Cast (parsed)
 # ────────────────────────────────────────────────────────────────────
 
-echo "=== C.1: Agent Frontmatter Consistency ==="
+echo "=== C.1: Agent Frontmatter Consistency (Parsed from orchestrator.md) ==="
 echo ""
 
 assert_file_exists "plugin/agents/orchestrator.md" "orchestrator.md exists"
 
-# Parse orchestrator.md Agent Cast table for expected agents
-# Table format:
-#   | Agent | Model | Tools | Role | Required Skills |
-#   | fixer | haiku | full | ... | ... |
-#   etc.
-
 orchestrator_content=$(cat plugin/agents/orchestrator.md)
 
-# Expected agent configurations from CLAUDE.md and lean-flow docs
-# (Using simple globals instead of associative arrays for portability)
+# Parse orchestrator.md Agent Cast section to extract (model, tools) per agent
+# Format: prose with "@lean-flow:<agent>" headings, followed by metadata lines
+# Extract: model from inline (haiku)/(sonnet)/(opus) markers
+#         tools from "Permissions:" lines, translating descriptions to tool lists
 
-# Helper: get expected model for agent
-get_expected_model() {
-  case "$1" in
-    fixer|explorer|librarian) echo "haiku" ;;
-    designer|oracle|code-reviewer) echo "sonnet" ;;
-    *) echo "" ;;
-  esac
+# Helper: extract model from an agent's prose section in orchestrator.md
+# Look for (model) marker in the ~10 lines after the agent heading
+parse_agent_model() {
+  local agent="$1"
+  local section=$(echo "$orchestrator_content" | sed -n "/@lean-flow:$agent/,/@lean-flow:/p" | head -10)
+
+  if echo "$section" | grep -qE '\(haiku\)'; then
+    echo "haiku"
+  elif echo "$section" | grep -qE '\(sonnet\)'; then
+    echo "sonnet"
+  elif echo "$section" | grep -qE '\(opus\)'; then
+    echo "opus"
+  else
+    echo ""
+  fi
 }
 
-# Helper: get expected tools for agent
-get_expected_tools() {
-  case "$1" in
-    fixer) echo '["Read", "Write", "Edit", "Bash", "Grep", "Glob", "Agent"]' ;;
-    designer) echo '["Read", "Write", "Edit", "Bash", "Grep", "Glob", "WebSearch"]' ;;
-    oracle) echo '[]' ;;
-    code-reviewer) echo '["Read", "Grep", "Glob", "Bash"]' ;;
-    explorer) echo '["Read", "Glob", "Grep", "Bash"]' ;;
-    librarian) echo '["Read", "Glob", "Grep", "Bash", "WebSearch", "WebFetch"]' ;;
-    *) echo "" ;;
-  esac
+# Helper: extract tools from an agent's Permissions line in orchestrator.md
+# Translate: "Read-only (Read, Grep, Glob, Bash)" → ["Read", "Grep", "Glob", "Bash"]
+#            "tools: []" / "think-only" → []
+#            "Read/Write (Read, Write, Edit, Bash, Grep, Glob, Agent)" → ["Read", "Write", "Edit", "Bash", "Grep", "Glob", "Agent"]
+parse_agent_tools() {
+  local agent="$1"
+  local section=$(echo "$orchestrator_content" | sed -n "/@lean-flow:$agent/,/@lean-flow:/p" | head -10)
+
+  # Match "Permissions: ..." or "tools: ..." line
+  local perms_line=$(echo "$section" | grep -E "Permissions:|tools:" | head -1)
+
+  if echo "$perms_line" | grep -q "tools: \[\]"; then
+    echo "[]"
+  elif echo "$perms_line" | grep -q "think-only"; then
+    echo "[]"
+  elif echo "$perms_line" | grep -qE "Read-only"; then
+    # Extract tools from parentheses: "Read-only (Read, Grep, Glob, Bash)" → ["Read","Grep","Glob","Bash"]
+    local tools=$(echo "$perms_line" | sed -n 's/.*(\(.*\)).*/\1/p' | sed 's/, /","/g; s/^/["/; s/$/"]/')
+    echo "$tools"
+  elif echo "$perms_line" | grep -qE "Read/Write"; then
+    # Extract tools from parentheses: "Read/Write (Read, Write, ...)" → ["Read","Write",...]
+    local tools=$(echo "$perms_line" | sed -n 's/.*(\(.*\)).*/\1/p' | sed 's/, /","/g; s/^/["/; s/$/"]/')
+    echo "$tools"
+  else
+    # Fallback for unrecognized format
+    echo ""
+  fi
 }
 
 # Helper: normalize whitespace in JSON for comparison
 normalize_json() {
   echo "$1" | tr -d ' '
+}
+
+# Helper: get expected model for a specific agent by parsing orchestrator.md
+get_expected_model() {
+  local agent="$1"
+  parse_agent_model "$agent"
+}
+
+# Helper: get expected tools for a specific agent by parsing orchestrator.md
+get_expected_tools() {
+  local agent="$1"
+  parse_agent_tools "$agent"
 }
 
 # Check each agent file exists and has correct frontmatter
@@ -105,28 +137,34 @@ for agent in fixer designer oracle code-reviewer explorer librarian; do
       FAIL=$((FAIL+1))
     fi
 
-    # Extract and verify exact model value
+    # Extract and verify exact model value (from orchestrator.md)
     actual_model=$(echo "$agent_content" | head -10 | grep "^model:" | sed 's/^model: //' | tr -d ' ')
     expected_model=$(get_expected_model "$agent")
-    if [ "$actual_model" = "$expected_model" ]; then
-      echo "✓ $agent has correct 'model: $actual_model'"
+    if [ -z "$expected_model" ]; then
+      echo "✗ $agent: could not parse model from orchestrator.md"
+      FAIL=$((FAIL+1))
+    elif [ "$actual_model" = "$expected_model" ]; then
+      echo "✓ $agent has correct 'model: $actual_model' (matches orchestrator.md)"
       PASS=$((PASS+1))
     else
-      echo "✗ $agent model mismatch (expected: $expected_model, got: $actual_model)"
+      echo "✗ $agent model mismatch (orchestrator.md says: $expected_model, $agent_file says: $actual_model)"
       FAIL=$((FAIL+1))
     fi
 
-    # Extract and verify exact tools value (normalized for whitespace)
+    # Extract and verify exact tools value (from orchestrator.md)
     actual_tools=$(echo "$agent_content" | head -10 | grep "^tools:" | sed 's/^tools: //')
     actual_tools_normalized=$(normalize_json "$actual_tools")
     expected_tools=$(get_expected_tools "$agent")
     expected_tools_normalized=$(normalize_json "$expected_tools")
 
-    if [ "$actual_tools_normalized" = "$expected_tools_normalized" ]; then
-      echo "✓ $agent has correct 'tools' specification"
+    if [ -z "$expected_tools" ]; then
+      echo "✗ $agent: could not parse tools from orchestrator.md"
+      FAIL=$((FAIL+1))
+    elif [ "$actual_tools_normalized" = "$expected_tools_normalized" ]; then
+      echo "✓ $agent has correct 'tools' specification (matches orchestrator.md)"
       PASS=$((PASS+1))
     else
-      echo "✗ $agent tools mismatch (expected: $expected_tools, got: $actual_tools)"
+      echo "✗ $agent tools mismatch (orchestrator.md says: $expected_tools, $agent_file says: $actual_tools)"
       FAIL=$((FAIL+1))
     fi
   fi
@@ -217,6 +255,15 @@ for agent in fixer designer oracle code-reviewer explorer librarian; do
     PASS=$((PASS+1))
   else
     echo "✗ $agent missing 'OFF-SCOPE: dispatch to' format"
+    FAIL=$((FAIL+1))
+  fi
+
+  # Assert: Clarifier that OFF-SCOPE is system-context guidance (not automatic runtime routing)
+  if echo "$agent_content" | grep -q "system-context"; then
+    echo "✓ $agent clarifies OFF-SCOPE as system-context guidance"
+    PASS=$((PASS+1))
+  else
+    echo "✗ $agent missing clarifier about system-context guidance for OFF-SCOPE"
     FAIL=$((FAIL+1))
   fi
 

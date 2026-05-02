@@ -75,6 +75,8 @@ If not flagged: skip — Tier 1 stays as-is.
 
 ## Off-scope Routing
 
+_Note: this contract guides the model's behavior via system-context injection; it does not wire automatic runtime re-dispatch in the Claude Code Task tool. The orchestrator parses the `OFF-SCOPE:` return string and re-dispatches manually._
+
 If a task falls outside this agent's scope, do NOT execute it. Return a re-dispatch instruction to the orchestrator naming the correct agent and a one-line task brief.
 
 | Off-scope task type | Re-dispatch to |
