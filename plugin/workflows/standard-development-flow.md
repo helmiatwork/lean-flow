@@ -8,16 +8,20 @@ flowchart TD
 
     AUTORECALL["⚡ Auto pattern recall\n(UserPromptSubmit hook)\nFTS5 keyword extract → patterns.db\nInjects matches silently — zero tokens if no match"] --> STARCHECK
 
-    STARCHECK{"⭐ STAR clarify\n(UserPromptSubmit hook)\nHaiku classifies complexity\nsimple → skip, medium/heavy → expand"}
-    STARCHECK -->|"Simple"| TRIAGE
-    STARCHECK -->|"Medium/Heavy"| STARSHOW["📋 Show STAR breakdown\nto user for confirmation\nS·T·A·R format"]
+    STARCHECK{"⭐ STAR classify\n(UserPromptSubmit hook)\nHaiku tiers prompt:\nsimple / medium / heavy"}
+    STARCHECK -->|"simple"| TRIAGE_SIMPLE["🟢 Simple\n1–2 line change\norchestrator edits directly"]
+    STARCHECK -->|"medium"| STARSHOW["📋 STAR breakdown\n(medium + heavy)\nshown to user\nS·T·A·R format"]
+    STARCHECK -->|"heavy"| STARSHOW
+    TRIAGE_SIMPLE --> DIRECTFIX
     STARSHOW --> STARCONFIRM{"User\nconfirms?"}
     STARCONFIRM -->|"Yes"| TRIAGE
     STARCONFIRM -->|"Adjust"| STARSHOW
 
-    TRIAGE{"🎯 Orchestrator\ntriages complexity\n⚠️ never writes files\nor runs dev commands directly"}
-    TRIAGE -->|"Simple"| DIRECTFIX
-    TRIAGE -->|"Complex"| MEMORY
+    %% --- Tier classification: simple / medium / heavy ---
+
+    TRIAGE{"🎯 Orchestrator triage\n(after user confirms STAR)\n⚠️ never edits code for medium/heavy\nplan → delegate fixer (haiku)"}
+    TRIAGE -->|"simple recheck"| DIRECTFIX
+    TRIAGE -->|"medium / heavy"| MEMORY
     TRIAGE -->|"Greenfield 🌱"| GREENFIELD
     TRIAGE -->|"Hotfix 🔥"| HOTFIX
 
@@ -229,6 +233,7 @@ flowchart TD
     style STARCHECK fill:#F39C12,color:#fff
     style STARSHOW fill:#8E44AD,color:#fff
     style STARCONFIRM fill:#F39C12,color:#fff
+    style TRIAGE_SIMPLE fill:#27AE60,color:#fff
     style MAPCB fill:#F39C12,color:#fff
     style MAPCODEBASE fill:#1ABC9C,color:#fff
     style INGESTDOCS fill:#F39C12,color:#fff
