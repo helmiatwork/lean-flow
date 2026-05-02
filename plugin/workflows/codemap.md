@@ -1,17 +1,27 @@
 # plugin/workflows/
 
-# codemap.md — `plugin/workflows/`
+# Codemap: `plugin/workflows/`
 
 ## Responsibility
-Defines the mandatory workflow rules and development processes for all Claude agents in this codebase. `claude-rules.md` enforces lean-flow commands, escalation discipline, and branching strategy; `standard-development-flow.md` documents the full orchestrator-fixer coordination model with mermaid diagrams showing session lifecycle, dispatch patterns, and CI gates.
+Defines the two operational frameworks for Claude-driven development: lean-flow rules and standard session flow. `claude-rules.md` establishes mandatory skill triggers, escalation logic, and branching strategy. `standard-development-flow.md` documents the orchestrator-fixer-reviewer execution model with Mermaid diagrams showing STAR classification, pattern recall, planning gates, and step-branch workflows.
 
 ## Design
-Two complementary documents:
-- **claude-rules.md**: Command-driven ruleset with escalation thresholds (3 retries → oracle → human), branch naming conventions (`feature/name/step-N`), and mandatory skill triggers (e.g., TDD before code, `verification-before-completion` before PR).
-- **standard-development-flow.md**: Mermaid flowchart modeling the full session—orchestrator (opus) coordinates via pattern recall + STAR triage, dispatches fixers/designers in parallel, gates on coverage ≥90% and CI, requires code-reviewer + oracle sign-off before main merge.
+- **Dual-document architecture**: Rules (prescriptive constraints) separated from Flow (descriptive process)
+- **Mandatory triggers table** in claude-rules.md maps situations (bug, pre-coding, pre-merge) to specific `lean-flow:*` commands
+- **STAR classification** (simple/medium/heavy + greenfield/hotfix) gates complexity into dispatch strategy
+- **Step-branch model**: parent branch (1 per plan) → step-N branches → sequential PRs → parent → main, with optional parallel designer dispatch for frontend work
+- **Escalation gates**: 3-attempt retry → oracle diagnosis; 3 oracle escalations → human flag
 
 ## Flow
-User prompt → SessionStart hook → Orchestrator loads rules + auto-recalls patterns → STAR classify (simple/medium/heavy/greenfield/hotfix) → Route to: direct PR (simple), plan+steps (medium/heavy), doc-first (greenfield), or hotfix fast-path. Each step branch runs fixer (TDD + tests) + optional designer in parallel, then gates on coverage + CI before step PR to parent. Final parent→main PR requires code-reviewer + oracle + codemap update.
+1. SessionStart loads `orchestrator.md` context → User prompt triggers AutoRecall pattern search
+2. STAR classify → conditional dispatch: simple (direct PR), greenfield (doc-first), hotfix (minimal fast path), or complex (pattern/brainstorm/plan)
+3. Planning phase: EnterPlanMode → `superpowers:writing-plans` → plan-checker validation → user approval
+4. Branch creation (parent, then step-N per plan step)
+5. Step execution: optional researcher/designer parallel dispatch → TDD (RED/GREEN/REFACTOR) → coverage ≥90% gate → step PR to parent
+6. Final parent PR: code-reviewer (sonnet) → oracle validation → CODEMAP_UPDATE + CI gate
 
 ## Integration
-Central policy hub: referenced in session-briefing.sh (injects orchestrator.md via additionalContext), gates all dispatch decisions in standard-development-flow.md, and enforces lean-flow command vocabulary across fixer/oracle/designer agents. Codemap updates (§12a) feed patterns back to patterns.db for future pattern_search recall.
+- **Input**: User prompt (via UserPromptSubmit hook), codebase context (docs/CODEBASE_MAP.md)
+- **Invokes**: `lean-flow:*` commands (systematic-debugging, test-driven-development, verification-before-completion, code-reviewer, map-codebase, ingest-docs, phase-researcher, assumptions-analyzer, spike, plan-checker, finishing-a-development-branch, cartography)
+- **Output**: Branch naming convention (feature/fix/improvement/security/hotfix/chore/docs with kebab-case), PR descriptions, release notes, updated CODEMAP.md via hybrid approach
+- **Dispatch targets**: fixer (haiku), designer (sonnet), oracle (sonnet, think-only), explorer/librarian (research phase)

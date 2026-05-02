@@ -1,25 +1,48 @@
 # plugin/agents/
 
-# plugin/agents/ Codemap
+# plugin/agents/ — Codemap
 
 ## Responsibility
-This directory defines the lean-flow plugin's seven specialized agent roles. Each agent is a Claude prompt template (`*.md`) that describes a specific responsibility: code review (code-reviewer), UI/UX implementation (designer), pre-work scoping (discuss), codebase navigation (explorer), primary code execution (fixer), documentation lookup (librarian), think-only architecture review (oracle), orchestration (orchestrator), and single-step execution (plan-plus-executor). Together they form a delegation system for the main orchestrator to route tasks efficiently by cost, speed, and quality.
+
+Defines nine specialized agent roles for the lean-flow plugin. Each agent is a Claude model variant with specific tools, skills, and guardrails designed to handle one task category efficiently:
+- **Discuss** — pre-work scoping and decision capture
+- **Explorer** — fast codebase search and cartography
+- **Librarian** — external API/library research
+- **Fixer** — primary implementation and merge-to-main owner
+- **Designer** — frontend polish and component work
+- **Code-Reviewer** — diff-level quality, SOLID, coverage
+- **Oracle** — architecture decisions and think-only review
+- **Plan-Plus-Executor** — single-step execution from structured plans
+- **Orchestrator** — meta-reference for main session behavior
 
 ## Design
-- **Agent as Markdown**: Each agent is defined in a frontmatter-plus-body `.md` file. Frontmatter (`name`, `description`, `model`, `tools`) specifies the agent's identity, dispatch trigger, LLM size, and tool access. Body contains the agent's full system prompt (role, skills, rules, checklist).
-- **Tool-gated permissions**: Each agent declares `tools: []` (oracle: no file/shell access) or `tools: ["Read", "Write", "Edit", "Bash", "Grep", "Glob", "Agent", "WebSearch", "WebFetch"]` (fixer/designer: full write). Explorer, librarian, oracle are read-only or think-only by design.
-- **Skill declarations**: Agents declare required superpowers (e.g., `superpowers:executing-plans`, `superpowers:test-driven-development`) to signal what orchestrator must verify before dispatch.
-- **Hard constraints**: Fixer has explicit end-to-end contracts (steps 1–12); oracle has hard prohibitions (never Write/Edit/Bash); designer never opens PRs. Code-reviewer always runs before oracle on parent→main PRs.
+
+Each agent is a markdown file with YAML frontmatter + role description. Pattern:
+- `name` — agent identifier (used in `@lean-flow:name` dispatch syntax)
+- `description` — one-liner trigger condition
+- `model` — inherit, haiku, sonnet, or opus; `inherit` → orchestrator's model
+- `tools: []` — explicit tool list; oracle has `[]` (think-only), fixer has `["Read", "Write", "Edit", "Bash", "Grep", "Glob", "Agent"]`
+- Skills section lists required superpowers in mandatory order
+- Role + Rules sections define behavior, guardrails, and decision trees
+
+**Key design choice:** Oracle and Code-Reviewer are separated — oracle handles architecture/debugging (think-only, broad), code-reviewer handles diff quality/patterns/coverage (read-only, focused on PRs). Fixer owns end-to-end execution chain including dispatch of both reviewers and application of feedback.
 
 ## Flow
-1. **Orchestrator classifies** a user task into simple/medium/heavy/greenfield/hotfix.
-2. **Simple tasks**: Orchestrator edits directly; no agent dispatch.
-3. **Medium/heavy tasks**: Orchestrator writes a structured plan with exact code/paths/commands, then dispatches `lean-flow:fixer` with the plan.
-4. **Parallel discovery** (if needed): Orchestrator dispatches `lean-flow:explorer` to scan, `lean-flow:librarian` to research, `lean-flow:discuss` to scope ambiguities — results feed back to orchestrator before fixer dispatch.
-5. **Fixer execution**: Fixer executes plan steps, writes tests, runs linters, commits, pushes, creates PR.
-6. **Code review chain**: Fixer dispatches `lean-flow:code-reviewer` (sonnet) for diff-level quality, then `lean-flow:oracle` (sonnet, think-only) for architecture/security. Fixer applies feedback, re-runs tests/linters, loops until both APPROVED (max 3 combined rounds; escalate on round 4).
-7. **Merge**: Once CI is green and oracle is APPROVED, fixer merges with `gh pr merge --squash`.
-8. **Cartography**: After fixer commits, orchestrator dispatches `lean-flow:explorer` to fill affected `codemap.md` templates (Tier 2 cheap update; Tier 1 conditional if structural changes).
+
+Orchestrator classifies user prompt → selects agent(s) via STAR dispatcher:
+1. **Simple** — orchestrator edits directly
+2. **Medium/Heavy** — orchestrator writes plan → dispatches `fixer` (haiku) with exact steps
+3. **Discovery** — orchestrator dispatches `explorer` or `librarian` in parallel, receives summaries
+4. **Ambiguous scope** — orchestrator dispatches `discuss` first to lock decisions
+5. **PR review** — fixer dispatch → code-reviewer (sonnet) → oracle (sonnet, think-only) → fixer applies feedback → CI/merge
+
+Plan-Plus-Executor is a ephemeral agent used only within plan-plus structured workflows — reads context files, executes one step, updates context/, reports back. Does not persist in the main conversation.
 
 ## Integration
-- **Orchestrator** (never a subagent; the main session) reads all agent `.md` files to understand available specializations and rules
+
+- **Orchestrator** (main session) reads all agent files at startup; uses agent names in `@lean-flow:name` dispatch syntax
+- **Fixer** (haiku, primary worker) invokes `code-reviewer` and `oracle` as sub-agents via Agent tool, routes their issues per IssueRoutingRules, applies fixes
+- **Explorer** (haiku, scanner) is dispatched by orchestrator for codebase map builds; after fixer commits, orchestrator runs `git diff` and dispatches explorer to fill `codemap.md` per changed folders
+- **Librarian** (haiku, research) is deployed by orchestrator/fixer when library APIs are uncertain
+- **Designer** (sonnet, UI) is dispatched for frontend-heavy tasks; does not open PRs — fixer takes over for merge
+- **
