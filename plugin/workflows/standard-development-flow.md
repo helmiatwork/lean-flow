@@ -4,6 +4,10 @@
 
 ```mermaid
 flowchart TD
+    SESSION_START(["🟢 Session start<br/>SessionStart hook"]) --> ROLE_DECLARE
+
+    ROLE_DECLARE["🎯 Load orchestrator.md<br/>main session = orchestrator (opus)<br/>injected via session-briefing.sh<br/>additionalContext"] --> USER
+
     USER(["👤 User prompt"]) --> AUTORECALL
 
     AUTORECALL["⚡ Auto pattern recall<br/>UserPromptSubmit hook<br/>FTS5 → patterns.db, zero-token"] --> STARCHECK
@@ -81,6 +85,8 @@ flowchart TD
     CI_GATE -->|"green"| MERGE_MAIN(["✅ Fixer merges PR<br/>squash + delete branch"])
     MERGE_MAIN --> DONE(["✅ Done<br/>human monitors prod separately"])
 
+    style SESSION_START fill:#16A085,color:#fff
+    style ROLE_DECLARE fill:#117A65,color:#fff
     style USER fill:#34495E,color:#fff
     style AUTORECALL fill:#1A5276,color:#fff
     style STARCHECK fill:#F39C12,color:#fff
@@ -472,10 +478,23 @@ After merge to main, GitHub Actions automatically updates codemaps for changed d
 - Stored with `category = session-observation` — excluded from pattern recall to avoid noise
 - Builds a passive usage history without any manual effort
 
-### 16. Session Briefing (SessionStart hook — cached)
-- `session-briefing.sh` fires once per unique (repo, branch, working-tree, top-3 patterns) state
+### 16. Session Briefing (SessionStart hook)
+
+`session-briefing.sh` runs on every SessionStart and emits two parts:
+
+**Part A — Orchestrator role declaration (always fires, never cached):**
+- Injected as `hookSpecificOutput.additionalContext` on every session start
+- Declares the main Claude Code session IS the orchestrator (opus)
+- Points to the canonical contract at `${CLAUDE_PLUGIN_ROOT}/agents/orchestrator.md`
+- Restates tier routing (simple → direct edit · medium/heavy → plan + delegate `lean-flow:fixer` end-to-end · greenfield → docs-first · hotfix → fast path)
+- Restates hard rules (no direct code edit on medium/heavy, no push to main, no `--no-verify`, no AI attribution, 3-round review cap)
+- Points to the canonical workflow at `${CLAUDE_PLUGIN_ROOT}/workflows/standard-development-flow.md`
+- Cost: ~120 tokens per session start — small price to keep the orchestrator in role across compacts/restarts
+
+**Part B — Repo / branch / pattern briefing (cached per state):**
+- Fires once per unique (repo, branch, working-tree, top-3 patterns) state
 - Computes `md5(repo + branch + git_status + pattern_sig)` and caches to `/tmp/`
-- **Zero tokens on repeat sessions** — no output if nothing changed
+- **Zero tokens on repeat sessions** — no `systemMessage` if nothing changed
 - When state changes: injects repo name, branch, dirty files, and top-3 patterns as `systemMessage`
 - Pattern bullets come from `patterns.db` score-ordered query — max ~100 tokens, never per-prompt
 
