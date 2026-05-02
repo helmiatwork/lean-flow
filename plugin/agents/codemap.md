@@ -1,26 +1,25 @@
 # plugin/agents/
 
-# codemap.md: `plugin/agents/`
+# plugin/agents/ codemap
 
 ## Responsibility
-Defines the lean-flow agent specializations that the orchestrator dispatches for code tasks. Each agent file (markdown) declares a single agent's role, required skills (superpowers), tools, model, and execution rules. The orchestrator reads these files to understand delegation boundaries and cost/quality trade-offs.
+
+Contains lean-flow agent role definitions and capabilities. Each `.md` file is a Claude system prompt that defines a specialist agent—orchestrator dispatches these agents based on task tier and type. Agents collectively form a cost-optimized, parallel-capable execution engine that decomposes monolithic AI coding tasks into focused subagent responsibilities.
 
 ## Design
-- **Agent pattern**: Each `.md` file is a self-contained agent spec with frontmatter (name, description, model, tools) + detailed instructions.
-- **Skill-driven dispatch**: Agents declare required superpowers (e.g., `superpowers:executing-plans`, `frontend-design:frontend-design`) that map to agent capabilities. Orchestrator matches task type to agent superpowers.
-- **Read-only vs. execution split**: Explorer, Librarian, Oracle have restricted tools (no Write/Edit). Fixer, Designer handle state changes. Code-reviewer is read-only for diff analysis.
-- **Cost optimization**: Haiku agents (Explorer, Librarian, Fixer) handle parallel searches and mechanical work. Sonnet agents (Oracle, Designer, Code-Reviewer) handle complex reasoning and UX decisions.
-- **Hard prohibitions**: Oracle has `tools: []` — enforces think-only architecture. Fixer has explicit hard-cap rules (3 review rounds max, no `--no-verify`, no AI attribution in commits).
+
+**Agent taxonomy:** Each agent has a fixed role (Explorer searches, Fixer codes, Oracle reviews, Designer polishes, Librarian researches, Discuss scopes) with explicit tool permissions and skill requirements. The `orchestrator.md` is the canonical routing logic—it classifies tasks (simple/medium/heavy), determines which agents to dispatch, and synthesizes results. `plan-plus-executor.md` is a ephemeral executor for structured plan steps.
+
+**Cost/speed trade-offs:** Explorer and Librarian are haiku (cheap, fast parallel search); Fixer is haiku for mechanical work; Code-reviewer, Oracle, Designer are sonnet (deeper reasoning). Orchestrator is opus (decision-making). Pre-work delegation (discuss, explorer searches) before fixer execution avoids rework.
 
 ## Flow
-1. **Orchestrator receives task** → classifies via STAR (simple/medium/heavy/greenfield/hotfix).
-2. **Simple tier**: Orchestrator edits directly.
-3. **Medium/heavy tier**: Orchestrator writes plan → dispatches `lean-flow:fixer` (haiku) to execute full end-to-end chain (impl → tests → linters → commit → PR → code-reviewer → oracle → merge).
-4. **Parallel specialists**: Fixer may dispatch Explorer (search), Librarian (docs), Designer (UI), or Code-Reviewer (diff review) as needed. Oracle is dispatch-only by Orchestrator for architecture/security gates.
-5. **Feedback loops**: Code-Reviewer and Oracle return issues; Fixer routes to appropriate agent (IssueRoutingRules) and re-runs checks.
+
+1. User submits task → **Orchestrator** classifies (STAR: simple/medium/heavy)
+2. Simple: Orchestrator edits directly
+3. Medium/Heavy: Orchestrator plans → dispatches **Discuss** (scope alignment), **Explorer** (discovery), **Librarian** (APIs), **Fixer** (execution)
+4. Fixer executes plan, writes tests, runs linters → **Code-reviewer** (diff quality) + **Oracle** (architecture) review → apply feedback loop (max 3 rounds) → merge
+5. Designer dispatched for UI tasks (responsive, a11y, design systems); always stops before PR creation (Fixer takes over)
 
 ## Integration
-- **Orchestrator** (`orchestrator.md`) reads and coordinates all agents in this folder.
-- **Plan-plus-executor** (`plan-plus-executor.md`) is a lightweight single-step executor that shares the same tool/skill model but is context-ephemeral; used for structured multi-step plans.
-- **Codemap cartography**: Explorer fills `codemap.md` templates per folder after commits; Oracle synthesizes explorer scans into `docs/CODEBASE_MAP.md` Tier 1 entries.
-- **Skills registry**: Each agent's required superpowers must exist in the global skills system (referenced in CLAUDE.md or agent-skill mappings); unknown superpowers block agent dispatch.
+
+Agents are stateless; context flows via orchestrator prompts (summaries, file paths, diff summaries). Explorer scans changed folders after each commit for hybrid codemap updates. Code-reviewer and Oracle receive summaries from Fixer/Explorer, not raw diffs. Fixer owns the full end-to-end chain (impl → tests → PR → reviews → merge). Designer and Fixer coordinate: Designer implements UI, Fixer integrates and handles PR flow. Orchestrator never writes code for medium/heavy; it only plans and dispatches.
