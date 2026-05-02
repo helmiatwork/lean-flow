@@ -76,7 +76,7 @@ get_expected_tools() {
     fixer) echo '["Read", "Write", "Edit", "Bash", "Grep", "Glob", "Agent"]' ;;
     designer) echo '["Read", "Write", "Edit", "Bash", "Grep", "Glob", "WebSearch"]' ;;
     oracle) echo '[]' ;;
-    code-reviewer) echo '["Read", "Grep", "Glob"]' ;;
+    code-reviewer) echo '["Read", "Grep", "Glob", "Bash"]' ;;
     explorer) echo '["Read", "Glob", "Grep", "Bash"]' ;;
     librarian) echo '["Read", "Glob", "Grep", "Bash", "WebSearch", "WebFetch"]' ;;
     *) echo "" ;;
