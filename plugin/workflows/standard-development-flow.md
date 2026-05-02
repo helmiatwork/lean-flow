@@ -5,86 +5,105 @@
 ```mermaid
 flowchart TD
     SESSION_START(["🟢 Session start<br/>SessionStart hook"]) --> ROLE_DECLARE
-
     ROLE_DECLARE["🎯 Load orchestrator.md<br/>main session = orchestrator (opus)<br/>injected via session-briefing.sh<br/>additionalContext"] --> USER
-
     USER(["👤 User prompt"]) --> AUTORECALL
 
-    AUTORECALL["⚡ Auto pattern recall<br/>UserPromptSubmit hook<br/>FTS5 → patterns.db, zero-token"] --> STARCHECK
-
-    STARCHECK{"⭐ STAR classify<br/>Haiku tiers prompt:<br/>simple / medium / heavy<br/>+ greenfield / hotfix"}
-    STARCHECK -->|"simple"| DIRECTFIX
-    STARCHECK -->|"medium / heavy"| STARSHOW["📋 STAR breakdown<br/>shown to user"]
-    STARCHECK -->|"greenfield 🌱"| GREENFIELD
-    STARCHECK -->|"hotfix 🔥"| HOTFIX
-    STARSHOW --> STARCONFIRM{"User confirms?"}
-    STARCONFIRM -->|"adjust"| STARSHOW
-    STARCONFIRM -->|"yes"| MEMORY
-
-    %% === SIMPLE PATH (off main) ===
-    DIRECTFIX["🔧 Fixer haiku<br/>implement + tests"] --> DIRECTPR["PR → main<br/>+ release notes"]
-    DIRECTPR --> CI_SIMPLE{"CI green?"}
-    CI_SIMPLE -->|"red"| DIRECTFIX
-    CI_SIMPLE -->|"green"| DONE
-
-    %% === HOTFIX PATH ===
-    subgraph hotfix_branch ["🌿 hotfix branch"]
-      HOTFIX["🔥 hotfix branch from main"] --> HOTFIXFIX["🔧 Fixer minimal fix + tests"]
-      HOTFIXFIX --> HOTFIXPR["PR hotfix → main<br/>🔮 Oracle inline review<br/>+ release notes"]
-    end
-    HOTFIXPR --> CI_HOTFIX{"CI green?"}
-    CI_HOTFIX -->|"red"| HOTFIXFIX
-    CI_HOTFIX -->|"green"| DONE
-
-    %% === GREENFIELD ===
-    GREENFIELD["🌱 Brainstorm + generate docs<br/>parallel sonnet<br/>PRD / HLA / TRD"] --> PLAN
-
-    %% === MEDIUM / HEAVY ===
-    MEMORY["🧠 pattern_search knowledge MCP<br/>incl. brownfield prep:<br/>map-codebase + ingest-docs if needed"] --> FOUND{"Match?"}
-    FOUND -->|"yes"| ADAPT["🔧 Fixer applies pattern"]
-    FOUND -->|"no"| BRAINSTORM["💡 lean-flow:brainstorming<br/>+ phase-researcher<br/>+ assumptions-analyzer<br/>+ spike if blocked"]
-    ADAPT --> BRANCH
-    BRAINSTORM --> PLAN
-
-    PLAN["📋 Plan via superpowers:writing-plans<br/>EnterPlanMode → user approves → ExitPlanMode<br/>plan-checker gate"] --> BRANCH
-
-    subgraph parent_branch ["🌿 parent branch"]
-      BRANCH["🌿 Parent branch from main"] --> STEP{"Next step?"}
-      STEP -->|"all done"| POSTSTEPS["✅ Post-step gate<br/>verifier + nyquist + finishing<br/>fixer takes over"]
-      POSTSTEPS --> MAINPR["🔧 Fixer creates PR<br/>parent → main<br/>+ release notes"]
+    %% =========================================================
+    %% LANE 1 — ORCHESTRATOR (opus, coordinates, never edits code)
+    %% =========================================================
+    subgraph ORCH ["🎯 ORCHESTRATOR LANE — opus, coordinates only"]
+      AUTORECALL["⚡ Auto pattern recall<br/>UserPromptSubmit hook<br/>FTS5 → patterns.db"] --> STARCHECK
+      STARCHECK{"⭐ STAR classify<br/>simple / medium / heavy<br/>+ greenfield / hotfix"}
+      STARCHECK -->|"medium / heavy"| STARSHOW["📋 STAR breakdown<br/>shown to user"]
+      STARSHOW --> STARCONFIRM{"User confirms?"}
+      STARCONFIRM -->|"adjust"| STARSHOW
+      STARCONFIRM -->|"yes"| MEMORY["🧠 pattern_search<br/>+ map-codebase<br/>+ ingest-docs (heavy)"]
+      MEMORY --> FOUND{"Pattern match?"}
+      FOUND -->|"yes"| DISPATCH_ADAPT(["📤 Dispatch fixer<br/>(apply pattern)"])
+      FOUND -->|"no"| BRAINSTORM["💡 brainstorming<br/>+ phase-researcher<br/>+ assumptions-analyzer<br/>+ spike if blocked"]
+      BRAINSTORM --> PLAN
+      PLAN["📋 superpowers:writing-plans<br/>EnterPlanMode → approve → ExitPlanMode<br/>plan-checker gate"] --> BRANCH_CREATE["🌿 Create parent branch"]
+      BRANCH_CREATE --> STEP{"Next step?"}
+      STEP -->|"yes"| DISPATCH_STEP(["📤 Dispatch fixer<br/>(implement step N)"])
+      STEP -->|"all done"| DISPATCH_FINAL(["📤 Dispatch fixer<br/>(post-steps + final PR)"])
+      STEP -->|"plan invalid"| PLAN
+      VERIFY["✅ Orchestrator verifies<br/>fixer summary + diff spot-check"]
     end
 
-    subgraph step_branch ["🌿 step branch per step"]
-      STEPBR["🌿 Step branch<br/>optional research:<br/>explorer / librarian, haiku"] --> TESTFIRST{"TDD?"}
-      TESTFIRST -->|"yes"| TDDTEST["🔧 RED → GREEN → REFACTOR"] --> IMPLEMENT
-      TESTFIRST -->|"no"| IMPLEMENT
-      IMPLEMENT["🔧 Fixer haiku<br/>impl + tests + self-verify"] --> TEST["Run tests"]
-      TEST -->|"pass"| COVERAGE_GATE{"📊 Coverage ≥ 90%?"}
-      TEST -->|"fail × 3"| ORACLE_ESC["🔮 Oracle sonnet<br/>systematic-debugging diagnosis"]
-      ORACLE_ESC --> IMPLEMENT
-      COVERAGE_GATE -->|"< 90%"| IMPLEMENT
+    %% Dispatch routes from STARCHECK
+    STARCHECK -->|"simple"| DISPATCH_SIMPLE(["📤 Dispatch fixer<br/>(direct PR to main)"])
+    STARCHECK -->|"greenfield 🌱"| GREENFIELD["🌱 Generate docs<br/>parallel sonnet<br/>PRD / HLA / TRD"]
+    GREENFIELD --> PLAN
+    STARCHECK -->|"hotfix 🔥"| DISPATCH_HOTFIX(["📤 Dispatch fixer<br/>(hotfix fast path)"])
+
+    %% =========================================================
+    %% LANE 2 — EXECUTION (fixer haiku + reviewers sonnet, all writes)
+    %% =========================================================
+    subgraph EXEC ["🔧 EXECUTION LANE — lean-flow:fixer (haiku) + reviewers (sonnet)"]
+
+      %% Simple path
+      DISPATCH_SIMPLE --> DIRECTFIX["🔧 fixer impl + tests"]
+      DIRECTFIX --> DIRECTPR["PR → main<br/>+ release notes"]
+      DIRECTPR --> CI_SIMPLE{"CI green?"}
+      CI_SIMPLE -->|"red"| DIRECTFIX
+
+      %% Hotfix path
+      subgraph hotfix_branch ["🌿 hotfix branch (off main)"]
+        DISPATCH_HOTFIX --> HOTFIXFIX["🔧 fixer minimal fix + tests"]
+        HOTFIXFIX --> HOTFIXPR["PR hotfix → main<br/>🔮 oracle inline review"]
+      end
+      HOTFIXPR --> CI_HOTFIX{"CI green?"}
+      CI_HOTFIX -->|"red"| HOTFIXFIX
+
+      %% Adapt-pattern shortcut
+      DISPATCH_ADAPT --> BRANCH_CREATE
+
+      %% Step branch loop
+      subgraph step_branch ["🌿 step branch per step"]
+        DISPATCH_STEP --> STEPBR["🌿 Step branch<br/>optional research:<br/>explorer / librarian"]
+        STEPBR --> TESTFIRST{"TDD?"}
+        TESTFIRST -->|"yes"| TDDTEST["RED → GREEN → REFACTOR"] --> IMPLEMENT
+        TESTFIRST -->|"no"| IMPLEMENT
+        IMPLEMENT["🔧 fixer impl + tests + self-verify"] --> TEST["Run tests"]
+        TEST -->|"pass"| COVERAGE_GATE{"📊 Coverage ≥ 90%?"}
+        TEST -->|"fail × 3"| ORACLE_ESC["🔮 oracle (think-only)<br/>systematic-debugging"]
+        ORACLE_ESC --> IMPLEMENT
+        COVERAGE_GATE -->|"< 90%"| IMPLEMENT
+      end
+      COVERAGE_GATE -->|"≥ 90%"| STEPPR["PR step → parent<br/>auto-merge, no oracle"]
+
+      %% Parent → main final PR
+      subgraph parent_branch ["🌿 parent branch (off main)"]
+        DISPATCH_FINAL --> POSTSTEPS["✅ Post-step gate<br/>verifier + nyquist + finishing"]
+        POSTSTEPS --> MAINPR["🔧 fixer opens PR<br/>parent → main<br/>+ release notes"]
+        MAINPR --> CODEREVIEW["📋 lean-flow:code-reviewer<br/>(sonnet)"]
+        CODEREVIEW -->|"issues"| FIXFINAL["🔧 fixer applies feedback<br/>+ updates PR title/desc<br/>+ pushes"]
+        FIXFINAL --> CODEREVIEW
+        CODEREVIEW -->|"approved"| FINAL["🔮 lean-flow:oracle<br/>(sonnet, tools:[])"]
+        FINAL -->|"issues"| FIXFINAL
+        FINAL -->|"approved"| CODEMAP_UPDATE["🔧 Hybrid codemap update §12a<br/>+ pattern_store"]
+        CODEMAP_UPDATE --> CI_GATE{"⏳ CI green?"}
+        CI_GATE -->|"red"| FIXFINAL
+      end
     end
-    STEP -->|"yes"| STEPBR
-    STEP -->|"plan invalid"| PLAN
-    COVERAGE_GATE -->|"≥ 90%"| STEPPR["PR step → parent<br/>auto-merge, no oracle"]
+
+    %% Step loop — execution reports back to orchestrator's STEP control
     STEPPR --> STEP
 
-    MAINPR --> CODEREVIEW["📋 Fixer dispatches<br/>lean-flow:code-reviewer sonnet<br/>via explorer summary"]
-    CODEREVIEW -->|"issues"| FIXFINAL["🔧 Fixer applies feedback<br/>+ updates PR title/desc if scope drifted<br/>+ pushes update"]
-    CODEREVIEW -->|"approved"| FINAL["🔮 Fixer dispatches Oracle sonnet<br/>Architecture review<br/>🚫 no Write/Edit/Bash"]
-    FINAL -->|"issues"| FIXFINAL
-    FINAL -->|"approved"| CODEMAP_UPDATE["🔧 Hybrid codemap update §12a<br/>+ pattern_store"]
-    FIXFINAL --> CODEREVIEW
+    %% Final convergence
+    CI_SIMPLE -->|"green"| DONE(["✅ Done<br/>human monitors prod separately"])
+    CI_HOTFIX -->|"green"| DONE
+    CI_GATE -->|"green"| MERGE_MAIN(["✅ fixer merges PR<br/>squash + delete branch"])
+    MERGE_MAIN --> VERIFY
+    VERIFY --> DONE
 
-    ORACLE_ESC -->|"3 oracle rounds stuck"| HUMAN_ESCALATE
-    FIXFINAL -->|"round 4+"| HUMAN_ESCALATE
-    HUMAN_ESCALATE["⚠️ Human intervention<br/>fixer + oracle stuck<br/>flag + return to user"]
+    %% Escalations cross both lanes
+    ORACLE_ESC -.->|"3 oracle rounds stuck"| HUMAN_ESCALATE
+    FIXFINAL -.->|"3 review rounds"| HUMAN_ESCALATE
+    HUMAN_ESCALATE["⚠️ Human intervention<br/>fixer + reviewers stuck<br/>orchestrator surfaces blocker"]
+    HUMAN_ESCALATE --> USER
 
-    CODEMAP_UPDATE --> CI_GATE{"⏳ CI green?<br/>GitHub Actions"}
-    CI_GATE -->|"red"| FIXFINAL
-    CI_GATE -->|"green"| MERGE_MAIN(["✅ Fixer merges PR<br/>squash + delete branch"])
-    MERGE_MAIN --> DONE(["✅ Done<br/>human monitors prod separately"])
-
+    %% Styling — orchestrator lane (cool blues/teals/purples)
     style SESSION_START fill:#16A085,color:#fff
     style ROLE_DECLARE fill:#117A65,color:#fff
     style USER fill:#34495E,color:#fff
@@ -92,22 +111,29 @@ flowchart TD
     style STARCHECK fill:#F39C12,color:#fff
     style STARSHOW fill:#8E44AD,color:#fff
     style STARCONFIRM fill:#F39C12,color:#fff
+    style MEMORY fill:#2980B9,color:#fff
+    style FOUND fill:#F39C12,color:#fff
+    style BRAINSTORM fill:#E91E63,color:#fff
+    style PLAN fill:#4A90D9,color:#fff
+    style BRANCH_CREATE fill:#1ABC9C,color:#fff
+    style STEP fill:#8E44AD,color:#fff
+    style GREENFIELD fill:#16A085,color:#fff
+    style VERIFY fill:#27AE60,color:#fff
+
+    %% Dispatch arrows (orchestrator → execution boundary)
+    style DISPATCH_SIMPLE fill:#D35400,color:#fff
+    style DISPATCH_HOTFIX fill:#D35400,color:#fff
+    style DISPATCH_ADAPT fill:#D35400,color:#fff
+    style DISPATCH_STEP fill:#D35400,color:#fff
+    style DISPATCH_FINAL fill:#D35400,color:#fff
+
+    %% Styling — execution lane (warm oranges/greens)
     style DIRECTFIX fill:#E67E22,color:#fff
     style DIRECTPR fill:#2ECC71,color:#fff
     style CI_SIMPLE fill:#F39C12,color:#fff
-    style DONE fill:#27AE60,color:#fff
-    style HOTFIX fill:#E74C3C,color:#fff
     style HOTFIXFIX fill:#E67E22,color:#fff
     style HOTFIXPR fill:#2ECC71,color:#fff
     style CI_HOTFIX fill:#F39C12,color:#fff
-    style GREENFIELD fill:#16A085,color:#fff
-    style MEMORY fill:#2980B9,color:#fff
-    style FOUND fill:#F39C12,color:#fff
-    style ADAPT fill:#2980B9,color:#fff
-    style BRAINSTORM fill:#E91E63,color:#fff
-    style PLAN fill:#4A90D9,color:#fff
-    style BRANCH fill:#1ABC9C,color:#fff
-    style STEP fill:#8E44AD,color:#fff
     style STEPBR fill:#1ABC9C,color:#fff
     style TESTFIRST fill:#F39C12,color:#fff
     style TDDTEST fill:#3498DB,color:#fff
@@ -125,7 +151,14 @@ flowchart TD
     style CI_GATE fill:#F39C12,color:#fff
     style MERGE_MAIN fill:#27AE60,color:#fff
     style HUMAN_ESCALATE fill:#C0392B,color:#fff
+    style DONE fill:#27AE60,color:#fff
 ```
+
+> **Reading the swimlane diagram:**
+> - **🎯 Orchestrator lane** — everything the main session (opus) does directly: classify, plan, decide, dispatch. Never writes code or runs dev commands for medium/heavy.
+> - **📤 Dispatch nodes** (orange diamonds) — the boundary where the orchestrator hands work to `lean-flow:fixer`. Five dispatch points: simple, hotfix, adapt-pattern, step, and final-PR.
+> - **🔧 Execution lane** — everything `lean-flow:fixer` (haiku) and reviewers (sonnet) do: implement, test, lint, commit, push, PR, code-review, oracle review, codemap, merge.
+> - **Loop-back** — `STEPPR → STEP` and `MERGE_MAIN → VERIFY → DONE` arrows show execution reporting back into the orchestrator lane for next-step control / final verification.
 
 ## Branch Naming Convention
 
