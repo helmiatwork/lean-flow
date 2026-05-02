@@ -6,252 +6,119 @@
 flowchart TD
     USER(["👤 User prompt"]) --> AUTORECALL
 
-    AUTORECALL["⚡ Auto pattern recall\n(UserPromptSubmit hook)\nFTS5 keyword extract → patterns.db\nInjects matches silently — zero tokens if no match"] --> STARCHECK
+    AUTORECALL["⚡ Auto pattern recall<br/>UserPromptSubmit hook<br/>FTS5 → patterns.db, zero-token"] --> STARCHECK
 
-    STARCHECK{"⭐ STAR classify\n(UserPromptSubmit hook)\nHaiku tiers prompt:\nsimple / medium / heavy"}
-    STARCHECK -->|"simple"| TRIAGE_SIMPLE["🟢 Simple\n1–2 line change\norchestrator edits directly"]
-    STARCHECK -->|"medium"| STARSHOW["📋 STAR breakdown\n(medium + heavy)\nshown to user\nS·T·A·R format"]
-    STARCHECK -->|"heavy"| STARSHOW
-    TRIAGE_SIMPLE --> DIRECTFIX
-    STARSHOW --> STARCONFIRM{"User\nconfirms?"}
-    STARCONFIRM -->|"Yes"| TRIAGE
-    STARCONFIRM -->|"Adjust"| STARSHOW
+    STARCHECK{"⭐ STAR classify<br/>Haiku tiers prompt:<br/>simple / medium / heavy<br/>+ greenfield / hotfix"}
+    STARCHECK -->|"simple"| DIRECTFIX
+    STARCHECK -->|"medium / heavy"| STARSHOW["📋 STAR breakdown<br/>shown to user"]
+    STARCHECK -->|"greenfield 🌱"| GREENFIELD
+    STARCHECK -->|"hotfix 🔥"| HOTFIX
+    STARSHOW --> STARCONFIRM{"User confirms?"}
+    STARCONFIRM -->|"adjust"| STARSHOW
+    STARCONFIRM -->|"yes"| MEMORY
 
-    %% --- Tier classification: simple / medium / heavy ---
-
-    TRIAGE{"🎯 Orchestrator triage\n(after user confirms STAR)\n⚠️ never edits code for medium/heavy\nplan → delegate fixer (haiku)"}
-    TRIAGE -->|"simple recheck"| DIRECTFIX
-    TRIAGE -->|"medium / heavy"| MEMORY
-    TRIAGE -->|"Greenfield 🌱"| GREENFIELD
-    TRIAGE -->|"Hotfix 🔥"| HOTFIX
-
-    %% === GREENFIELD PATH ===
-    GREENFIELD["🌱 Brainstorm\nproduct concept"] --> GENDOCS
-    GENDOCS["📄 Generate docs\n(parallel sonnet agents)\nPRD, HLA, TRD, DB, API"] --> PLANMODE
-
-    %% === SIMPLE PATH ===
-    DIRECTFIX["🔧 Fixer\nImplement fix"] --> DIRECTTEST["Run tests"]
-    DIRECTTEST -->|"Pass"| DIRECTPR["PR → main\n(with release notes)"]
-    DIRECTTEST -->|"Fail"| DIRECTFIX
-    DIRECTPR --> DONE(["✅ Done"])
+    %% === SIMPLE PATH (off main) ===
+    DIRECTFIX["🔧 Fixer haiku<br/>implement + tests"] --> DIRECTPR["PR → main<br/>+ release notes"]
+    DIRECTPR --> CI_SIMPLE{"CI green?"}
+    CI_SIMPLE -->|"red"| DIRECTFIX
+    CI_SIMPLE -->|"green"| DONE
 
     %% === HOTFIX PATH ===
-    HOTFIX["🔥 hotfix/ branch\nfrom main"] --> HOTFIXFIXER["🔧 Fixer\nMinimal fix"]
-    HOTFIXFIXER --> HOTFIXTEST["Run tests"]
-    HOTFIXTEST -->|"Fail"| HOTFIXFIXER
-    HOTFIXTEST -->|"Pass"| HOTFIXPR["PR hotfix → main\n🔮 Oracle inline review\n+ release notes"]
-    HOTFIXPR --> HOTFIXMERGE(["✅ Merge + cherry-pick\nto in-flight branches"])
+    subgraph hotfix_branch ["🌿 hotfix branch"]
+      HOTFIX["🔥 hotfix branch from main"] --> HOTFIXFIX["🔧 Fixer minimal fix + tests"]
+      HOTFIXFIX --> HOTFIXPR["PR hotfix → main<br/>🔮 Oracle inline review<br/>+ release notes"]
+    end
+    HOTFIXPR --> CI_HOTFIX{"CI green?"}
+    CI_HOTFIX -->|"red"| HOTFIXFIX
+    CI_HOTFIX -->|"green"| DONE
 
-    %% === COMPLEX PATH ===
-    MEMORY["🧠 pattern_search\nKnowledge MCP"] --> FOUND
+    %% === GREENFIELD ===
+    GREENFIELD["🌱 Brainstorm + generate docs<br/>parallel sonnet<br/>PRD / HLA / TRD"] --> PLAN
 
-    FOUND{"Match?"}
-    FOUND -->|"Yes"| ADAPT["Apply pattern\n🔧 Fixer implements"]
-    FOUND -->|"No"| MAPCB{"🗺️ Brownfield?\n(existing codebase)"}
-    MAPCB -->|"Yes"| MAPCODEBASE["🗺️ map-codebase\nParallel explorer agents\n7-dimension analysis"]
-    MAPCB -->|"No"| BRAINSTORM
-    MAPCODEBASE --> INGESTDOCS{"📄 Existing\nADRs/PRDs/SPECs?"}
-    INGESTDOCS -->|"Yes"| INGEST["📄 ingest-docs\nExtract locked decisions\n+ surface conflicts"]
-    INGESTDOCS -->|"No"| BRAINSTORM
-    INGEST --> BRAINSTORM
-    BRAINSTORM["💡 lean-flow:brainstorming\nExplore requirements\ndesign-first gate"] --> RESEARCH2
-    RESEARCH2["🔬 phase-researcher\nVerify approaches\n+ known pitfalls"] --> PLANMODE
-
-    PLANMODE["📋 EnterPlanMode"] --> ASSUMPTIONS
-    ASSUMPTIONS["🔍 assumptions-analyzer\nEvidence check\nbefore planning"] --> ASSUMPCHECK{"Blockers?"}
-    ASSUMPCHECK -->|"Unclear assumptions"| SPIKE["⚡ spike\nThrowaway experiment\nvalidate feasibility"]
-    ASSUMPCHECK -->|"Clear"| QUALITY
-    SPIKE --> ASSUMPTIONS
-
-    QUALITY["✍️ writing-plans skill\nQuality guidance\n(file paths, code, TDD)"] --> WRITE
-
-    WRITE["Write plan to\n~/.claude/plans/"] --> REVIEW
-
-    REVIEW{"Approved?"}
-    REVIEW -->|"No"| WRITE
-    REVIEW -->|"Yes"| EXITPLAN
-
-    EXITPLAN["📋 ExitPlanMode\nsuperpowers:writing-plans\nproduces structured plan"] --> PLANCHECK
-    PLANCHECK["✅ plan-checker\n8-dimension verification\ngoal-backward analysis"] --> PLANCHECKRESULT{"Issues?"}
-    PLANCHECKRESULT -->|"Blockers"| WRITE
-    PLANCHECKRESULT -->|"Passed"| VIEWER
-
-    VIEWER["📺 Plan viewer\nlocalhost:3456"] --> BRANCH
-
+    %% === MEDIUM / HEAVY ===
+    MEMORY["🧠 pattern_search knowledge MCP<br/>incl. brownfield prep:<br/>map-codebase + ingest-docs if needed"] --> FOUND{"Match?"}
+    FOUND -->|"yes"| ADAPT["🔧 Fixer applies pattern"]
+    FOUND -->|"no"| BRAINSTORM["💡 lean-flow:brainstorming<br/>+ phase-researcher<br/>+ assumptions-analyzer<br/>+ spike if blocked"]
     ADAPT --> BRANCH
+    BRAINSTORM --> PLAN
 
-    BRANCH["🌿 Create parent branch"] --> STEP
+    PLAN["📋 Plan via superpowers:writing-plans<br/>EnterPlanMode → user approves → ExitPlanMode<br/>plan-checker gate"] --> BRANCH
 
-    STEP{"Next step?"}
-    STEP -->|"Yes"| RESEARCH
-    STEP -->|"All done"| PLANCOMPLETE["✅ All steps complete!\nProceed to audit"]
-    PLANCOMPLETE --> VERIFY["🔍 verifier\nGoal-backward check\nexists+wired+data-flowing"]
-    VERIFY --> VERIFYRESULT{"Gaps?"}
-    VERIFYRESULT -->|"Gaps found"| FIXVERIFY["🔧 Fixer closes gaps"]
-    FIXVERIFY --> VERIFY
-    VERIFYRESULT -->|"Passed"| NYQUIST["🧪 nyquist-auditor\nFill test coverage gaps\ntest-only, no impl changes"]
-    NYQUIST --> FINISHING["🏁 lean-flow:finishing-a-development-branch\nmerge/PR/cleanup decision"]
-    FINISHING --> FIXERDRIVEN["🔧 Fixer-driven final PR\n(medium/heavy tasks)\nOrchestrator hands off"]
-    FIXERDRIVEN --> AUDITSCAN
-    STEP -->|"Plan invalid"| REPLAN
+    subgraph parent_branch ["🌿 parent branch"]
+      BRANCH["🌿 Parent branch from main"] --> STEP{"Next step?"}
+      STEP -->|"all done"| POSTSTEPS["✅ Post-step gate<br/>verifier + nyquist + finishing<br/>fixer takes over"]
+      POSTSTEPS --> MAINPR["🔧 Fixer creates PR<br/>parent → main<br/>+ release notes"]
+    end
 
-    REPLAN["📋 Revise remaining\nsteps via superpowers:writing-plans"] --> STEP
+    subgraph step_branch ["🌿 step branch per step"]
+      STEPBR["🌿 Step branch<br/>optional research:<br/>explorer / librarian, haiku"] --> TESTFIRST{"TDD?"}
+      TESTFIRST -->|"yes"| TDDTEST["🔧 RED → GREEN → REFACTOR"] --> IMPLEMENT
+      TESTFIRST -->|"no"| IMPLEMENT
+      IMPLEMENT["🔧 Fixer haiku<br/>impl + tests + self-verify"] --> TEST["Run tests"]
+      TEST -->|"pass"| COVERAGE_GATE{"📊 Coverage ≥ 90%?"}
+      TEST -->|"fail × 3"| ORACLE_ESC["🔮 Oracle sonnet<br/>systematic-debugging diagnosis"]
+      ORACLE_ESC --> IMPLEMENT
+      COVERAGE_GATE -->|"< 90%"| IMPLEMENT
+    end
+    STEP -->|"yes"| STEPBR
+    STEP -->|"plan invalid"| PLAN
+    COVERAGE_GATE -->|"≥ 90%"| STEPPR["PR step → parent<br/>auto-merge, no oracle"]
+    STEPPR --> STEP
 
-    RESEARCH{"Needs research?"}
-    RESEARCH -->|"Unfamiliar code"| EXPLORER["🔍 Explorer\n(haiku)"]
-    RESEARCH -->|"Need docs"| LIBRARIAN["📚 Librarian\n(haiku)"]
-    RESEARCH -->|"No"| STEPBR
+    MAINPR --> CODEREVIEW["📋 Fixer dispatches<br/>lean-flow:code-reviewer sonnet<br/>via explorer summary"]
+    CODEREVIEW -->|"issues"| FIXFINAL["🔧 Fixer applies feedback<br/>+ updates PR title/desc if scope drifted<br/>+ pushes update"]
+    CODEREVIEW -->|"approved"| FINAL["🔮 Fixer dispatches Oracle sonnet<br/>Architecture review<br/>🚫 no Write/Edit/Bash"]
+    FINAL -->|"issues"| FIXFINAL
+    FINAL -->|"approved"| CODEMAP_UPDATE["🔧 Hybrid codemap update §12a<br/>+ pattern_store"]
+    FIXFINAL --> CODEREVIEW
 
-    EXPLORER --> STEPBR
-    LIBRARIAN --> STEPBR
+    ORACLE_ESC -->|"3 oracle rounds stuck"| HUMAN_ESCALATE
+    FIXFINAL -->|"round 4+"| HUMAN_ESCALATE
+    HUMAN_ESCALATE["⚠️ Human intervention<br/>fixer + oracle stuck<br/>flag + return to user"]
 
-    STEPBR["🌿 Step branch\nprefix/name/step-N"] --> TESTFIRST
-
-    TESTFIRST{"TDD?"}
-    TESTFIRST -->|"Yes"| TDDTEST["🔧 lean-flow:test-driven-development\nRED failing test\n→ GREEN minimal code\n→ REFACTOR"] --> IMPLEMENT
-    TESTFIRST -->|"No"| IMPLEMENT
-
-    IMPLEMENT["🔧 Fixer\n(haiku)\nImplement + tests"] --> FIXCHECK
-
-    FIXCHECK["✅ lean-flow:verification-before-completion\nrun commands + confirm output\nevidence before assertions"] --> TEST
-
-    TEST["Run tests"]
-    TEST -->|"Fail x3"| SYSDBG["🔍 lean-flow:systematic-debugging\nroot cause analysis\nbefore any fix"]
-    SYSDBG --> ORACLE_SCAN["🔍 Explorer\nreads error context"] --> ORACLE_ESC["🔮 Oracle\n(think-only)\nDiagnosis"]
-    ORACLE_ESC --> FIX
-    TEST -->|"Pass"| STEPPR
-
-    STEPPR["PR step → parent\n(auto-merge, no oracle)"] --> MERGE_STEP["Merge to parent"]
-    MERGE_STEP --> CHECKBOX["☑️ Mark step [x]\nin skeleton"]
-    CHECKBOX --> STEP
-
-    AUDITSCAN["🔍 Explorer\n(haiku)\nRead full parent diff\n→ structured summary"] --> AUDIT
-
-    AUDIT["🔮 Oracle\n(sonnet, think-only)\nSecurity audit\nfrom explorer summary\n🚫 no Write/Edit/Bash"] --> CLEAN
-
-    CLEAN{"Issues?"}
-    CLEAN -->|"Found"| FIXAUDIT["🔧 Fixer implements\n🔍 Explorer re-reads\n🔮 Oracle reviews"]
-    CLEAN -->|"Clean"| MAINPR
-
-    FIXAUDIT --> AUDITSCAN
-
-    MAINPR["🔧 Fixer creates PR\nparent → main\n+ release notes"] --> FINALSCAN
-
-    FINALSCAN["🔍 Explorer (haiku)\nScans PR diff\n→ summary for fixer"] --> CODEREVIEW["📋 Fixer dispatches\nlean-flow:code-reviewer\n(sonnet)\ncode quality / SOLID"]
-    CODEREVIEW -->|"Issues"| FIXFINAL["🔧 Fixer applies feedback\n+ pushes update\n(max 3 rounds combined)"]
-    CODEREVIEW -->|"Passed"| FINAL
-
-    FINAL["🔮 Fixer dispatches Oracle\n(sonnet, think-only)\nArchitecture review\n🚫 no Write/Edit/Bash"]
-    FINAL -->|"Issues"| FIXFINAL
-    FINAL -->|"Approved"| CMAPSCAN
-
-    FIXFINAL --> FINALSCAN
-
-    CMAPSCAN["🔧 Fixer runs\ncartographer.py changes"] --> CODEMAP
-
-    CODEMAP{"Affected\ncodemap.md files?"}
-    CODEMAP -->|"Yes"| CMAPSYNTH["🔍 Explorer fills\naffected codemap.md\n→ 🔧 Fixer writes\n→ cartographer.py update"]
-    CODEMAP -->|"No changes"| T1CHECK
-    CMAPSYNTH --> T1CHECK
-
-    T1CHECK{"Major structural\nchanges?"}
-    T1CHECK -->|"New/removed modules\nrenamed dirs"| T1UPDATE["🔍 Sonnet subagents analyze\n→ 🔧 Fixer writes\ndocs/CODEBASE_MAP.md"]
-    T1CHECK -->|"No"| LEARN
-    T1UPDATE --> LEARN
-
-    LEARN["🧠 pattern_store\nSave patterns"] --> MERGE_MAIN(["✅ Fixer merges PR\n(squash + delete branch)"])
-
-    MERGE_MAIN --> CICODEMAP["🤖 CI: auto-update codemaps\n(GitHub Actions)\nHaiku regenerates codemap.md\nfor each changed directory"]
-    MERGE_MAIN --> AUTOOBSERVE["📊 Auto-observe\n(Stop hook)\nRecord tool usage stats\nto patterns.db — zero tokens"]
-
-    %% === AUTO HOOKS (always running) ===
-    BASHCMD(["🔧 Any Bash command"]) --> RTK["⚡ RTK hook\nStrips verbose output\nbefore hitting context"]
-    RTK --> COMPRESS["🤖 auto-compress hook\nIf output >25 lines\n→ haiku summarises\n→ blocks original call"]
+    CODEMAP_UPDATE --> CI_GATE{"⏳ CI green?<br/>GitHub Actions"}
+    CI_GATE -->|"red"| FIXFINAL
+    CI_GATE -->|"green"| MERGE_MAIN(["✅ Fixer merges PR<br/>squash + delete branch"])
+    MERGE_MAIN --> DONE(["✅ Done<br/>human monitors prod separately"])
 
     style USER fill:#34495E,color:#fff
     style AUTORECALL fill:#1A5276,color:#fff
-    style TRIAGE fill:#8E44AD,color:#fff
+    style STARCHECK fill:#F39C12,color:#fff
+    style STARSHOW fill:#8E44AD,color:#fff
+    style STARCONFIRM fill:#F39C12,color:#fff
+    style DIRECTFIX fill:#E67E22,color:#fff
+    style DIRECTPR fill:#2ECC71,color:#fff
+    style CI_SIMPLE fill:#F39C12,color:#fff
+    style DONE fill:#27AE60,color:#fff
+    style HOTFIX fill:#E74C3C,color:#fff
+    style HOTFIXFIX fill:#E67E22,color:#fff
+    style HOTFIXPR fill:#2ECC71,color:#fff
+    style CI_HOTFIX fill:#F39C12,color:#fff
+    style GREENFIELD fill:#16A085,color:#fff
     style MEMORY fill:#2980B9,color:#fff
     style FOUND fill:#F39C12,color:#fff
     style ADAPT fill:#2980B9,color:#fff
     style BRAINSTORM fill:#E91E63,color:#fff
-    style DIRECT fill:#27AE60,color:#fff
-    style DIRECTFIX fill:#E67E22,color:#fff
-    style DIRECTTEST fill:#7B68EE,color:#fff
-    style DIRECTPR fill:#2ECC71,color:#fff
-    style REVIEW fill:#F39C12,color:#fff
-    style PLANMODE fill:#4A90D9,color:#fff
-    style QUALITY fill:#E91E63,color:#fff
-    style WRITE fill:#4A90D9,color:#fff
-    style EXITPLAN fill:#4A90D9,color:#fff
-    style VIEWER fill:#2980B9,color:#fff
+    style PLAN fill:#4A90D9,color:#fff
     style BRANCH fill:#1ABC9C,color:#fff
     style STEP fill:#8E44AD,color:#fff
-    style REPLAN fill:#4A90D9,color:#fff
     style STEPBR fill:#1ABC9C,color:#fff
     style TESTFIRST fill:#F39C12,color:#fff
-    style IMPLEMENT fill:#3498DB,color:#fff
-    style FIXCHECK fill:#2ECC71,color:#fff
-    style FIX fill:#E67E22,color:#fff
-    style FIXAUDIT fill:#E67E22,color:#fff
-    style FIXFINAL fill:#E67E22,color:#fff
-    style TEST fill:#7B68EE,color:#fff
     style TDDTEST fill:#3498DB,color:#fff
-    style AUDIT fill:#9B59B6,color:#fff
-    style MAINPR fill:#2ECC71,color:#fff
-    style RESEARCH fill:#F39C12,color:#fff
-    style EXPLORER fill:#3498DB,color:#fff
-    style LIBRARIAN fill:#3498DB,color:#fff
+    style IMPLEMENT fill:#3498DB,color:#fff
+    style TEST fill:#7B68EE,color:#fff
+    style COVERAGE_GATE fill:#F39C12,color:#fff
     style ORACLE_ESC fill:#9B59B6,color:#fff
-    style FINAL fill:#9B59B6,color:#fff
     style STEPPR fill:#2ECC71,color:#fff
-    style MERGE_STEP fill:#27AE60,color:#fff
-    style CHECKBOX fill:#2980B9,color:#fff
-    style PLANCOMPLETE fill:#27AE60,color:#fff
-    style AUDITSCAN fill:#3498DB,color:#fff
-    style FINALSCAN fill:#3498DB,color:#fff
-    style CMAPSCAN fill:#3498DB,color:#fff
-    style CMAPSYNTH fill:#9B59B6,color:#fff
-    style ORACLE_SCAN fill:#3498DB,color:#fff
-    style CODEMAP fill:#F39C12,color:#fff
-    style LEARN fill:#2980B9,color:#fff
-    style MERGE_MAIN fill:#27AE60,color:#fff
-    style DONE fill:#27AE60,color:#fff
-    style CLEAN fill:#F39C12,color:#fff
-    style HOTFIX fill:#E74C3C,color:#fff
-    style HOTFIXFIXER fill:#E67E22,color:#fff
-    style HOTFIXTEST fill:#7B68EE,color:#fff
-    style HOTFIXPR fill:#2ECC71,color:#fff
-    style HOTFIXMERGE fill:#27AE60,color:#fff
-    style GREENFIELD fill:#16A085,color:#fff
-    style GENDOCS fill:#1ABC9C,color:#fff
-    style CICODEMAP fill:#117A65,color:#fff
-    style AUTOOBSERVE fill:#1A5276,color:#fff
-    style BASHCMD fill:#34495E,color:#fff
-    style RTK fill:#6C3483,color:#fff
-    style COMPRESS fill:#1A5276,color:#fff
-    style STARCHECK fill:#F39C12,color:#fff
-    style STARSHOW fill:#8E44AD,color:#fff
-    style STARCONFIRM fill:#F39C12,color:#fff
-    style TRIAGE_SIMPLE fill:#27AE60,color:#fff
-    style MAPCB fill:#F39C12,color:#fff
-    style MAPCODEBASE fill:#1ABC9C,color:#fff
-    style INGESTDOCS fill:#F39C12,color:#fff
-    style INGEST fill:#2980B9,color:#fff
-    style RESEARCH2 fill:#3498DB,color:#fff
-    style ASSUMPTIONS fill:#3498DB,color:#fff
-    style ASSUMPCHECK fill:#F39C12,color:#fff
-    style SPIKE fill:#E74C3C,color:#fff
-    style PLANCHECK fill:#2ECC71,color:#fff
-    style PLANCHECKRESULT fill:#F39C12,color:#fff
-    style VERIFY fill:#3498DB,color:#fff
-    style VERIFYRESULT fill:#F39C12,color:#fff
-    style FIXVERIFY fill:#E67E22,color:#fff
-    style NYQUIST fill:#9B59B6,color:#fff
-    style SYSDBG fill:#C0392B,color:#fff
-    style FINISHING fill:#1ABC9C,color:#fff
+    style POSTSTEPS fill:#27AE60,color:#fff
+    style MAINPR fill:#2ECC71,color:#fff
     style CODEREVIEW fill:#8E44AD,color:#fff
-    style FIXERDRIVEN fill:#16A085,color:#fff
+    style FIXFINAL fill:#E67E22,color:#fff
+    style FINAL fill:#9B59B6,color:#fff
+    style CODEMAP_UPDATE fill:#9B59B6,color:#fff
+    style CI_GATE fill:#F39C12,color:#fff
+    style MERGE_MAIN fill:#27AE60,color:#fff
+    style HUMAN_ESCALATE fill:#C0392B,color:#fff
 ```
 
 ## Branch Naming Convention
