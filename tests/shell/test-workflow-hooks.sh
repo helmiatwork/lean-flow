@@ -269,6 +269,13 @@ rm -rf "$tmpdir"
 # ────────────────────────────────────────────────────────────────────
 # SECTION 3: session-briefing.sh
 # ────────────────────────────────────────────────────────────────────
+# Contract: The orchestrator role declaration ALWAYS fires on every SessionStart,
+# independent of cache. The cached part is the repo/branch/pattern briefing
+# (systemMessage). A cache hit emits role declaration only; a fresh run emits both
+# role declaration and systemMessage.
+#
+# This ensures the main session is always reminded of its role and responsibilities,
+# even when the briefing state hasn't changed.
 
 echo ""
 echo "=== SECTION 3: session-briefing.sh ==="
@@ -277,31 +284,50 @@ echo ""
 # Clean any existing cache from previous runs
 find /tmp -name "claude-briefing-*.cache" -delete 2>/dev/null || true
 
-echo "Test 3.1: First run produces valid JSON"
+echo "Test 3.1: First run produces valid JSON with role declaration"
 output=$(echo '{}' | bash plugin/scripts/session-briefing.sh 2>/dev/null)
 if [ -n "$output" ]; then
   assert_valid_json "$output" "First run produces valid JSON"
-  assert_contains "$output" "systemMessage" "Output contains systemMessage field"
-  assert_contains "$output" "lean-flow" "Output contains repo name (lean-flow)"
+  assert_contains "$output" "orchestrator" "Output contains orchestrator role declaration"
+  assert_contains "$output" "additionalContext" "Output has additionalContext field"
+  # Note: systemMessage presence depends on working tree state, so we don't assert it
 else
-  echo "✓ First run produces output (skipped JSON validation due to git state)"
+  echo "✓ First run produces output (skipped validation due to git state)"
   PASS=$((PASS+1))
 fi
 
 echo ""
-echo "Test 3.2: Second immediate run is empty (cache hit)"
+echo "Test 3.2: Second immediate run is cache hit (emits role declaration only, no systemMessage)"
 output2=$(echo '{}' | bash plugin/scripts/session-briefing.sh 2>/dev/null)
-assert_empty "$output2" "Second run is empty (cached, same git state)"
+if [ -n "$output2" ]; then
+  assert_valid_json "$output2" "Cache hit produces valid JSON"
+  assert_contains "$output2" "orchestrator" "Cache hit emits orchestrator role declaration"
+  assert_contains "$output2" "additionalContext" "Cache hit has additionalContext field"
+  # Negative check: systemMessage should NOT be present on cache hit
+  if echo "$output2" | grep -q "systemMessage"; then
+    echo "✗ FAIL: Cache hit should not contain systemMessage"
+    FAIL=$((FAIL+1))
+  else
+    echo "✓ PASS: Cache hit correctly omits systemMessage (cached content)"
+    PASS=$((PASS+1))
+  fi
+else
+  echo "✗ FAIL: Cache hit should emit role declaration (not empty)"
+  FAIL=$((FAIL+1))
+fi
 
 echo ""
-echo "Test 3.3: Fresh run after cache clear"
+echo "Test 3.3: Fresh run after cache clear (emits role declaration, may include systemMessage)"
 # Clear cache and get a fresh output
 find /tmp -name "claude-briefing-*.cache" -delete 2>/dev/null || true
 output=$(echo '{}' | bash plugin/scripts/session-briefing.sh 2>/dev/null)
 if [ -n "$output" ]; then
+  assert_valid_json "$output" "Fresh run produces valid JSON"
+  assert_contains "$output" "orchestrator" "Fresh run contains orchestrator role declaration"
+  assert_contains "$output" "additionalContext" "Fresh run has additionalContext"
   assert_contains "$output" "lean-flow" "Fresh run output contains repo name"
 else
-  echo "✓ Cache management working (no output on second run)"
+  echo "✓ Fresh run output (skipped validation due to git state)"
   PASS=$((PASS+1))
 fi
 
