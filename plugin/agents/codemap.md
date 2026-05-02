@@ -1,26 +1,31 @@
 # plugin/agents/
 
-# codemap.md
+# codemap.md — `plugin/agents/`
 
 ## Responsibility
-The `plugin/agents/` directory defines specialized agent personas for the lean-flow plugin orchestration system. Each agent is a focused Claude instance (via `Agent` tool) with specific capabilities, tools, and role constraints. The orchestrator dispatches agents based on task classification — agents are NOT invoked as subagents by each other, only by the main orchestrator session.
+Defines the six specialist agents that orchestrate delegates to for parallel execution: explorer (search), librarian (docs), oracle (architecture), code-reviewer (quality), designer (UI), fixer (implementation). Each agent is a distinct persona with scoped tools, skills, and off-scope routing rules. The orchestrator (in `orchestrator.md`) is the session manager that coordinates them.
 
 ## Design
-- **Agent-per-role pattern**: Each `.md` file declares one agent persona with `name`, `description`, `model` (claude-3-5-sonnet, haiku, opus), and `tools` array. The agent's instructions are in the file body.
-- **Skill/capability declarations**: Agents declare required superpowers (e.g., `superpowers:executing-plans`, `frontend-design:frontend-design`) that map to orchestrator's knowledge base.
-- **Off-scope routing rules**: Every agent includes an identical routing table redirecting out-of-scope tasks to the correct agent (e.g., code-reviewer routes frontend tasks to designer). Format: `OFF-SCOPE: dispatch to <agent> — <brief>`.
-- **Tool restrictions by agent**: Read-only agents (explorer, librarian, code-reviewer) lack Write/Edit; oracle has no tools at all (think-only); fixer and designer are full-capability.
-- **Hard constraints documented inline**: Fixer's 3-round review cap, oracle's prohibition on file/shell tools, designer's stop-before-PR rule.
+- **Agent-as-markdown pattern**: Each agent is a single `.md` file with frontmatter (`name`, `description`, `model`, `tools`) + prose role/skills/rules + off-scope routing table.
+- **Tool granularity**: Agents declare exactly which tools they can use (Read, Write, Edit, Bash, Grep, Glob, WebSearch, Agent, etc.). Oracle intentionally has `tools: []` (think-only).
+- **Skill taxonomy**: Each agent lists required superpowers in order (e.g., fixer: executing-plans → test-driven-development → verification → finishing → requesting-review). Skills are cross-referenced to enable skill-based routing.
+- **Off-scope as safety**: Every agent includes an off-scope routing table mapping task types to the correct agent, enforcing specialization boundaries.
 
 ## Flow
-1. **Orchestrator receives user task** → classifies via STAR (simple/medium/heavy) → routes per tier.
-2. **For medium/heavy tasks**: Orchestrator writes a structured plan with exact code/paths/commands, optionally dispatches explorer/librarian/discuss for pre-work, then **dispatches fixer with the plan** as the execution contract.
-3. **Fixer executes the plan end-to-end**: implements → tests → linters → commits → PR → dispatches code-reviewer (sonnet, diff-level quality) → dispatches oracle (sonnet, architecture/security) → applies feedback loops (max 3 combined rounds) → merges CI-green PR.
-4. **After merge**: Explorer cartographer updates affected `codemap.md` templates, oracle decides if Tier 1 (docs/CODEBASE_MAP.md) needs update.
-5. **Designer and oracle never write code** — designer commits to branch, fixer opens PR; oracle only thinks and advises.
+1. Orchestrator (main session) receives a user request.
+2. Orchestrator classifies as simple/medium/heavy/greenfield.
+3. For simple: orchestrator edits directly (no agent dispatch).
+4. For medium/heavy: orchestrator writes a structured plan, then dispatches `lean-flow:fixer` (haiku, cheap execution).
+5. Fixer executes the plan step-by-step, calling sub-agents as needed (explorer for search, librarian for docs, code-reviewer for quality review, oracle for architecture decisions).
+6. Explorer, librarian, code-reviewer, designer are always dispatched via the Agent tool; oracle is dispatched by orchestrator or fixer with PR context + diffs.
+7. Designer (sonnet, UI specialist) executes frontend tasks on step branches, writes tests, then stops—fixer takes over for PR.
+8. Plan-plus-executor is a minimal ephemeral context used for single-step execution with context/ files for sharing discoveries.
 
 ## Integration
-- **With orchestrator**: Agents are invoked via `Agent` tool in prompts; orchestrator owns the dispatch logic, plan creation, and verification loops. Agents report findings/status back to orchestrator, which continues the session.
-- **With each other**: Agents don't call agents — only orchestrator dispatches. Code-reviewer and oracle are run sequentially on the same PR (code-reviewer first, oracle second). Explorer pre-work (codebase maps, diff scans) feeds into oracle's summaries.
-- **With plugin infrastructure**: Agents read `CLAUDE.md` for project context, follow project-specific patterns detected in existing code, and respect pre-commit hooks (no Co-Authored-By attribution).
-- **With CI/codemap system**: Fixer pushes branches; explorer runs cartographer.py changes to populate affected `codemap.md` stubs; oracle flags structural changes for Tier 1 docs update.
+- **Orchestrator** (`orchestrator.md`) is the hub; it reads this folder to understand which agent to dispatch and what their constraints are.
+- **Fixer** (`fixer.md`) is the primary delegated executor for medium/heavy; it may dispatch other agents (explorer, librarian, code-reviewer, designer, oracle) mid-execution via the Agent tool.
+- **Explorer** (`explorer.md`) provides cartography (directory mapping) after each fixer/designer commit; orchestrator triggers it to keep codemaps current.
+- **Oracle** (`oracle.md`) is think-only (no file tools); it receives summaries from explorer and fixer, returns structured approvals/issues. Used for final PR reviews and unblocking stuck fixers.
+- **Code-reviewer** and **designer** are dispatched by fixer for quality/UI review mid-task or by orchestrator for PR feedback loops.
+- **Librarian** is on-demand read-only research for library APIs and docs.
+- **Plan-plus-executor** is used internally when a plan has been restructured into skeleton + context files; ephemeral and scoped to single steps.
