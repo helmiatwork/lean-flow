@@ -1,27 +1,25 @@
 # plugin/workflows/
 
-# Codemap: `plugin/workflows/`
+# plugin/workflows/ Codemap
 
 ## Responsibility
-Defines the two operational frameworks for Claude-driven development: lean-flow rules and standard session flow. `claude-rules.md` establishes mandatory skill triggers, escalation logic, and branching strategy. `standard-development-flow.md` documents the orchestrator-fixer-reviewer execution model with Mermaid diagrams showing STAR classification, pattern recall, planning gates, and step-branch workflows.
+Defines Claude's operational workflows and rule-based decision engines. `claude-rules.md` enforces mandatory skill triggers (TDD, debugging, verification) and branch governance. `standard-development-flow.md` orchestrates the session lifecycle: STAR classification → pattern recall → planning → fixer dispatch → verification, with distinct lanes for orchestrator (opus) vs. execution (haiku/sonnet fixer).
 
 ## Design
-- **Dual-document architecture**: Rules (prescriptive constraints) separated from Flow (descriptive process)
-- **Mandatory triggers table** in claude-rules.md maps situations (bug, pre-coding, pre-merge) to specific `lean-flow:*` commands
-- **STAR classification** (simple/medium/heavy + greenfield/hotfix) gates complexity into dispatch strategy
-- **Step-branch model**: parent branch (1 per plan) → step-N branches → sequential PRs → parent → main, with optional parallel designer dispatch for frontend work
-- **Escalation gates**: 3-attempt retry → oracle diagnosis; 3 oracle escalations → human flag
+- **Dual-layer governance**: `claude-rules.md` sets hard constraints (escalation rules, branching schema, mandatory lean-flow commands); `standard-development-flow.md` provides the control-flow diagram.
+- **Swim-lane separation**: Orchestrator (coordinator, no code edits) vs. Execution (fixer/designer/reviewer, all writes).
+- **Context-aware dispatch**: Simple tasks skip planning; complex tasks trigger brainstorm → plan-checker gate; greenfield tasks auto-generate PRD/HLA/TRD first.
+- **Escalation gate**: Failures at same step ≥3 times block retry; oracle diagnoses root cause.
 
 ## Flow
-1. SessionStart loads `orchestrator.md` context → User prompt triggers AutoRecall pattern search
-2. STAR classify → conditional dispatch: simple (direct PR), greenfield (doc-first), hotfix (minimal fast path), or complex (pattern/brainstorm/plan)
-3. Planning phase: EnterPlanMode → `superpowers:writing-plans` → plan-checker validation → user approval
-4. Branch creation (parent, then step-N per plan step)
-5. Step execution: optional researcher/designer parallel dispatch → TDD (RED/GREEN/REFACTOR) → coverage ≥90% gate → step PR to parent
-6. Final parent PR: code-reviewer (sonnet) → oracle validation → CODEMAP_UPDATE + CI gate
+1. SessionStart hook loads `orchestrator.md` role + `claude-rules.md` constraints.
+2. User prompt triggers auto-recall (FTS5 pattern search).
+3. STAR classify → route: simple (direct fixer PR), hotfix (fast path), or complex (brainstorm → plan-checker → execute via step branches).
+4. Fixer implements with TDD, verifies coverage ≥90%, commits with orchestrator-dispatched cartography.
+5. Step PRs auto-merge to parent; parent PR to main requires code-reviewer + oracle approval + CLAUDE.md validation.
 
 ## Integration
-- **Input**: User prompt (via UserPromptSubmit hook), codebase context (docs/CODEBASE_MAP.md)
-- **Invokes**: `lean-flow:*` commands (systematic-debugging, test-driven-development, verification-before-completion, code-reviewer, map-codebase, ingest-docs, phase-researcher, assumptions-analyzer, spike, plan-checker, finishing-a-development-branch, cartography)
-- **Output**: Branch naming convention (feature/fix/improvement/security/hotfix/chore/docs with kebab-case), PR descriptions, release notes, updated CODEMAP.md via hybrid approach
-- **Dispatch targets**: fixer (haiku), designer (sonnet), oracle (sonnet, think-only), explorer/librarian (research phase)
+- **Consumed by**: SessionStart hook (loads rules), UserPromptSubmit hook (STAR classify), fixer dispatch (lean-flow:* commands), oracle review (verification-before-completion, code-reviewer).
+- **Reads from**: `docs/CODEBASE_MAP.md` (triage gate), `docs/orchestrator.md` (role config), knowledge MCP (pattern search).
+- **Writes to**: pattern_store, codemap updates (§12a hybrid merge), branch naming reflects schema.
+- **Dependencies**: lean-flow skill triggers (TDD, debugging, finishing), superpowers:writing-plans/executing-plans, cartography for changed folders.
