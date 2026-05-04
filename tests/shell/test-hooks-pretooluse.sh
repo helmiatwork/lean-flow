@@ -413,6 +413,151 @@ assert_exit "$exit_code" "0" "Empty command passes (no flags)"
 
 # ============================================================
 echo ""
+echo "=== Test enforce-pr-template.sh ==="
+# ============================================================
+
+# Use a tmp repo with a fake PR template so the hook has a real file to find.
+PR_TPL_REPO="$(mktemp -d)"
+git -C "$PR_TPL_REPO" init -q
+mkdir -p "$PR_TPL_REPO/.github"
+echo "## Overview" > "$PR_TPL_REPO/.github/PULL_REQUEST_TEMPLATE.md"
+
+echo ""
+echo "Block gh pr create with --body when template exists"
+exit_code=0
+output=$(cd "$PR_TPL_REPO" && echo '{"tool_input":{"command":"gh pr create --title x --body \"foo\""}}' | bash "$OLDPWD/plugin/scripts/enforce-pr-template.sh" 2>&1) || exit_code=$?
+assert_exit "$exit_code" "2" "Block --body inline when template exists"
+assert_contains "$output" "PR template" "Mentions template path"
+
+echo ""
+echo "Allow gh pr create with --body-file when template exists"
+exit_code=0
+output=$(cd "$PR_TPL_REPO" && echo '{"tool_input":{"command":"gh pr create --title x --body-file pr.md"}}' | bash "$OLDPWD/plugin/scripts/enforce-pr-template.sh" 2>&1) || exit_code=$?
+assert_exit "$exit_code" "0" "Allow --body-file even with template"
+
+echo ""
+echo "Allow gh pr create with no body flag when template exists"
+exit_code=0
+output=$(cd "$PR_TPL_REPO" && echo '{"tool_input":{"command":"gh pr create --title x"}}' | bash "$OLDPWD/plugin/scripts/enforce-pr-template.sh" 2>&1) || exit_code=$?
+assert_exit "$exit_code" "0" "Allow no body flag — gh auto-loads template"
+
+echo ""
+echo "Allow gh pr create when no template exists"
+NO_TPL_REPO="$(mktemp -d)"
+git -C "$NO_TPL_REPO" init -q
+exit_code=0
+output=$(cd "$NO_TPL_REPO" && echo '{"tool_input":{"command":"gh pr create --title x --body \"foo\""}}' | bash "$OLDPWD/plugin/scripts/enforce-pr-template.sh" 2>&1) || exit_code=$?
+assert_exit "$exit_code" "0" "Allow inline body when no template"
+
+echo ""
+echo "Allow gh pr edit (only blocks create)"
+exit_code=0
+output=$(cd "$PR_TPL_REPO" && echo '{"tool_input":{"command":"gh pr edit 1 --body x"}}' | bash "$OLDPWD/plugin/scripts/enforce-pr-template.sh" 2>&1) || exit_code=$?
+assert_exit "$exit_code" "0" "gh pr edit unaffected"
+
+rm -rf "$PR_TPL_REPO" "$NO_TPL_REPO"
+
+# ============================================================
+echo ""
+echo "=== Test enforce-branch-naming.sh ==="
+# ============================================================
+
+echo ""
+echo "Block git checkout -b with bad name"
+exit_code=0
+output=$(echo '{"tool_input":{"command":"git checkout -b badname"}}' | bash plugin/scripts/enforce-branch-naming.sh 2>&1) || exit_code=$?
+assert_exit "$exit_code" "2" "Reject branch without convention prefix"
+assert_contains "$output" "feature/" "Mentions allowed prefixes"
+
+echo ""
+echo "Allow git checkout -b with feature/ prefix"
+exit_code=0
+output=$(echo '{"tool_input":{"command":"git checkout -b feature/onboarding"}}' | bash plugin/scripts/enforce-branch-naming.sh 2>&1) || exit_code=$?
+assert_exit "$exit_code" "0" "Allow feature/ prefix"
+
+echo ""
+echo "Allow git checkout -b with fix/ prefix"
+exit_code=0
+output=$(echo '{"tool_input":{"command":"git checkout -b fix/auth-bug"}}' | bash plugin/scripts/enforce-branch-naming.sh 2>&1) || exit_code=$?
+assert_exit "$exit_code" "0" "Allow fix/ prefix"
+
+echo ""
+echo "Allow git switch -c with hotfix/ prefix"
+exit_code=0
+output=$(echo '{"tool_input":{"command":"git switch -c hotfix/critical"}}' | bash plugin/scripts/enforce-branch-naming.sh 2>&1) || exit_code=$?
+assert_exit "$exit_code" "0" "Allow hotfix/ via git switch -c"
+
+echo ""
+echo "Block git switch -c with bad name"
+exit_code=0
+output=$(echo '{"tool_input":{"command":"git switch -c randomname"}}' | bash plugin/scripts/enforce-branch-naming.sh 2>&1) || exit_code=$?
+assert_exit "$exit_code" "2" "Reject git switch -c without convention prefix"
+
+echo ""
+echo "Allow step-N suffix on feature/ branches"
+exit_code=0
+output=$(echo '{"tool_input":{"command":"git checkout -b feature/onboarding/step-1"}}' | bash plugin/scripts/enforce-branch-naming.sh 2>&1) || exit_code=$?
+assert_exit "$exit_code" "0" "Allow feature/.../step-N"
+
+echo ""
+echo "Ignore unrelated git commands"
+exit_code=0
+output=$(echo '{"tool_input":{"command":"git status"}}' | bash plugin/scripts/enforce-branch-naming.sh 2>&1) || exit_code=$?
+assert_exit "$exit_code" "0" "Pass through git status"
+
+echo ""
+echo "Ignore branch checkout (no -b flag)"
+exit_code=0
+output=$(echo '{"tool_input":{"command":"git checkout main"}}' | bash plugin/scripts/enforce-branch-naming.sh 2>&1) || exit_code=$?
+assert_exit "$exit_code" "0" "Pass through plain checkout"
+
+echo ""
+echo "Hook is anchored — does not fire on bad name embedded in PR body"
+exit_code=0
+output=$(echo '{"tool_input":{"command":"gh pr create --body \"do not run git checkout -b badname\""}}' | bash plugin/scripts/enforce-branch-naming.sh 2>&1) || exit_code=$?
+assert_exit "$exit_code" "0" "Bad name in unrelated command body is ignored"
+
+# ============================================================
+echo ""
+echo "=== Test prepush-rubocop.sh ==="
+# ============================================================
+
+echo ""
+echo "Skip non-Ruby repo (no Gemfile)"
+NORUBY_REPO="$(mktemp -d)"
+git -C "$NORUBY_REPO" init -q
+exit_code=0
+output=$(cd "$NORUBY_REPO" && echo '{"tool_input":{"command":"git push origin main"}}' | bash "$OLDPWD/plugin/scripts/prepush-rubocop.sh" 2>&1) || exit_code=$?
+assert_exit "$exit_code" "0" "Skip silently when no Gemfile"
+
+echo ""
+echo "Skip branch delete"
+exit_code=0
+output=$(echo '{"tool_input":{"command":"git push origin :stale-branch"}}' | bash plugin/scripts/prepush-rubocop.sh 2>&1) || exit_code=$?
+assert_exit "$exit_code" "0" "Skip branch deletion"
+
+echo ""
+echo "Skip --delete flag"
+exit_code=0
+output=$(echo '{"tool_input":{"command":"git push origin --delete stale-branch"}}' | bash plugin/scripts/prepush-rubocop.sh 2>&1) || exit_code=$?
+assert_exit "$exit_code" "0" "Skip --delete"
+
+echo ""
+echo "Pass through unrelated commands"
+exit_code=0
+output=$(echo '{"tool_input":{"command":"git status"}}' | bash plugin/scripts/prepush-rubocop.sh 2>&1) || exit_code=$?
+assert_exit "$exit_code" "0" "Pass through git status"
+
+echo ""
+echo "Empty command passes"
+exit_code=0
+output=$(echo '{"tool_input":{"command":""}}' | bash plugin/scripts/prepush-rubocop.sh 2>&1) || exit_code=$?
+assert_exit "$exit_code" "0" "Empty command passes"
+
+rm -rf "$NORUBY_REPO"
+
+# ============================================================
+echo ""
 echo "================================"
 echo "$PASS passed, $FAIL failed"
 echo "================================"
