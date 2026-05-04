@@ -2,8 +2,18 @@
 # post-agent-review.sh — Post fallback verdict comments when code-reviewer or oracle finishes
 #
 # Called by SubagentStop hook after code-reviewer or oracle stops.
-# Reads transcript to find verdict line, posts comment to PR if not already posted.
+# Reads transcript JSONL file to find verdict line, posts comment to PR if not already posted.
 # Idempotent: checks for existing comment with same prefix before posting.
+#
+# Hook payload schema:
+#   {
+#     "subagent_name": "code-reviewer" | "oracle",
+#     "transcript_path": "/path/to/transcript.jsonl",
+#     "metadata": { "pr_number": "123", ... }
+#   }
+#
+# JSONL line schema:
+#   { "type": "assistant" | "user", "message": { "content": [{ "type": "text", "text": "..." }] } }
 #
 # Verdicts detected:
 #   CODE_REVIEWER_AGENT: ✅ APPROVED
@@ -13,12 +23,12 @@
 
 set -o pipefail
 
-INPUT=$(cat)
+HOOK_PAYLOAD=$(cat)
 
-# Extract agent name, transcript, and PR number
-AGENT_NAME=$(printf '%s' "$INPUT" | jq -r '.agent_name // ""' 2>/dev/null)
-TRANSCRIPT=$(printf '%s' "$INPUT" | jq -r '.messages // []' 2>/dev/null)
-PR_NUMBER=$(printf '%s' "$INPUT" | jq -r '.metadata.pr_number // ""' 2>/dev/null)
+# Extract agent name, transcript path, and PR number
+AGENT_NAME=$(printf '%s' "$HOOK_PAYLOAD" | jq -r '.subagent_name // ""' 2>/dev/null)
+TRANSCRIPT_PATH=$(printf '%s' "$HOOK_PAYLOAD" | jq -r '.transcript_path // empty' 2>/dev/null)
+PR_NUMBER=$(printf '%s' "$HOOK_PAYLOAD" | jq -r '.metadata.pr_number // ""' 2>/dev/null)
 
 # Only process code-reviewer and oracle agents
 if [[ "$AGENT_NAME" != "code-reviewer" && "$AGENT_NAME" != "oracle" ]]; then
@@ -30,13 +40,21 @@ if [[ -z "$PR_NUMBER" ]]; then
   exit 0
 fi
 
-# Scan ALL assistant messages in the transcript to find the LAST verdict line
+# If no transcript path or file doesn't exist, silently exit
+if [[ -z "$TRANSCRIPT_PATH" ]] || [[ ! -f "$TRANSCRIPT_PATH" ]]; then
+  exit 0
+fi
+
+# Scan ALL assistant messages in the JSONL transcript to find the LAST verdict line
 # This handles cases where the final message is a tool acknowledgment rather than the verdict
+# JSONL format: each line is { "type": "...", "message": { "content": [{ "type": "text", "text": "..." }] } }
 VERDICT_LINE=""
 if [[ "$AGENT_NAME" == "code-reviewer" ]]; then
-  VERDICT_LINE=$(printf '%s' "$TRANSCRIPT" | jq -r '.[] | select(.role=="assistant") | .content // "" | select(. != "")' 2>/dev/null | grep -E '^CODE_REVIEWER_AGENT: (✅ APPROVED|⚠️ CHANGES_REQUESTED)' | tail -1)
+  VERDICT_LINE=$(jq -r 'select(.type=="assistant") | .message.content[]? | select(.type=="text") | .text' "$TRANSCRIPT_PATH" 2>/dev/null \
+    | grep -E '^CODE_REVIEWER_AGENT: (✅ APPROVED|⚠️ CHANGES_REQUESTED)' | tail -1)
 elif [[ "$AGENT_NAME" == "oracle" ]]; then
-  VERDICT_LINE=$(printf '%s' "$TRANSCRIPT" | jq -r '.[] | select(.role=="assistant") | .content // "" | select(. != "")' 2>/dev/null | grep -E '^ORACLE_AGENT: (✅ APPROVED|⚠️ CHANGES_REQUESTED)' | tail -1)
+  VERDICT_LINE=$(jq -r 'select(.type=="assistant") | .message.content[]? | select(.type=="text") | .text' "$TRANSCRIPT_PATH" 2>/dev/null \
+    | grep -E '^ORACLE_AGENT: (✅ APPROVED|⚠️ CHANGES_REQUESTED)' | tail -1)
 fi
 
 # If no verdict found, silently exit

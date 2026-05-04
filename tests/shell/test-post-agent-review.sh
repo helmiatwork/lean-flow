@@ -38,16 +38,17 @@ assert_not_contains() {
   fi
 }
 
-# Run post-agent-review with mocked gh
+# Run post-agent-review with mocked gh and transcript JSONL
 # Accepts optional second argument for gh view response
 run_post_review() {
-  local json_input="$1"
+  local hook_payload="$1"
   local gh_view_response="${2:-'{\"comments\":[]}'}"
   local call_log=""
   (
-    # Create temp dir for mock gh and call log
+    # Create temp dir for mock gh, call log, and transcript
     export GH_TEST_DIR=$(mktemp -d)
     export GH_CALL_LOG="$GH_TEST_DIR/calls.log"
+    export TRANSCRIPT_FILE="$GH_TEST_DIR/transcript.jsonl"
 
     # Create wrapper script that mocks gh
     cat > "$GH_TEST_DIR/gh" <<'MOCK_GH'
@@ -71,7 +72,7 @@ MOCK_GH
     export GH_VIEW_RESPONSE="$gh_view_response"
 
     # Run the script
-    printf '%s' "$json_input" | bash /Users/ichigo/Documents/repo/lean-flow/plugin/scripts/post-agent-review.sh 2>/dev/null || true
+    printf '%s' "$hook_payload" | bash /Users/ichigo/Documents/repo/lean-flow/plugin/scripts/post-agent-review.sh 2>/dev/null || true
 
     # Output the call log
     if [ -f "$GH_CALL_LOG" ]; then
@@ -89,37 +90,57 @@ cleanup() {
 
 echo "=== Test 1: Oracle APPROVED verdict posts comment ==="
 cleanup
-json='{"agent_name":"oracle","metadata":{"pr_number":"123"},"messages":[{"role":"assistant","content":"ORACLE_AGENT: ✅ APPROVED\n\nSome analysis here"}]}'
-output=$(run_post_review "$json" 2>&1 || true)
+# Create temp transcript JSONL file with proper JSON encoding
+TRANSCRIPT=$(mktemp)
+jq -n '{type:"assistant",message:{content:[{type:"text",text:"ORACLE_AGENT: ✅ APPROVED\n\nSome analysis here"}]}}' > "$TRANSCRIPT"
+hook_payload="{\"subagent_name\":\"oracle\",\"transcript_path\":\"$TRANSCRIPT\",\"metadata\":{\"pr_number\":\"123\"}}"
+output=$(run_post_review "$hook_payload" 2>&1 || true)
 assert_contains "$output" "comment_posted" "oracle APPROVED posts gh pr comment"
+rm -f "$TRANSCRIPT"
 
 echo ""
 echo "=== Test 2: Code-reviewer CHANGES_REQUESTED posts comment ==="
 cleanup
-json='{"agent_name":"code-reviewer","metadata":{"pr_number":"456"},"messages":[{"role":"assistant","content":"CODE_REVIEWER_AGENT: ⚠️ CHANGES_REQUESTED\n\nFound issues..."}]}'
-output=$(run_post_review "$json" 2>&1 || true)
+# Create temp transcript JSONL file with proper JSON encoding
+TRANSCRIPT=$(mktemp)
+jq -n '{type:"assistant",message:{content:[{type:"text",text:"CODE_REVIEWER_AGENT: ⚠️ CHANGES_REQUESTED\n\nFound issues..."}]}}' > "$TRANSCRIPT"
+hook_payload="{\"subagent_name\":\"code-reviewer\",\"transcript_path\":\"$TRANSCRIPT\",\"metadata\":{\"pr_number\":\"456\"}}"
+output=$(run_post_review "$hook_payload" 2>&1 || true)
 assert_contains "$output" "comment_posted" "code-reviewer CHANGES_REQUESTED posts gh pr comment"
+rm -f "$TRANSCRIPT"
 
 echo ""
 echo "=== Test 3: Non-reviewer agent silently exits ==="
 cleanup
-json='{"agent_name":"designer","metadata":{"pr_number":"789"},"messages":[{"role":"assistant","content":"Some work done"}]}'
-output=$(run_post_review "$json" 2>&1 || true)
+# Create temp transcript JSONL file with proper JSON encoding
+TRANSCRIPT=$(mktemp)
+jq -n '{type:"assistant",message:{content:[{type:"text",text:"Some work done"}]}}' > "$TRANSCRIPT"
+hook_payload="{\"subagent_name\":\"designer\",\"transcript_path\":\"$TRANSCRIPT\",\"metadata\":{\"pr_number\":\"789\"}}"
+output=$(run_post_review "$hook_payload" 2>&1 || true)
 assert_not_contains "$output" "comment_posted" "non-reviewer agent does not post comment"
+rm -f "$TRANSCRIPT"
 
 echo ""
 echo "=== Test 4: Missing PR number silently exits ==="
 cleanup
-json='{"agent_name":"oracle","metadata":{},"messages":[{"role":"assistant","content":"ORACLE_AGENT: ✅ APPROVED"}]}'
-output=$(run_post_review "$json" 2>&1 || true)
+# Create temp transcript JSONL file with proper JSON encoding
+TRANSCRIPT=$(mktemp)
+jq -n '{type:"assistant",message:{content:[{type:"text",text:"ORACLE_AGENT: ✅ APPROVED"}]}}' > "$TRANSCRIPT"
+hook_payload="{\"subagent_name\":\"oracle\",\"transcript_path\":\"$TRANSCRIPT\",\"metadata\":{}}"
+output=$(run_post_review "$hook_payload" 2>&1 || true)
 assert_not_contains "$output" "comment_posted" "missing PR number exits silently"
+rm -f "$TRANSCRIPT"
 
 echo ""
 echo "=== Test 5: No verdict in message silently exits ==="
 cleanup
-json='{"agent_name":"oracle","metadata":{"pr_number":"111"},"messages":[{"role":"assistant","content":"Some analysis without a verdict"}]}'
-output=$(run_post_review "$json" 2>&1 || true)
+# Create temp transcript JSONL file with proper JSON encoding
+TRANSCRIPT=$(mktemp)
+jq -n '{type:"assistant",message:{content:[{type:"text",text:"Some analysis without a verdict"}]}}' > "$TRANSCRIPT"
+hook_payload="{\"subagent_name\":\"oracle\",\"transcript_path\":\"$TRANSCRIPT\",\"metadata\":{\"pr_number\":\"111\"}}"
+output=$(run_post_review "$hook_payload" 2>&1 || true)
 assert_not_contains "$output" "comment_posted" "no verdict in message exits silently"
+rm -f "$TRANSCRIPT"
 
 echo ""
 echo "=== Test 6: Idempotency logic is in script ==="
@@ -184,21 +205,28 @@ fi
 echo ""
 echo "=== Test 11: Verdict in non-final assistant message is detected ==="
 cleanup
-# Regression test for finding #2: transcript with verdict in a non-final message
+# Regression test for finding #2: JSONL transcript with verdict in a non-final message
 # Should still detect the verdict even if the last message is a tool acknowledgment
-json='{"agent_name":"oracle","metadata":{"pr_number":"999"},"messages":[{"role":"assistant","content":"ORACLE_AGENT: ✅ APPROVED\n\nAnalysis here"},{"role":"assistant","content":"Tool execution complete"}]}'
-output=$(run_post_review "$json" 2>&1 || true)
+TRANSCRIPT=$(mktemp)
+jq -n '{type:"assistant",message:{content:[{type:"text",text:"ORACLE_AGENT: ✅ APPROVED\n\nAnalysis here"}]}}' > "$TRANSCRIPT"
+jq -n '{type:"assistant",message:{content:[{type:"text",text:"Tool execution complete"}]}}' >> "$TRANSCRIPT"
+hook_payload="{\"subagent_name\":\"oracle\",\"transcript_path\":\"$TRANSCRIPT\",\"metadata\":{\"pr_number\":\"999\"}}"
+output=$(run_post_review "$hook_payload" 2>&1 || true)
 assert_contains "$output" "comment_posted" "verdict in non-final message still posts comment"
+rm -f "$TRANSCRIPT"
 
 echo ""
 echo "=== Test 12: Inline comments don't block verdict posting (tight idempotency) ==="
 cleanup
 # Regression test for finding #4: PR with inline (non-verdict) comments containing agent prefix
 # These should not block posting the verdict summary comment
+TRANSCRIPT=$(mktemp)
+jq -n '{type:"assistant",message:{content:[{type:"text",text:"ORACLE_AGENT: ✅ APPROVED\n\nOverall analysis"}]}}' > "$TRANSCRIPT"
+hook_payload="{\"subagent_name\":\"oracle\",\"transcript_path\":\"$TRANSCRIPT\",\"metadata\":{\"pr_number\":\"888\"}}"
 inline_comments_response='{"comments":[{"body":"ORACLE_AGENT: Found an issue on line 42"},{"body":"ORACLE_AGENT: Also check line 99"}]}'
-json='{"agent_name":"oracle","metadata":{"pr_number":"888"},"messages":[{"role":"assistant","content":"ORACLE_AGENT: ✅ APPROVED\n\nOverall analysis"}]}'
-output=$(run_post_review "$json" "$inline_comments_response" 2>&1 || true)
+output=$(run_post_review "$hook_payload" "$inline_comments_response" 2>&1 || true)
 assert_contains "$output" "comment_posted" "inline comments don't block verdict posting"
+rm -f "$TRANSCRIPT"
 
 echo ""
 echo "================================"
