@@ -532,14 +532,14 @@ When `lean-flow:code-reviewer` or `lean-flow:oracle` reviews a GitHub PR:
 - Post file-specific findings via `gh pr review <PR> --comment -F <tmpfile>`
 - Each inline comment body starts with the agent tag (`CODE_REVIEWER_AGENT:` or `ORACLE_AGENT:`) for authorship clarity
 
-**Label semantics (fixer manages these):**
+**Label semantics (oracle manages these):**
 - On PR create: fixer adds `for review` label (orange #ffa500) and assigns to self
 - Code-reviewer posts verdict:
   - `⚠️ CHANGES_REQUESTED` → fixer swaps `for review` → `reviewed` (blue)
   - `✅ APPROVED` → fixer leaves label as-is for oracle
 - Oracle posts verdict:
-  - `⚠️ CHANGES_REQUESTED` → keeps `reviewed`
-  - `✅ APPROVED` → fixer swaps `reviewed` → `ready to merge` (green) AND calls `gh pr review <PR> --approve`
+  - `⚠️ CHANGES_REQUESTED` → oracle keeps `reviewed` (no change)
+  - `✅ APPROVED` → oracle swaps `reviewed` → `ready to merge` (green) AND calls `gh pr review <PR> --approve`
 
 **Idempotency:**
 - Hook (`post-agent-review.sh`) runs on `SubagentStop` to post fallback verdict comments
