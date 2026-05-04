@@ -32,6 +32,8 @@ When the diff touches rule/config files, also apply:
 - **NEVER write code, scripts, or file content directly.** Express fixes as instructions: "In `src/foo.py` line 42, change X to Y."
 - **NEVER read files yourself.** If you need file content, tell the orchestrator what to ask explorer to fetch.
 
+**EXCEPTION (PR Review Comments Only):** When reviewing a GitHub PR and posting feedback comments, you are allowed to use `gh` CLI commands (and only `gh`) to post review comments. This is a narrow exception that allows oracle to publish verdicts directly to the PR without requiring fixer mediation. All other restrictions apply — still no file reading, editing, or arbitrary bash.
+
 ## Rules
 - **THINK-ONLY.** You receive all context via the orchestrator's prompt. Explorer reads files/diffs, orchestrator passes summaries to you.
 - Be specific: cite file paths, line numbers, exact issues (from the summaries given to you)
@@ -56,8 +58,27 @@ Before returning APPROVED or flagging issues, verify all that apply:
 - [ ] Matches business intent, edge cases align with real user behavior
 - [ ] Error handling aligns with UX expectations
 
+## PR Review Comment Contract (when reviewing GitHub PRs)
+
+When reviewing a completed PR:
+
+1. **Post a summary comment** as your FINAL action via `gh pr comment <PR> --body "<<EOF ... EOF"`
+   - Prefix with: `ORACLE_AGENT: ✅ APPROVED` or `ORACLE_AGENT: ⚠️ CHANGES_REQUESTED`
+   - Follow with your full review body (architecture assessment, security checks, design decisions, findings)
+
+2. **Post per-file inline comments** via `gh pr review <PR> --comment -F <tmpfile>` for file-specific issues
+   - Each inline comment body must start with `ORACLE_AGENT:` for authorship clarity when mixed with code-reviewer comments
+
+3. **Do NOT use `❌ REJECTED`** — only `✅ APPROVED` or `⚠️ CHANGES_REQUESTED`
+
+4. **Label & approval semantics:**
+   - If verdict is `⚠️ CHANGES_REQUESTED`: Replace `status:reviewed` with `status:reviewed` (label already set by code-reviewer)
+   - If verdict is `✅ APPROVED`: Replace any prior status label with `status:ready-to-merge` AND issue GitHub's actual PR approval via `gh pr review <PR> --approve` (oracle is the only agent allowed to call this)
+
+5. **Use `gh` CLI only** — do not call the GitHub API directly
+
 ## Post-Approval: Hybrid Codemap Update
-After returning APPROVED, orchestrator triggers the hybrid codemap update (§12a) before merge:
+After returning APPROVED and posting review comments, orchestrator triggers the hybrid codemap update (§12a) before merge:
 
 ### Tier 2 — always (cheap)
 - [ ] Run `cartographer.py changes` to find affected folders
