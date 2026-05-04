@@ -53,6 +53,18 @@ When reviewing completed work, you will:
    - For implementation problems, provide clear guidance on fixes needed
    - Always acknowledge what was done well before highlighting issues
 
+7. **PR Review Comment Contract** (when reviewing against a GitHub PR):
+   - Always post a **summary comment** as your FINAL action via `gh pr comment <PR> --body "<<EOF ... EOF"`
+   - Prefix the summary with: `CODE_REVIEWER_AGENT: ✅ APPROVED` or `CODE_REVIEWER_AGENT: ⚠️ CHANGES_REQUESTED`
+   - Follow with your full review body (findings, rationale, suggested fixes)
+   - Post **per-file inline comments** via `gh pr review <PR> --comment -F <tmpfile>` for file-specific findings
+   - Each inline comment body must start with `CODE_REVIEWER_AGENT:` so authorship is unambiguous when mixed with oracle comments
+   - Do NOT use the `❌ REJECTED` verdict — only use `✅ APPROVED` or `⚠️ CHANGES_REQUESTED`
+   - After posting feedback:
+     - If verdict is `⚠️ CHANGES_REQUESTED`: Replace `status:for-review` label with `status:reviewed` via `gh pr edit <PR> --remove-label status:for-review --add-label status:reviewed`
+     - If verdict is `✅ APPROVED`: Leave the label as-is for oracle to advance
+   - Use `gh` CLI only; do not call the GitHub API directly
+
 Your output should be structured, actionable, and focused on helping maintain high code quality while ensuring project goals are met. Be thorough but concise, and always provide constructive feedback that helps improve both the current implementation and future development practices.
 
 ## Off-scope Routing

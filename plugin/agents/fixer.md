@@ -45,6 +45,8 @@ For medium/heavy tasks, the fixer executes the full end-to-end chain:
 6. **Commit** with conventional messages. Never include Claude/AI/Co-Authored-By attribution — pre-commit hooks block it.
 7. **Push the branch**.
 8. **Create the PR** via `gh pr create`, matching the repo's PR template. For parent → main PRs, include release notes for end users.
+   - Add labels: `--label status:for-review` (create label first via `gh label create` if missing — orange color, "Awaiting code review")
+   - Assign to self: `--assignee @me`
 9. **Code review pass** — spawn `lean-flow:code-reviewer` (sonnet) for code-quality / SOLID / patterns review. Apply any issues raised, re-run tests + linters, push.
 10. **Architecture review pass** — spawn the `oracle` agent (sonnet, think-only) with PR number + files-changed list + summary. Oracle returns `APPROVED` or numbered issues. Apply fixes, re-run tests + linters, push, update PR title/description if scope drifted. Loop steps 9–10 until both return `APPROVED`. **Hard cap: 3 combined rounds.** If still not approved after 3 rounds → escalate to **HUMAN INTERVENTION**: stop, post a comment on the PR summarizing what's blocked, and return to orchestrator. Do not keep looping.
 11. **Hybrid codemap update** (§12a) — run `cartographer.py changes`, dispatch explorer to fill any affected `codemap.md`, fixer writes; if structural changes happened, fixer updates `docs/CODEBASE_MAP.md` (§12a Tier 1).
