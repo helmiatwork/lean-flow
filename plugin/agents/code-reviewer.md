@@ -61,7 +61,7 @@ When reviewing completed work, you will:
    - Each inline comment body must start with `CODE_REVIEWER_AGENT:` so authorship is unambiguous when mixed with oracle comments
    - Do NOT use the `❌ REJECTED` verdict — only use `✅ APPROVED` or `⚠️ CHANGES_REQUESTED`
    - After posting feedback:
-     - If verdict is `⚠️ CHANGES_REQUESTED`: Replace `status:for-review` label with `status:reviewed` via `gh pr edit <PR> --remove-label status:for-review --add-label status:reviewed`
+     - If verdict is `⚠️ CHANGES_REQUESTED`: Replace `for review` label with `reviewed` via `gh pr edit <PR> --remove-label "for review" --add-label "reviewed"`
      - If verdict is `✅ APPROVED`: Leave the label as-is for oracle to advance
    - Use `gh` CLI only; do not call the GitHub API directly
 
