@@ -39,8 +39,10 @@ assert_not_contains() {
 }
 
 # Run post-agent-review with mocked gh
+# Accepts optional second argument for gh view response
 run_post_review() {
   local json_input="$1"
+  local gh_view_response="${2:-'{\"comments\":[]}'}"
   local call_log=""
   (
     # Create temp dir for mock gh and call log
@@ -52,8 +54,8 @@ run_post_review() {
 #!/usr/bin/env bash
 # Mock gh command
 if [[ "$1" == "pr" && "$2" == "view" ]]; then
-  # Return empty comments list (no existing comments)
-  echo '{"comments":[]}'
+  # Return the response from GH_VIEW_RESPONSE env var
+  printf '%s' "$GH_VIEW_RESPONSE"
 elif [[ "$1" == "pr" && "$2" == "comment" ]]; then
   # Record that comment was posted
   echo "comment_posted" >> "$GH_CALL_LOG"
@@ -66,6 +68,7 @@ MOCK_GH
 
     # Prepend GH_TEST_DIR to PATH so our mock is used
     export PATH="$GH_TEST_DIR:$PATH"
+    export GH_VIEW_RESPONSE="$gh_view_response"
 
     # Run the script
     printf '%s' "$json_input" | bash /Users/ichigo/Documents/repo/lean-flow/plugin/scripts/post-agent-review.sh 2>/dev/null || true
@@ -177,6 +180,25 @@ else
   echo "✗ Script missing pipefail"
   FAIL=$((FAIL+1))
 fi
+
+echo ""
+echo "=== Test 11: Verdict in non-final assistant message is detected ==="
+cleanup
+# Regression test for finding #2: transcript with verdict in a non-final message
+# Should still detect the verdict even if the last message is a tool acknowledgment
+json='{"agent_name":"oracle","metadata":{"pr_number":"999"},"messages":[{"role":"assistant","content":"ORACLE_AGENT: ✅ APPROVED\n\nAnalysis here"},{"role":"assistant","content":"Tool execution complete"}]}'
+output=$(run_post_review "$json" 2>&1 || true)
+assert_contains "$output" "comment_posted" "verdict in non-final message still posts comment"
+
+echo ""
+echo "=== Test 12: Inline comments don't block verdict posting (tight idempotency) ==="
+cleanup
+# Regression test for finding #4: PR with inline (non-verdict) comments containing agent prefix
+# These should not block posting the verdict summary comment
+inline_comments_response='{"comments":[{"body":"ORACLE_AGENT: Found an issue on line 42"},{"body":"ORACLE_AGENT: Also check line 99"}]}'
+json='{"agent_name":"oracle","metadata":{"pr_number":"888"},"messages":[{"role":"assistant","content":"ORACLE_AGENT: ✅ APPROVED\n\nOverall analysis"}]}'
+output=$(run_post_review "$json" "$inline_comments_response" 2>&1 || true)
+assert_contains "$output" "comment_posted" "inline comments don't block verdict posting"
 
 echo ""
 echo "================================"
