@@ -519,6 +519,33 @@ After merge to main, GitHub Actions automatically updates codemaps for changed d
 - Only touches directories that actually changed — unrelated codemaps are never overwritten
 - Requires `ANTHROPIC_API_KEY` secret in GitHub repo settings
 
+### 12c. PR Review Comment Convention
+When `lean-flow:code-reviewer` or `lean-flow:oracle` reviews a GitHub PR:
+
+**Summary comments:**
+- Always post a summary comment as the final action via `gh pr comment <PR>`
+- Prefix the comment with `CODE_REVIEWER_AGENT: <verdict>` or `ORACLE_AGENT: <verdict>`
+- Verdicts: `✅ APPROVED` or `⚠️ CHANGES_REQUESTED` (never `❌ REJECTED`)
+- Follow prefix with full review body (findings, rationale, suggested fixes)
+
+**Per-file inline comments:**
+- Post file-specific findings via `gh pr review <PR> --comment -F <tmpfile>`
+- Each inline comment body starts with the agent tag (`CODE_REVIEWER_AGENT:` or `ORACLE_AGENT:`) for authorship clarity
+
+**Label semantics (fixer manages these):**
+- On PR create: fixer adds `status:for-review` label (orange) and assigns to self
+- Code-reviewer posts verdict:
+  - `⚠️ CHANGES_REQUESTED` → fixer swaps `status:for-review` → `status:reviewed` (blue)
+  - `✅ APPROVED` → fixer leaves label as-is for oracle
+- Oracle posts verdict:
+  - `⚠️ CHANGES_REQUESTED` → keeps `status:reviewed`
+  - `✅ APPROVED` → fixer swaps `status:reviewed` → `status:ready-to-merge` (green) AND calls `gh pr review <PR> --approve`
+
+**Idempotency:**
+- Hook (`post-agent-review.sh`) runs on `SubagentStop` to post fallback verdict comments
+- Checks if a comment with the agent prefix already exists on the PR before posting (prevents duplicates)
+- Silently exits if: agent is not a reviewer, PR context missing, no verdict found, or comment already posted
+
 ### 13. Hotfix Fast Path 🔥
 - For production emergencies only (critical bugs, security vulnerabilities)
 - Branch `hotfix/<name>` directly from main (no parent branch, no step branches)
