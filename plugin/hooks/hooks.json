@@ -27,6 +27,10 @@
           { "type": "command", "command": "bash ${CLAUDE_PLUGIN_ROOT}/scripts/block-secret-commits.sh", "if": "Bash(git add *)" },
           { "type": "command", "command": "bash ${CLAUDE_PLUGIN_ROOT}/scripts/block-claude-identity.sh", "if": "Bash(git commit *)" },
           { "type": "command", "command": "bash ${CLAUDE_PLUGIN_ROOT}/scripts/block-claude-identity.sh", "if": "Bash(gh pr create*)" },
+          { "type": "command", "command": "bash ${CLAUDE_PLUGIN_ROOT}/scripts/enforce-pr-template.sh", "if": "Bash(gh pr create*)" },
+          { "type": "command", "command": "bash ${CLAUDE_PLUGIN_ROOT}/scripts/enforce-branch-naming.sh", "if": "Bash(git checkout -b *)" },
+          { "type": "command", "command": "bash ${CLAUDE_PLUGIN_ROOT}/scripts/enforce-branch-naming.sh", "if": "Bash(git switch -c *)" },
+          { "type": "command", "command": "bash ${CLAUDE_PLUGIN_ROOT}/scripts/prepush-rubocop.sh", "if": "Bash(git push *)", "timeout": 300000 },
           { "type": "command", "command": "bash ${CLAUDE_PLUGIN_ROOT}/scripts/auto-compress-output.sh", "timeout": 30000 }
         ]
       },
