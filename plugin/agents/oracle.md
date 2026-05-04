@@ -72,8 +72,8 @@ When reviewing a completed PR:
 3. **Do NOT use `❌ REJECTED`** — only `✅ APPROVED` or `⚠️ CHANGES_REQUESTED`
 
 4. **Label & approval semantics:**
-   - If verdict is `⚠️ CHANGES_REQUESTED`: Replace `status:reviewed` with `status:reviewed` (label already set by code-reviewer)
-   - If verdict is `✅ APPROVED`: Replace any prior status label with `status:ready-to-merge` AND issue GitHub's actual PR approval via `gh pr review <PR> --approve` (oracle is the only agent allowed to call this)
+   - If verdict is `⚠️ CHANGES_REQUESTED`: Keep `reviewed` label (label already set by code-reviewer)
+   - If verdict is `✅ APPROVED`: Replace any prior status label with `ready to merge` via `gh pr edit <PR> --remove-label "reviewed" --add-label "ready to merge"` AND issue GitHub's actual PR approval via `gh pr review <PR> --approve` (oracle is the only agent allowed to call this)
 
 5. **Use `gh` CLI only** — do not call the GitHub API directly
 
