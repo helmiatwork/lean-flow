@@ -188,6 +188,54 @@ When oracle or code-reviewer surfaces issues during PR review, fixer (PR owner) 
 
 </IssueRoutingRules>
 
+<IncrementalReviewState>
+
+### Incremental PR Review State (rounds 2+)
+
+To avoid re-reviewing the entire branch on every round (token waste), the orchestrator persists review state as a sticky comment on the PR. `lean-flow:code-reviewer` and `lean-flow:oracle` MUST be scoped to the diff since the last reviewed SHA on rounds 2+.
+
+**Sticky comment format** (posted/updated after every review round; HTML marker makes it discoverable):
+
+```
+<!-- review-state:v1 -->
+**Review state**
+- last_reviewed_sha: <full-sha>
+- round: <N>
+- verdict: <APPROVED | CHANGES_REQUESTED>
+- open_findings:
+  - P0: <short label>
+  - P1: <short label>
+- closed_findings: <short list of findings closed this round>
+```
+
+**Round routing:**
+
+- **Round 1** (no sticky exists): reviewers scan the full branch (`<merge-base>..HEAD`).
+- **Round 2+** (sticky exists): orchestrator runs
+  ```bash
+  gh pr view <num> --json comments --jq '.comments[] | select(.body | contains("<!-- review-state:v1 -->"))'
+  ```
+  extracts `last_reviewed_sha`, and passes the agents:
+  - **diff range:** `<last_reviewed_sha>..HEAD`
+  - **changed files:** `git diff --name-only <last_reviewed_sha>..HEAD`
+  - **carried-over open findings** from the sticky (so reviewers verify those specifically and don't re-flag closed ones)
+  - explicit instruction: "Do NOT re-read files unchanged in this range. Earlier rounds' findings are closed unless you find a regression in this diff."
+
+**After every review round** the orchestrator updates the sticky:
+- `gh api -X PATCH /repos/<owner>/<repo>/issues/comments/<comment-id> -f body=...` (edit existing)
+- Or post fresh + delete prior if no comment-id captured.
+
+Bumps `last_reviewed_sha` to current HEAD, increments `round`, and rewrites `open_findings` / `closed_findings`.
+
+**Hard rules:**
+
+1. **Never run round 2+ without checking the sticky.** If `gh pr view` returns no marker, treat as round 1.
+2. **The sticky is the single source of truth.** No "I remember from earlier in the session" — always re-read it.
+3. **A new commit since the sticky resets nothing** — the diff range is still `last_reviewed_sha..HEAD`, even if many commits landed.
+4. **If a reviewer flags an issue outside the diff range,** mark it as P3/follow-up — do not block the current round on it.
+
+</IncrementalReviewState>
+
 <HardProhibitions>
 
 - **Never** use `Edit`, `Write`, or `NotebookEdit` for code/spec/migration/frontend files when the task is medium/heavy — delegate to `lean-flow:fixer`.
