@@ -9,7 +9,7 @@ Single-shot fix: scan, ask 4W1H questions for every missing item, generate all f
 
 ## Step 1 — Dispatch model
 
-This plugin (lean-flow) ships with the `lean-flow:fixer` haiku agent. Step 4 dispatches the fixer for file writes. The fallback to direct `Write` tool is purely a resilience safety net for transient dispatch errors (not a soft-detect mechanism).
+This plugin (lean-flow) ships with the `lean-flow:fixer` haiku agent. Step 4 dispatches the fixer for file writes. The fallback to direct `Write` tool is purely a resilience safety net for transient dispatch errors (not a soft-detect mechanism). Note: dispatch-to-fixer is for consistency with lean-flow's code-writing pattern, not for token-cost savings — orchestrator runs in the same session.
 
 **Fallback triggers ONLY on dispatch-layer errors** — when the Agent tool itself rejects the call before fixer execution begins. Examples:
 - "subagent_type not recognized" / "unknown agent type" (fixer agent missing — should never happen since fixer ships with this plugin)
