@@ -453,6 +453,15 @@ lean-flow automatically enables these companion plugins on first session:
 
 ---
 
+## Bundled Commands
+
+The following slash commands are bundled with lean-flow:
+
+- **`/project-doctor`** — read-only audit of project context artefacts (CLAUDE.md, codemap, architecture, ERD, ADR, hooks, etc.). Reports AI-readiness score (0–100%) and lists missing items. Does NOT modify files.
+- **`/project-doctor-fix`** — auto-generate all missing project context artefacts in one pass. Runs the audit, asks 4W1H questions per cluster, dispatches `lean-flow:fixer` to write every missing file atomically.
+
+---
+
 ## Uninstall
 
 To completely remove lean-flow and all installed components:
