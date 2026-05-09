@@ -164,6 +164,11 @@ lean-flow auto-enables the [superpowers](https://github.com/anthropics/claude-co
 
 > Skills are invoked automatically when their context matches. No manual activation needed.
 
+### 🔍 Bundled Commands
+
+- **`/project-doctor`** — read-only audit of project context artefacts (20 items). Use to diagnose AI-readiness gaps.
+- **`/project-doctor-fix`** — single-shot generation of all missing artefacts via 4W1H clusters + lean-flow:fixer dispatch.
+
 ### 📺 Live Plan Viewer
 Auto-opens a browser dashboard at `localhost:3456` when you exit plan mode. Shows all plans grouped by repo with real-time updates.
 
@@ -533,8 +538,13 @@ lean-flow/
 │   ├── librarian.md             # Haiku — research, docs
 │   ├── designer.md              # Sonnet — UI/UX
 │   └── explorer.md              # Haiku — codebase navigation, codebase map scanning, pre-oracle reads
+├── commands/
+│   ├── project-doctor.md        # /project-doctor — read-only audit (20 items)
+│   └── project-doctor-fix.md    # /project-doctor-fix — single-shot generation
 ├── skills/
-│   └── cartography.md           # Codebase mapping skill (cartographer)
+│   ├── cartography.md           # Codebase mapping skill (cartographer)
+│   ├── project-doctor.md        # Project-doctor audit skill
+│   └── project-doctor-fix.md    # Project-doctor fix generation skill
 ├── hooks/
 │   └── hooks.json               # SessionStart, PreToolUse, PostToolUse, Stop
 ├── plugin/scripts/
@@ -582,6 +592,8 @@ lean-flow/
 │   ├── cartographer.py          # Tier 2: MD5 change detection for per-folder codemaps
 │   ├── scan-codebase.py         # Tier 1: codebase scanner with token counts
 │   ├── uninstall.sh             # Remove all lean-flow components
+│   ├── project-doctor/          # Project-doctor audit and fix suite
+│   │   └── score.sh             # 20-item AI-readiness scanner
 │   └── claude-monitor/          # SwiftBar plugin + fetcher daemon
 │       ├── claude-usage.30s.sh  # SwiftBar display script (reads cache, renders menu)
 │       ├── claude-usage-fetch.sh # Fetcher daemon (OAuth → usage API + local token stats)

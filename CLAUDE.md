@@ -215,9 +215,7 @@ Auto pattern recall fires on every UserPromptSubmit (zero tokens if no match).
 
 ## Bundled Commands
 
-Project-doctor commands are bundled with lean-flow:
-- `/project-doctor` (commands/project-doctor.md) — read-only audit of 20 context artefacts
-- `/project-doctor-fix` (commands/project-doctor-fix.md) — auto-generate all missing artefacts via 4W1H clusters + lean-flow:fixer dispatch
+See [README.md](./README.md#bundled-commands) for the canonical list of bundled slash commands. Maintain only the README; this section is a pointer.
 
 ---
 
