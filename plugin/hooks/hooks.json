@@ -14,7 +14,8 @@
           { "type": "command", "command": "bash ${CLAUDE_PLUGIN_ROOT}/scripts/ensure-gitnexus.sh", "timeout": 10000 },
           { "type": "command", "command": "bash ${CLAUDE_PLUGIN_ROOT}/scripts/ensure-cartography.sh", "timeout": 15000 },
           { "type": "command", "command": "bash ${CLAUDE_PLUGIN_ROOT}/scripts/check-dependencies.sh", "timeout": 5000 },
-          { "type": "command", "command": "bash ${CLAUDE_PLUGIN_ROOT}/scripts/workflow-hook.sh SessionStart", "timeout": 10000 }
+          { "type": "command", "command": "bash ${CLAUDE_PLUGIN_ROOT}/scripts/workflow-hook.sh SessionStart", "timeout": 10000 },
+          { "type": "command", "command": "bash ${CLAUDE_PLUGIN_ROOT}/hooks/project-doctor-session-start.sh", "timeout": 5000 }
         ]
       }
     ],
