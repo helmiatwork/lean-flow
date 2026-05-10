@@ -138,7 +138,9 @@ TEST_TMPDIR=$(mktemp -d)
 cd "$TEST_TMPDIR"
 git init -q
 MISSING=$("$SCRIPT" --missing-only 2>/dev/null)
-if echo "$MISSING" | grep -q '^26\|' || echo "$MISSING" | grep -q '^27\|'; then
+# Check if advisory items (26|...) or (27|...) appear in --missing-only output
+# They should NOT appear, so grep should fail (return 1)
+if echo "$MISSING" | grep -q '^26|' 2>/dev/null || echo "$MISSING" | grep -q '^27|' 2>/dev/null; then
   ADVISORY_EXCLUDED=0
 else
   ADVISORY_EXCLUDED=1
