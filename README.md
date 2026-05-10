@@ -446,6 +446,7 @@ lean-flow automatically enables these companion plugins on first session:
 | Plugin | Source | Purpose |
 |:-------|:-------|:--------|
 | **superpowers** | [claude-plugins-official](https://github.com/anthropics/claude-code-plugins) | Skills & workflows (brainstorming, TDD, debugging, etc.) |
+| **caveman** | [caveman](https://github.com/anthropics/claude-code-plugins) | Token-compressed communication mode |
 | **plan-plus** | [RandyHaylor/plan-plus](https://github.com/RandyHaylor/plan-plus) | Structured planning with skeleton + step files |
 
 > **Important:** lean-flow uses **plan-plus** for planning. The flow is:

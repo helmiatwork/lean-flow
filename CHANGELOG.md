@@ -1,5 +1,15 @@
 # Changelog
 
+## 1.2.1 — 2026-05-10
+
+### Added
+
+- `ensure-plugins.sh` now auto-enables `caveman@caveman` plugin (token-compressed communication mode) on SessionStart. Idempotent — does nothing if already enabled.
+
+### Changed
+
+- Updated companion plugin list in README.md to include caveman.
+
 ## 1.2.0 — 2026-05-10
 
 ### Added
