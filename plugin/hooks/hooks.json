@@ -75,6 +75,7 @@
         ]
       },
       {
+        "matcher": "Bash",
         "hooks": [
           { "type": "command", "command": "bash ${CLAUDE_PLUGIN_ROOT}/scripts/auto-update-codemaps.sh", "if": "Bash(git commit*)", "timeout": 60000 }
         ]

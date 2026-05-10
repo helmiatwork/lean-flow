@@ -48,11 +48,10 @@ for script in \
 done
 
 echo ""
-echo "Checking imported personal hooks..."
+echo "Checking imported personal hooks and guards..."
 for script in \
-  "plugin/scripts/block-branch-delete.sh" \
-  "plugin/scripts/block-pr-comments.sh" \
   "plugin/scripts/bash-guard.sh" \
+  "plugin/scripts/block-wrong-plan-dir.sh" \
   "plugin/scripts/require-plan-for-medium-heavy.sh" \
   "plugin/scripts/compact-nudge.js" \
   "plugin/scripts/warn-browser-snapshot.sh"; do
@@ -65,25 +64,18 @@ echo ""
 echo "Verifying hooks are registered in hooks.json..."
 HOOKS_FILE="$REPO_ROOT/plugin/hooks/hooks.json"
 if [ -f "$HOOKS_FILE" ]; then
-  if grep -q "block-branch-delete.sh" "$HOOKS_FILE"; then
-    echo "✓ block-branch-delete.sh registered"
-    PASS=$((PASS+1))
-  else
-    echo "✗ block-branch-delete.sh not registered"
-    FAIL=$((FAIL+1))
-  fi
-  if grep -q "block-pr-comments.sh" "$HOOKS_FILE"; then
-    echo "✓ block-pr-comments.sh registered"
-    PASS=$((PASS+1))
-  else
-    echo "✗ block-pr-comments.sh not registered"
-    FAIL=$((FAIL+1))
-  fi
   if grep -q "bash-guard.sh" "$HOOKS_FILE"; then
     echo "✓ bash-guard.sh registered"
     PASS=$((PASS+1))
   else
     echo "✗ bash-guard.sh not registered"
+    FAIL=$((FAIL+1))
+  fi
+  if grep -q "block-wrong-plan-dir.sh" "$HOOKS_FILE"; then
+    echo "✓ block-wrong-plan-dir.sh registered"
+    PASS=$((PASS+1))
+  else
+    echo "✗ block-wrong-plan-dir.sh not registered"
     FAIL=$((FAIL+1))
   fi
   if grep -q "require-plan-for-medium-heavy.sh" "$HOOKS_FILE"; then

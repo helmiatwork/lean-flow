@@ -103,13 +103,14 @@ Fires when exiting plan mode. Restructures and archives the plan.
 
 ## PostToolUse (Bash)
 
-Fires after a Bash command completes. Tracks builds, tests, and commits.
+Fires after a Bash command completes. Tracks builds, tests, commits, and codemaps.
 
 | Hook | Script | Default | Env Toggle | Purpose |
 |------|--------|---------|------------|---------|
 | workflow-hook | `workflow-hook.sh PostToolUse Bash` (if gh pr create) | opt-out | `LEAN_FLOW_WORKFLOW_HOOK_DISABLED` | Auto-dispatch babysit (CI monitoring) after PR creation |
 | track-test-failures | `track-test-failures.sh` | opt-out | `LEAN_FLOW_TRACK_TEST_FAILURES_DISABLED` | Record test failure counts for retry logic |
 | update-plan-checklist | `update-plan-checklist.sh` (if git commit) | opt-out | `LEAN_FLOW_UPDATE_PLAN_CHECKLIST_DISABLED` | Auto-check off completed plan steps |
+| auto-update-codemaps | `auto-update-codemaps.sh` (if git commit) | opt-out | `LEAN_FLOW_AUTO_UPDATE_CODEMAPS_DISABLED` | Auto-generate/update codemap.md files for changed directories |
 | compact-nudge | `compact-nudge.js` | opt-out | `LEAN_FLOW_COMPACT_NUDGE_DISABLED` | Remind user to `/compact` when context ≥ 30% |
 
 ---

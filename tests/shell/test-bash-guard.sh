@@ -101,6 +101,22 @@ check "git add -A warning" \
   "git add -A" \
   0
 
+check "branch delete blocked" \
+  "git push origin --delete feature/old" \
+  0
+
+check "branch -D blocked" \
+  "git branch -D main" \
+  0
+
+check "pr comment blocked" \
+  "gh pr comment 1 --body test" \
+  0
+
+check "pr review blocked" \
+  "gh pr review 1 --comment -b x" \
+  0
+
 # ===== SUMMARY =====
 echo ""
 echo "=================================="
