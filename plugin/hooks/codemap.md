@@ -1,20 +1,13 @@
 # plugin/hooks/
 
 ## Responsibility
-
-`plugin/hooks/` defines the lifecycle event handlers that intercept and validate Claude's actions throughout a session. `hooks.json` centralizes all hook configurations for four major event types: SessionStart (initialization), PreToolUse (validation before execution), PostToolUse (side effects after execution), SubagentStop, and Stop. This enables guardrails, workflows, and auto-maintenance without modifying core tool logic.
+Defines lifecycle hooks that intercept and execute scripts at key plugin events: session initialization, pre/post tool execution, plan mode transitions, and agent completion. Centralizes hook orchestration through `hooks.json` configuration.
 
 ## Design
-
-Hook system uses a declarative JSON structure with conditional matching on tool types (Bash, Read, Write/Edit, Task, EnterPlanMode, ExitPlanMode). Each hook entry specifies a command script, optional timeout, conditional `if` matcher pattern, and execution mode (sync/async). Matchers enable selective hook triggering—e.g., `Bash(git push *)` only fires pre-push guards, while broader `Write|Edit` hooks apply to file operations universally.
+Event-driven hook system using JSON configuration with matchers (tool types: Bash, Write/Edit, Read, Task, EnterPlanMode, ExitPlanMode) and conditional execution via `if` patterns. Supports timeout enforcement, async flags, and sequential command chaining per lifecycle stage.
 
 ## Flow
-
-1. **SessionStart**: Sequential initialization scripts validate MCP servers, plugins, permissions, and check dependencies before session begins
-2. **PreToolUse**: Conditional guards execute before tool invocation—git security checks (no-verify, protected branches, secrets), linting, branch naming enforcement
-3. **PostToolUse**: Post-execution workflows update plan checklists, track test failures, regenerate codemaps, delegate task retries, and manage plan mode transitions
-4. **SubagentStop/Stop**: Cleanup and final review hooks when agents or sessions terminate
+**SessionStart** → runs 11 setup/validation scripts (MCPs, plugins, permissions, dependencies). **PreToolUse** → gates operations by tool type (Bash git safeguards, file access controls, branch/PR validation). **PostToolUse** → triggers workflow hooks, plan restructuring, test tracking, codemap auto-updates on commit. **SubagentStop/Stop** → runs post-execution reviews and cleanup.
 
 ## Integration
-
-Hooks invoke scripts in `${CLAUDE_PLUGIN_ROOT}/scripts/` (bash and Python executables) that implement specific safety checks and maintenance tasks. Matchers correlate to tool names exposed by Claude's runtime; hook execution is driven by the plugin host's event dispatcher when tools are called. Results feed back into context (warnings, blocks, updates) to influence downstream behavior.
+Hooks configuration consumed by plugin runtime to intercept Claude tool execution. Scripts in `${CLAUDE_PLUGIN_ROOT}/scripts/` directory handle enforcement (git safety checks, secret blocking, PR templates), MCP setup (knowledge, playwright, RTK, omni), and state management (plan updates, test tracking, codemap generation). Integrates with git, GitHub CLI, and Python/Bash script ecosystem.
