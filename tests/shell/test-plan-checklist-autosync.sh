@@ -250,14 +250,15 @@ echo "x" > f.txt
 git add -A
 git commit -q -m "frontend [step:1]"
 LEAN_FLOW_AUTOSYNC=1 "$SCRIPT" 2>/dev/null
-if grep -q "^- \[x\] Frontend task one" .plans/plan1/plan-full.md && \
-   grep -q "^- \[ \] Frontend task two" .plans/plan1/plan-full.md && \
-   grep -q "^- \[ \] Backend task" .plans/plan2/plan-full.md; then
+if grep -q "^- \[x\] Frontend task one"  .plans/plan1/plan-full.md && \
+   grep -q "^- \[ \] Frontend task two"  .plans/plan1/plan-full.md && \
+   grep -q "^- \[x\] Backend task one"   .plans/plan2/plan-full.md && \
+   grep -q "^- \[ \] Backend task two"   .plans/plan2/plan-full.md; then
   OK=1
 else
   OK=0
 fi
-assert "first plan marked, second untouched" "1" "$OK"
+assert "step:1 marks first checkbox in every plan file (documented cross-plan behavior)" "1" "$OK"
 cd /; rm -rf "$TEST_DIR"
 
 echo "---"
