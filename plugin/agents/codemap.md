@@ -1,36 +1,30 @@
 # plugin/agents/
 
-# codemap.md — `plugin/agents/`
+# `plugin/agents/` Codemap
 
 ## Responsibility
-Defines the specialized agent roles that execute within the lean-flow orchestration system. Each agent has a distinct contract, permission level, and trigger rule. The orchestrator dispatches agents based on task classification and dependencies.
+Nine specialized agent definitions that implement the lean-flow plugin's delegation model. Each agent has a distinct role: orchestrator coordinates work; fixer executes code changes; designer handles UI/UX; code-reviewer enforces quality; oracle makes architectural decisions; explorer discovers unknowns; librarian researches libraries; discuss scopes ambiguous tasks; plan-plus-executor runs individual plan steps in isolation.
 
 ## Design
-**Agent contract pattern**: Each agent is a YAML frontmatter + markdown spec defining:
-- `name`, `description`, `model` (haiku/sonnet/opus), `tools` (permitted MCP/tool set)
-- **Required Skills**: ordered superpowers (mandatory competencies)
-- **Role & Rules**: scope, constraints, off-scope routing
-- **Hard prohibitions** or **End-to-End Execution Contract** (if agent owns a full workflow)
+Each agent is a Markdown file defining:
+- **Metadata** (`name`, `description`, `model`, `tools`) — controls dispatch, model selection, and capability enforcement
+- **Required Skills** — superpowers or tool specializations the agent applies
+- **Role & Rules** — concrete scope boundaries and execution constraints
+- **Off-scope Routing** — table mapping out-of-scope tasks to correct agent with re-dispatch format
+- **Contracts/Checklists** — fixer/code-reviewer/oracle define end-to-end execution contracts; explorer/librarian define read-only discovery contracts
 
-**Key abstractions**:
-- **Dispatch gate** (`OFF-SCOPE:` return format): agents reject out-of-scope tasks with structured re-dispatch instructions
-- **Haiku vs Sonnet tiers**: haiku agents (explorer, librarian, fixer) cost less; sonnet agents (oracle, code-reviewer, designer, discuss) provide deeper reasoning
-- **Read-only vs Edit permission**: explorer/librarian/oracle are read-only (no Write/Edit/Bash); fixer/designer/code-reviewer can edit; orchestrator is unrestricted
+Key abstractions: **tools: [] enforcement** (oracle cannot edit/bash), **haiku cost optimization** (fixer/explorer/librarian use cheaper model), **diff-range incremental review** (code-reviewer/oracle support rounds 2+ with carried-over findings), **PR comment contracts** (code-reviewer/oracle use `gh` CLI for direct PR feedback).
 
 ## Flow
-1. **Orchestrator** classifies task (simple/medium/heavy) → triggers **discuss** (if ambiguous scope)
-2. **Discuss** locks decisions → orchestrator plans
-3. **Orchestrator** dispatches **fixer** (+ optional **designer** for UI) with plan
-4. **Fixer/designer** execute steps, write code, run tests, commit
-5. **Fixer** creates PR → dispatches **code-reviewer** (diff-level quality) → **oracle** (architecture/final verdict)
-6. **Oracle/code-reviewer** approve or return issues → **fixer** applies fixes, loops
-7. **Explorer** scans changed folders post-commit → updates codemaps (cartography pass)
-
-**Agent independence rule**: each agent can be dispatched independently or chained; orchestrator manages sequencing and context passing.
+1. **Orchestrator** (orchestrator.md) receives user prompt → classifies tier (simple/medium/heavy) → plans work with exact code paths
+2. **Dispatch to specialist** → fixer executes full E2E chain (impl → test → lint → PR → review loop); designer handles UI; explorer searches; librarian researches; oracle reviews architecture
+3. **Code review cycle** (fixer.md §9–10) → dispatch code-reviewer (diff scan) → dispatch oracle (architecture) → loop until both `APPROVED` (max 3 rounds)
+4. **Merge** → orchestrator waits for CI green, oracle issues final GitHub PR approval, fixer merges with `--squash`
+5. **Context management** → plan-plus-executor handles isolated step execution with ephemeral context files in `context/` directory
 
 ## Integration
-- **Orchestrator** (not in this folder; main session) reads these specs via `Agent` MCP to dispatch subagents
-- **Off-scope routing** creates feedback loops: if fixer finds a security issue, it re-dispatches to oracle; if designer finds a perf issue, it re-dispatches to oracle
-- **Cartography pass** (explorer post-commit) feeds into `docs/CODEBASE_MAP.md` updates via fixer writes
-- **Context flow**: orchestrator passes summaries to oracle (never direct file reads); explorer reads files → produces summaries for oracle/code-reviewer
-- **PR workflow**: fixer owns the full chain but delegates reviews (code-reviewer for SOLID/patterns, oracle for architecture); both must APPROVE before merge
+- **Orchestrator entry point** — orchestrator.md defines delegation logic; STAR classifier (UserPromptSubmit hook) routes tiers
+- **Agent dispatch** — orchestrator uses Agent tool to spawn fixer/designer/explorer/librarian/oracle/discuss/plan-plus-executor as subagents
+- **PR feedback loop** — code-reviewer and oracle post GitHub PR comments via `gh` CLI; fixer applies feedback and re-dispatches them
+- **Codemap updates** — explorer fills `codemap.md` templates after fixer commits; orchestrator triggers explorer after each commit via `git diff --name-only`
+- **Skills MCP** — agents reference superpowers (executing-plans, test-driven-development, etc.) defined in skills registry; CLAUDE.md maps superpowers to these agent definitions
