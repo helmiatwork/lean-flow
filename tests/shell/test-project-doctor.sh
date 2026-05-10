@@ -69,6 +69,16 @@ assert "default emits Score: line" "1" "$SCORE_LINE"
 cd /
 rm -rf "$TMPDIR"
 
+# Test 6: default mode emits 25 rows (items 1-25)
+TMPDIR=$(mktemp -d)
+cd "$TMPDIR"
+git init -q
+OUT=$("$SCRIPT" 2>/dev/null)
+ROW_COUNT=$(echo "$OUT" | grep -E '^\| [0-9]' | wc -l | tr -d ' ')
+assert "default emits 25 item rows" "25" "$ROW_COUNT"
+cd /
+rm -rf "$TMPDIR"
+
 echo "---"
 echo "PASS: $PASS, FAIL: $FAIL"
 [ "$FAIL" -eq 0 ]

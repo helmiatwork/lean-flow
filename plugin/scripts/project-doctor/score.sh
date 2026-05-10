@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Fast project-doctor scanner. Checks 20 checklist items.
+# Fast project-doctor scanner. Checks 25 checklist items.
 # Default: prints markdown table + score.
 # --score-only:    prints just the integer percent (for hook use).
 # --missing-only:  prints pipe-separated lines for [MISSING] and [STALE] items
@@ -53,7 +53,7 @@ is_stale() {
 
 declare -a RESULTS=()
 PRESENT=0
-TOTAL=20
+TOTAL=25
 
 check() {
   local num="$1" label="$2" file="$3" severity="$4" status="$5"
@@ -346,6 +346,102 @@ else
   check 20 "CI gate" ".github/workflows/*.yml" P2 "[MISSING]"
 fi
 
+# 21. STAR enforcement
+HAS_STAR=false
+if [ -f "$ROOT/CLAUDE.md" ]; then
+  if grep -qE 'STAR PROTOCOL|Tier Routing' "$ROOT/CLAUDE.md" 2>/dev/null; then
+    HAS_STAR=true
+  fi
+fi
+if [ "$HAS_STAR" = "false" ] && [ -f "$HOME/.claude/CLAUDE.md" ]; then
+  if grep -qE 'STAR PROTOCOL|Tier Routing' "$HOME/.claude/CLAUDE.md" 2>/dev/null; then
+    HAS_STAR=true
+  fi
+fi
+if $HAS_STAR; then
+  check 21 "STAR enforcement" "CLAUDE.md" P1 "[OK]"
+else
+  check 21 "STAR enforcement" "CLAUDE.md" P1 "[MISSING]"
+fi
+
+# 22. Orchestrator binding
+HAS_ORCHESTRATOR=false
+if [ -f "$ROOT/CLAUDE.md" ]; then
+  if grep -qE 'orchestrator.*never (edit|push)' "$ROOT/CLAUDE.md" 2>/dev/null; then
+    HAS_ORCHESTRATOR=true
+  elif grep -q 'orchestrator.*never.*push' "$ROOT/CLAUDE.md" 2>/dev/null && grep -q 'orchestrator.*never.*edit' "$ROOT/CLAUDE.md" 2>/dev/null; then
+    HAS_ORCHESTRATOR=true
+  fi
+fi
+if [ "$HAS_ORCHESTRATOR" = "false" ] && [ -f "$HOME/.claude/CLAUDE.md" ]; then
+  if grep -qE 'orchestrator.*never (edit|push)' "$HOME/.claude/CLAUDE.md" 2>/dev/null; then
+    HAS_ORCHESTRATOR=true
+  elif grep -q 'orchestrator.*never.*push' "$HOME/.claude/CLAUDE.md" 2>/dev/null && grep -q 'orchestrator.*never.*edit' "$HOME/.claude/CLAUDE.md" 2>/dev/null; then
+    HAS_ORCHESTRATOR=true
+  fi
+fi
+if $HAS_ORCHESTRATOR; then
+  check 22 "Orchestrator binding" "CLAUDE.md" P1 "[OK]"
+else
+  check 22 "Orchestrator binding" "CLAUDE.md" P1 "[MISSING]"
+fi
+
+# 23. Companion plugins active
+HAS_PLUGINS=false
+if [ -f "$HOME/.claude/settings.json" ]; then
+  HAS_SUPERPOWERS=$(grep -c '"superpowers@claude-plugins-official"' "$HOME/.claude/settings.json" 2>/dev/null || echo 0)
+  HAS_CAVEMAN=$(grep -c '"caveman@caveman"' "$HOME/.claude/settings.json" 2>/dev/null || echo 0)
+  if [ "$HAS_SUPERPOWERS" -gt 0 ] && [ "$HAS_CAVEMAN" -gt 0 ]; then
+    HAS_PLUGINS=true
+  fi
+fi
+if $HAS_PLUGINS; then
+  check 23 "Companion plugins" "~/.claude/settings.json" P2 "[OK]"
+else
+  check 23 "Companion plugins" "~/.claude/settings.json" P2 "[MISSING]"
+fi
+
+# 24. Pre-commit gates declared
+HAS_GATES=false
+# Check project .claude/settings.json
+if [ -f "$ROOT/.claude/settings.json" ]; then
+  if grep -qE 'block-claude-identity|block-no-verify|block-protected-push' "$ROOT/.claude/settings.json" 2>/dev/null; then
+    HAS_GATES=true
+  fi
+fi
+# Check lean-flow plugin hooks.json (vendored)
+if [ "$HAS_GATES" = "false" ]; then
+  PLUGIN_HOOKS="${CLAUDE_PLUGIN_ROOT:-$ROOT/plugin}/hooks/hooks.json"
+  if [ -f "$PLUGIN_HOOKS" ]; then
+    if grep -qE 'block-claude-identity|block-no-verify|block-protected-push' "$PLUGIN_HOOKS" 2>/dev/null; then
+      HAS_GATES=true
+    fi
+  fi
+fi
+if $HAS_GATES; then
+  check 24 "Pre-commit gates" ".claude/settings.json or hooks.json" P1 "[OK]"
+else
+  check 24 "Pre-commit gates" ".claude/settings.json or hooks.json" P1 "[MISSING]"
+fi
+
+# 25. Pattern memory usage
+HAS_PATTERN_MEM=false
+if [ -f "$ROOT/CLAUDE.md" ]; then
+  if grep -qE 'pattern_search|pattern_store' "$ROOT/CLAUDE.md" 2>/dev/null; then
+    HAS_PATTERN_MEM=true
+  fi
+fi
+if [ "$HAS_PATTERN_MEM" = "false" ] && [ -f "$HOME/.claude/CLAUDE.md" ]; then
+  if grep -qE 'pattern_search|pattern_store' "$HOME/.claude/CLAUDE.md" 2>/dev/null; then
+    HAS_PATTERN_MEM=true
+  fi
+fi
+if $HAS_PATTERN_MEM; then
+  check 25 "Pattern memory" "CLAUDE.md" P2 "[OK]"
+else
+  check 25 "Pattern memory" "CLAUDE.md" P2 "[MISSING]"
+fi
+
 # Output
 PERCENT=$(( PRESENT * 100 / TOTAL ))
 
@@ -365,7 +461,7 @@ echo "| # | Item | File | Severity | Status |"
 echo "|---|------|------|----------|--------|"
 for row in "${RESULTS[@]}"; do
   IFS='|' read -r n l f s st <<< "$row"
-  echo "| $n | $l | $f | $s | $st |"
+  printf "| %-2s | %s | %s | %s | %s |\n" "$n" "$l" "$f" "$s" "$st"
 done
 echo ""
 echo "**Score: $PRESENT/$TOTAL ($PERCENT%)**"
