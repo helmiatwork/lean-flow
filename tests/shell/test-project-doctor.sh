@@ -2,7 +2,9 @@
 # Smoke tests for project-doctor scanner.
 set -euo pipefail
 
-SCRIPT="${CLAUDE_PLUGIN_ROOT:-/Users/ichigo/Documents/repo/lean-flow/plugin}/scripts/project-doctor/score.sh"
+# Resolve repo root so tests are portable across machines/CI
+REPO_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)"
+SCRIPT="${CLAUDE_PLUGIN_ROOT:-$REPO_ROOT/plugin}/scripts/project-doctor/score.sh"
 [ -x "$SCRIPT" ] || { echo "FAIL: scanner not executable: $SCRIPT"; exit 1; }
 
 PASS=0
