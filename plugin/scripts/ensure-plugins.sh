@@ -22,10 +22,17 @@ if ! jq -e '.enabledPlugins["superpowers@claude-plugins-official"]' "$SETTINGS_F
   changed=true
 fi
 
+# Enable caveman plugin
+if ! jq -e '.enabledPlugins["caveman@caveman"]' "$SETTINGS_FILE" &>/dev/null; then
+  tmp=$(mktemp)
+  jq '.enabledPlugins["caveman@caveman"] = true' "$SETTINGS_FILE" > "$tmp" && mv "$tmp" "$SETTINGS_FILE"
+  changed=true
+fi
+
 if [ "$changed" = true ]; then
   cat <<'EOF'
 {
-  "systemMessage": "[lean-flow] Companion plugin configured: superpowers (skills & workflows). Restart session to activate."
+  "systemMessage": "[lean-flow] Companion plugins configured: superpowers (skills & workflows), caveman (token-compressed mode). Restart session to activate."
 }
 EOF
 fi
