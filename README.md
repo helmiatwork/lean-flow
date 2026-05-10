@@ -171,7 +171,6 @@ lean-flow auto-enables the [superpowers](https://github.com/anthropics/claude-co
 | `babysit` | Watch a pull request or review cycle until it is ready to merge |
 | `pathfinder` | Map codebase into feature-grouped flowcharts, identify duplicated concerns, propose unified architecture |
 | `learn-codebase` | Prime a codebase by reading every source file in full |
-| `smart-explore` | Token-optimized AST code search via tree-sitter MCP (external dep) |
 
 > Skills are invoked automatically when their context matches. No manual activation needed.
 
