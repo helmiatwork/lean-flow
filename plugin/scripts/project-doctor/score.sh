@@ -492,3 +492,5 @@ echo "**Score: $PRESENT/$TOTAL ($PERCENT%)**"
 P0_MISSING=$(printf '%s\n' "${RESULTS[@]}" | awk -F'|' '$4=="P0" && $5=="[MISSING]"' | wc -l | tr -d ' ')
 echo ""
 echo "P0 missing: $P0_MISSING"
+echo ""
+echo "_Legend: [OK] = check passes; [MISSING] = scored item to fix; [ADVISORY] = informational only, no score impact (rows >25)._"
