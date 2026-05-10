@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # Fast project-doctor scanner. Checks 25 checklist items.
 # Default: prints markdown table + score.
-# --score-only:    prints just the integer percent (for hook use).
+# --score-only:    prints just the number of passing checks (0-25, integer).
 # --missing-only:  prints pipe-separated lines for [MISSING] and [STALE] items
 #                  format: <num>|<label>|<file>|<severity>
 #                  consumed by /project-doctor-fix command.
