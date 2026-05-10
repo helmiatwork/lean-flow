@@ -18,58 +18,142 @@ assert() {
   fi
 }
 
-# Test 1: aborts cleanly outside git repo
-echo "Test 1: no-op outside git repo"
-TEST_DIR=$(mktemp -d)
-cd "$TEST_DIR"
-"$SCRIPT" >/dev/null 2>&1
-assert "exits cleanly (code 0)" "0" "$?"
-cd /; rm -rf "$TEST_DIR"
-
-# Test 2: marks matching checkbox in .plans/
-echo "Test 2: marks matching checkbox in .plans/"
+# Test 1: opt-in disabled by default (LEAN_FLOW_AUTOSYNC unset)
+echo "Test 1: hook disabled when LEAN_FLOW_AUTOSYNC unset"
 TEST_DIR=$(mktemp -d)
 cd "$TEST_DIR"
 git init -q
 git config user.email "t@t"; git config user.name "t"
-mkdir -p .plans/myplan
-cat > .plans/myplan/plan-full.md <<EOF
-# Plan
-- [ ] Migration setup database schema
-- [ ] Add user authentication endpoint
-- [ ] Write integration tests
+mkdir -p .plans/p
+cat > .plans/p/plan-full.md <<EOF
+- [ ] Step one task
 EOF
-echo "x" > file.txt; git add -A; git commit -q -m "feat: migration setup database schema migration"
+echo "x" > f.txt
+git add -A
+git commit -q -m "feat: step one task [step:1]"
+unset LEAN_FLOW_AUTOSYNC || true
 "$SCRIPT" 2>/dev/null
-if grep -q "^- \[x\] Migration setup database schema" .plans/myplan/plan-full.md; then
+if grep -q "^- \[ \] Step one task" .plans/p/plan-full.md; then
+  STAYED=1
+else
+  STAYED=0
+fi
+assert "checkbox stays unchecked without opt-in" "1" "$STAYED"
+cd /; rm -rf "$TEST_DIR"
+
+# Test 2: opt-in enabled via LEAN_FLOW_AUTOSYNC=1
+echo "Test 2: hook works with LEAN_FLOW_AUTOSYNC=1"
+TEST_DIR=$(mktemp -d)
+cd "$TEST_DIR"
+git init -q
+git config user.email "t@t"; git config user.name "t"
+mkdir -p .plans/p
+cat > .plans/p/plan-full.md <<EOF
+- [ ] Step one task
+EOF
+echo "x" > f.txt
+git add -A
+git commit -q -m "feat: step one task [step:1]"
+LEAN_FLOW_AUTOSYNC=1 "$SCRIPT" 2>/dev/null
+if grep -q "^- \[x\] Step one task" .plans/p/plan-full.md; then
+  MARKED=1
+else
+  MARKED=0
+fi
+assert "checkbox marked with opt-in and [step:1] marker" "1" "$MARKED"
+cd /; rm -rf "$TEST_DIR"
+
+# Test 3: strict marker — no [step:N] = no-op
+echo "Test 3: hook is no-op when commit msg has no [step:N] marker"
+TEST_DIR=$(mktemp -d)
+cd "$TEST_DIR"
+git init -q
+git config user.email "t@t"; git config user.name "t"
+mkdir -p .plans/p
+cat > .plans/p/plan-full.md <<EOF
+- [ ] Step one task
+EOF
+echo "x" > f.txt
+git add -A
+git commit -q -m "feat: step one task done"
+LEAN_FLOW_AUTOSYNC=1 "$SCRIPT" 2>/dev/null
+if grep -q "^- \[ \] Step one task" .plans/p/plan-full.md; then
+  STAYED=1
+else
+  STAYED=0
+fi
+assert "checkbox stays unchecked without structured marker" "1" "$STAYED"
+cd /; rm -rf "$TEST_DIR"
+
+# Test 4: marks Nth checkbox when commit msg has [step:N]
+echo "Test 4: marks Nth checkbox with [step:N] marker"
+TEST_DIR=$(mktemp -d)
+cd "$TEST_DIR"
+git init -q
+git config user.email "t@t"; git config user.name "t"
+mkdir -p .plans/p
+cat > .plans/p/plan-full.md <<EOF
+- [ ] Step one
+- [ ] Step two
+- [ ] Step three
+EOF
+echo "x" > f.txt
+git add -A
+git commit -q -m "feat: step two implementation [step:2]"
+LEAN_FLOW_AUTOSYNC=1 "$SCRIPT" 2>/dev/null
+if grep -q "^- \[x\] Step two" .plans/p/plan-full.md && \
+   grep -q "^- \[ \] Step one" .plans/p/plan-full.md && \
+   grep -q "^- \[ \] Step three" .plans/p/plan-full.md; then
   OK=1
 else
   OK=0
 fi
-assert "checkbox marked after matching commit" "1" "$OK"
-# Other unmatched lines must remain unchecked
-if grep -q "^- \[ \] Add user authentication" .plans/myplan/plan-full.md; then
-  OK2=1
-else
-  OK2=0
-fi
-assert "unmatched checkbox left unchecked" "1" "$OK2"
+assert "marks exactly the Nth unchecked checkbox" "1" "$OK"
 cd /; rm -rf "$TEST_DIR"
 
-# Test 3: handles .planning/ convention
-echo "Test 3: handles .planning/ convention"
+# Test 5: idempotency — running script twice on same SHA only marks once
+echo "Test 5: idempotency via SHA cache"
+TEST_DIR=$(mktemp -d)
+cd "$TEST_DIR"
+git init -q
+git config user.email "t@t"; git config user.name "t"
+mkdir -p .plans/p
+cat > .plans/p/plan-full.md <<EOF
+- [ ] Task one
+- [ ] Task two
+EOF
+echo "x" > f.txt
+git add -A
+git commit -q -m "feat: task one done [step:1]"
+LEAN_FLOW_AUTOSYNC=1 "$SCRIPT" 2>/dev/null
+# Verify first mark
+AFTER_FIRST=$(grep '^- \[' .plans/p/plan-full.md | head -1)
+# Run again on same SHA
+LEAN_FLOW_AUTOSYNC=1 "$SCRIPT" 2>/dev/null
+AFTER_SECOND=$(grep '^- \[' .plans/p/plan-full.md | head -1)
+if [ "$AFTER_FIRST" = "$AFTER_SECOND" ] && grep -q "^- \[x\] Task one" .plans/p/plan-full.md; then
+  IDEMPOTENT=1
+else
+  IDEMPOTENT=0
+fi
+assert "cache prevents double-marking on same SHA" "1" "$IDEMPOTENT"
+cd /; rm -rf "$TEST_DIR"
+
+# Test 6: handles .planning/ convention
+echo "Test 6: handles .planning/ convention"
 TEST_DIR=$(mktemp -d)
 cd "$TEST_DIR"
 git init -q
 git config user.email "t@t"; git config user.name "t"
 mkdir -p .planning/phase-01
 cat > .planning/phase-01/PLAN.md <<EOF
-# Phase Plan
-- [ ] Database migration foreign keys
+- [ ] Database setup
 EOF
-echo "x" > f.txt; git add -A; git commit -q -m "feat: database migration foreign keys done"
-"$SCRIPT" 2>/dev/null
-if grep -q "^- \[x\] Database migration" .planning/phase-01/PLAN.md; then
+echo "x" > f.txt
+git add -A
+git commit -q -m "feat: db [step:1]"
+LEAN_FLOW_AUTOSYNC=1 "$SCRIPT" 2>/dev/null
+if grep -q "^- \[x\] Database setup" .planning/phase-01/PLAN.md; then
   OK=1
 else
   OK=0
@@ -77,160 +161,103 @@ fi
 assert ".planning/ convention works" "1" "$OK"
 cd /; rm -rf "$TEST_DIR"
 
-# Test 4: short keyword (<4 chars) doesn't trigger false match
-echo "Test 4: short keywords ignored"
+# Test 7: handles .planning/phases/ convention
+echo "Test 7: handles .planning/phases/ convention"
 TEST_DIR=$(mktemp -d)
 cd "$TEST_DIR"
 git init -q
 git config user.email "t@t"; git config user.name "t"
-mkdir -p .plans/p
-cat > .plans/p/plan-full.md <<EOF
-- [ ] AB CD
+mkdir -p .planning/phases/01
+cat > .planning/phases/01/PLAN.md <<EOF
+- [ ] Auth implementation
 EOF
-echo "x" > f; git add -A; git commit -q -m "ab cd"
-"$SCRIPT" 2>/dev/null
-if grep -q "^- \[ \] AB CD" .plans/p/plan-full.md; then
-  STAY=1
-else
-  STAY=0
-fi
-assert "short keywords do not mark checkbox" "1" "$STAY"
-cd /; rm -rf "$TEST_DIR"
-
-# Test 5: requires 2+ keyword matches (not 1)
-echo "Test 5: requires 2+ keyword matches"
-TEST_DIR=$(mktemp -d)
-cd "$TEST_DIR"
-git init -q
-git config user.email "t@t"; git config user.name "t"
-mkdir -p .plans/p
-cat > .plans/p/plan-full.md <<EOF
-- [ ] Setup database schema
-- [ ] Testing framework integration
-EOF
-# Commit with only 1 matching keyword ("setup")
-echo "x" > f; git add -A; git commit -q -m "feat: setup done"
-"$SCRIPT" 2>/dev/null
-if grep -q "^- \[ \] Setup database schema" .plans/p/plan-full.md; then
-  STAY=1
-else
-  STAY=0
-fi
-assert "single keyword match does not mark" "1" "$STAY"
-cd /; rm -rf "$TEST_DIR"
-
-# Test 6: correctly marks when 2+ keywords match
-echo "Test 6: correctly marks when 2+ keywords match"
-TEST_DIR=$(mktemp -d)
-cd "$TEST_DIR"
-git init -q
-git config user.email "t@t"; git config user.name "t"
-mkdir -p .plans/p
-cat > .plans/p/plan-full.md <<EOF
-- [ ] Setup database schema
-EOF
-# Commit with 2 matching keywords ("setup" and "database")
-echo "x" > f; git add -A; git commit -q -m "feat: setup database schema complete"
-"$SCRIPT" 2>/dev/null
-if grep -q "^- \[x\] Setup database schema" .plans/p/plan-full.md; then
-  MARKED=1
-else
-  MARKED=0
-fi
-assert "two+ keyword matches mark checkbox" "1" "$MARKED"
-cd /; rm -rf "$TEST_DIR"
-
-# Test 7: multiple plan files updated independently
-echo "Test 7: multiple plan files updated"
-TEST_DIR=$(mktemp -d)
-cd "$TEST_DIR"
-git init -q
-git config user.email "t@t"; git config user.name "t"
-mkdir -p .plans/p1 .plans/p2
-cat > .plans/p1/plan-full.md <<EOF
-- [ ] Frontend design mockups
-EOF
-cat > .plans/p2/plan-full.md <<EOF
-- [ ] Backend authentication service
-EOF
-echo "x" > f; git add -A; git commit -q -m "feat: frontend design mockups created"
-"$SCRIPT" 2>/dev/null
-if grep -q "^- \[x\] Frontend design" .plans/p1/plan-full.md; then
-  OK1=1
-else
-  OK1=0
-fi
-if grep -q "^- \[ \] Backend authentication" .plans/p2/plan-full.md; then
-  OK2=1
-else
-  OK2=0
-fi
-assert "first plan file marked" "1" "$OK1"
-assert "second plan file untouched" "1" "$OK2"
-cd /; rm -rf "$TEST_DIR"
-
-# Test 8: case-insensitive matching
-echo "Test 8: case-insensitive matching"
-TEST_DIR=$(mktemp -d)
-cd "$TEST_DIR"
-git init -q
-git config user.email "t@t"; git config user.name "t"
-mkdir -p .plans/p
-cat > .plans/p/plan-full.md <<EOF
-- [ ] Database Schema Migration
-EOF
-# Commit with lowercase commit message
-echo "x" > f; git add -A; git commit -q -m "feat: database schema migration done"
-"$SCRIPT" 2>/dev/null
-if grep -q "^- \[x\] Database Schema Migration" .plans/p/plan-full.md; then
-  MARKED=1
-else
-  MARKED=0
-fi
-assert "case-insensitive match works" "1" "$MARKED"
-cd /; rm -rf "$TEST_DIR"
-
-# Test 9: handles special characters in commit messages
-echo "Test 9: handles special characters in commit message"
-TEST_DIR=$(mktemp -d)
-cd "$TEST_DIR"
-git init -q
-git config user.email "t@t"; git config user.name "t"
-mkdir -p .plans/p
-cat > .plans/p/plan-full.md <<EOF
-- [ ] Auth system setup
-EOF
-# Commit with special characters
-echo "x" > f; git add -A; git commit -q -m "feat(auth): system setup & tests"
-"$SCRIPT" 2>/dev/null
-if grep -q "^- \[x\] Auth system setup" .plans/p/plan-full.md; then
-  MARKED=1
-else
-  MARKED=0
-fi
-assert "special chars in commit don't break matching" "1" "$MARKED"
-cd /; rm -rf "$TEST_DIR"
-
-# Test 10: preserves already-checked items
-echo "Test 10: preserves already-checked items"
-TEST_DIR=$(mktemp -d)
-cd "$TEST_DIR"
-git init -q
-git config user.email "t@t"; git config user.name "t"
-mkdir -p .plans/p
-cat > .plans/p/plan-full.md <<EOF
-- [x] Already done step one
-- [ ] Setup database schema
-EOF
-echo "x" > f; git add -A; git commit -q -m "feat: setup database schema done"
-"$SCRIPT" 2>/dev/null
-if grep -q "^- \[x\] Already done step one" .plans/p/plan-full.md && \
-   grep -q "^- \[x\] Setup database schema" .plans/p/plan-full.md; then
+echo "x" > f.txt
+git add -A
+git commit -q -m "auth [step:1]"
+LEAN_FLOW_AUTOSYNC=1 "$SCRIPT" 2>/dev/null
+if grep -q "^- \[x\] Auth implementation" .planning/phases/01/PLAN.md; then
   OK=1
 else
   OK=0
 fi
-assert "checked items preserved and new item marked" "1" "$OK"
+assert ".planning/phases/ convention works" "1" "$OK"
+cd /; rm -rf "$TEST_DIR"
+
+# Test 8: closes step-N marker variant
+echo "Test 8: 'closes step-N' marker variant"
+TEST_DIR=$(mktemp -d)
+cd "$TEST_DIR"
+git init -q
+git config user.email "t@t"; git config user.name "t"
+mkdir -p .plans/p
+cat > .plans/p/plan-full.md <<EOF
+- [ ] Work item
+EOF
+echo "x" > f.txt
+git add -A
+git commit -q -m "implement feature, closes step-1"
+LEAN_FLOW_AUTOSYNC=1 "$SCRIPT" 2>/dev/null
+if grep -q "^- \[x\] Work item" .plans/p/plan-full.md; then
+  MARKED=1
+else
+  MARKED=0
+fi
+assert "'closes step-N' variant works" "1" "$MARKED"
+cd /; rm -rf "$TEST_DIR"
+
+# Test 9: preserves already-checked items
+echo "Test 9: preserves already-checked items"
+TEST_DIR=$(mktemp -d)
+cd "$TEST_DIR"
+git init -q
+git config user.email "t@t"; git config user.name "t"
+mkdir -p .plans/p
+cat > .plans/p/plan-full.md <<EOF
+- [x] Step one done
+- [ ] Step two todo
+- [ ] Step three todo
+EOF
+echo "x" > f.txt
+git add -A
+git commit -q -m "step two [step:1]"
+LEAN_FLOW_AUTOSYNC=1 "$SCRIPT" 2>/dev/null
+if grep -q "^- \[x\] Step one done" .plans/p/plan-full.md && \
+   grep -q "^- \[x\] Step two todo" .plans/p/plan-full.md && \
+   grep -q "^- \[ \] Step three todo" .plans/p/plan-full.md; then
+  OK=1
+else
+  OK=0
+fi
+assert "checked items preserved, new item marked" "1" "$OK"
+cd /; rm -rf "$TEST_DIR"
+
+# Test 10: multiple plan files updated independently
+echo "Test 10: multiple plan files updated independently"
+TEST_DIR=$(mktemp -d)
+cd "$TEST_DIR"
+git init -q
+git config user.email "t@t"; git config user.name "t"
+mkdir -p .plans/plan1 .plans/plan2
+cat > .plans/plan1/plan-full.md <<EOF
+- [ ] Frontend task one
+- [ ] Frontend task two
+EOF
+cat > .plans/plan2/plan-full.md <<EOF
+- [ ] Backend task one
+- [ ] Backend task two
+EOF
+echo "x" > f.txt
+git add -A
+git commit -q -m "frontend [step:1]"
+LEAN_FLOW_AUTOSYNC=1 "$SCRIPT" 2>/dev/null
+if grep -q "^- \[x\] Frontend task one" .plans/plan1/plan-full.md && \
+   grep -q "^- \[ \] Frontend task two" .plans/plan1/plan-full.md && \
+   grep -q "^- \[ \] Backend task" .plans/plan2/plan-full.md; then
+  OK=1
+else
+  OK=0
+fi
+assert "first plan marked, second untouched" "1" "$OK"
 cd /; rm -rf "$TEST_DIR"
 
 echo "---"
