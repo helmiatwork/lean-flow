@@ -384,13 +384,13 @@ fi
 
 # 23. Companion plugins active
 HAS_PLUGINS=false
+HAS_SUPERPOWERS=0
+HAS_CAVEMAN=0
 if [ -f "$HOME/.claude/settings.json" ]; then
-  HAS_SUPERPOWERS=$(grep -c '"superpowers@claude-plugins-official"' "$HOME/.claude/settings.json" 2>/dev/null || echo 0)
-  HAS_CAVEMAN=$(grep -c '"caveman@caveman"' "$HOME/.claude/settings.json" 2>/dev/null || echo 0)
-  if [ "$HAS_SUPERPOWERS" -gt 0 ] && [ "$HAS_CAVEMAN" -gt 0 ]; then
-    HAS_PLUGINS=true
-  fi
+  grep -q '"superpowers@claude-plugins-official"' "$HOME/.claude/settings.json" 2>/dev/null && HAS_SUPERPOWERS=1
+  grep -q '"caveman@caveman"' "$HOME/.claude/settings.json" 2>/dev/null && HAS_CAVEMAN=1
 fi
+[ "$HAS_SUPERPOWERS" = "1" ] && [ "$HAS_CAVEMAN" = "1" ] && HAS_PLUGINS=true
 if $HAS_PLUGINS; then
   check 23 "Companion plugins" "~/.claude/settings.json" P2 "[OK]"
 else
