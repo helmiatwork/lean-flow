@@ -41,6 +41,10 @@ for script in \
   "plugin/scripts/knowledge-prefilter.sh" \
   "plugin/scripts/session-summary.sh" \
   "plugin/scripts/token-budget.sh" \
+  "plugin/scripts/enforce-branch-naming.sh" \
+  "plugin/scripts/enforce-pr-template.sh" \
+  "plugin/scripts/prepush-rubocop.sh" \
+  "plugin/scripts/warn-secret-files.sh" \
   "plugin/scripts/project-doctor/score.sh"; do
   if [ -f "$REPO_ROOT/$script" ]; then
     test_script_exists "$REPO_ROOT/$script"
