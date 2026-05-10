@@ -367,16 +367,12 @@ fi
 # 22. Orchestrator binding
 HAS_ORCHESTRATOR=false
 if [ -f "$ROOT/CLAUDE.md" ]; then
-  if grep -qE 'orchestrator.*never (edit|push)' "$ROOT/CLAUDE.md" 2>/dev/null; then
-    HAS_ORCHESTRATOR=true
-  elif grep -q 'orchestrator.*never.*push' "$ROOT/CLAUDE.md" 2>/dev/null && grep -q 'orchestrator.*never.*edit' "$ROOT/CLAUDE.md" 2>/dev/null; then
+  if grep -qiE 'orchestrator.{0,60}(never.{0,30}(edit|push|write|code))' "$ROOT/CLAUDE.md" 2>/dev/null; then
     HAS_ORCHESTRATOR=true
   fi
 fi
 if [ "$HAS_ORCHESTRATOR" = "false" ] && [ -f "$HOME/.claude/CLAUDE.md" ]; then
-  if grep -qE 'orchestrator.*never (edit|push)' "$HOME/.claude/CLAUDE.md" 2>/dev/null; then
-    HAS_ORCHESTRATOR=true
-  elif grep -q 'orchestrator.*never.*push' "$HOME/.claude/CLAUDE.md" 2>/dev/null && grep -q 'orchestrator.*never.*edit' "$HOME/.claude/CLAUDE.md" 2>/dev/null; then
+  if grep -qiE 'orchestrator.{0,60}(never.{0,30}(edit|push|write|code))' "$HOME/.claude/CLAUDE.md" 2>/dev/null; then
     HAS_ORCHESTRATOR=true
   fi
 fi
