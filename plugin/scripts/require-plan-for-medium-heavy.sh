@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # require-plan-for-medium-heavy.sh
-# UserPromptSubmit hook for Edit|Write — enforces the rule from CLAUDE.md:
+# PreToolUse hook for Write|Edit — enforces the rule from CLAUDE.md:
 #   "Medium/heavy tasks must invoke superpowers:writing-plans before code changes."
 #
 # State files (managed by Claude during the session):
@@ -8,15 +8,16 @@
 #   ${CLAUDE_STATE_DIR:-~/.claude/state}/current-task.plan             contents: path or marker (presence = plan exists)
 #
 # Behavior:
+#   - LEAN_FLOW_REQUIRE_PLAN_ENABLED != "true"  -> allow (opt-in disabled by default)
 #   - No classification file present  -> allow (unclassified / simple-by-default)
 #   - classification = medium|heavy   -> REQUIRE plan marker, else BLOCK (exit 2)
 #   - any other classification        -> allow
 #
-# Opt-out: LEAN_FLOW_REQUIRE_PLAN_DISABLED=true
+# Opt-in: LEAN_FLOW_REQUIRE_PLAN_ENABLED=true
 
 set -uo pipefail
 
-[[ "${LEAN_FLOW_REQUIRE_PLAN_DISABLED:-}" == "true" ]] && exit 0
+[[ "${LEAN_FLOW_REQUIRE_PLAN_ENABLED:-}" != "true" ]] && exit 0
 
 STATE_DIR="${CLAUDE_STATE_DIR:-${HOME}/.claude/state}"
 CLASSIFICATION_FILE="${STATE_DIR}/current-task.classification"
