@@ -1,21 +1,13 @@
 # plugin/hooks/
 
 ## Responsibility
-Defines lifecycle hooks that execute at key session and tool-use points. Orchestrates initialization, security gates, and post-action workflows through declarative command chains.
+Defines lifecycle hooks that trigger automated scripts and validation checks at key plugin events (SessionStart, PreToolUse, PostToolUse, SubagentStop, Stop). Enforces security guardrails, dependency initialization, and workflow automation across the Claude plugin ecosystem.
 
 ## Design
-- **Hook registry pattern**: `hooks.json` maps event types (`SessionStart`, `PreToolUse`, `PostToolUse`, `SubagentStop`, `Stop`) to conditional command arrays
-- **Matcher-based routing**: `PreToolUse` and `PostToolUse` conditionally trigger hooks based on tool type (`Bash`, `Write|Edit`, `Read`, `Task`, `EnterPlanMode`, `ExitPlanMode`)
-- **Timeout & async control**: Each hook specifies execution timeout and optional async flag; conditional execution via `if` patterns (e.g., `Bash(git push *)`)
+Hook system organized by event type with conditional matchers (Bash, Write/Edit, Read, Task, EnterPlanMode, ExitPlanMode). Each hook specifies command path, timeout, and optional conditional `if` expressions. Uses environment variable `${CLAUDE_PLUGIN_ROOT}` for script resolution. Supports async/sync execution modes and chaining multiple hooks per event.
 
 ## Flow
-1. **SessionStart**: Runs 11 sequential initialization scripts (MCP servers, plugins, permissions, dependencies)
-2. **PreToolUse**: Gate checks execute before tool invocation—git security (block unsafe pushes, secrets, Claude identity), branch naming, linting
-3. **PostToolUse**: Workflow tracking and state updates after tool execution—plan restructuring, test failure tracking, codemap auto-updates, PR workflows
-4. **SubagentStop/Stop**: Cleanup and post-execution review hooks
+**SessionStart** → executes 11 initialization scripts (MCP servers, permissions, dependencies). **PreToolUse** → conditional validation blocks unsafe git/gh operations before execution. **PostToolUse** → event-specific handlers trigger plan restructuring, test tracking, codemap updates. **SubagentStop/Stop** → cleanup and workflow callbacks. Timeouts prevent hangs; `if` conditions gate execution to specific tool patterns.
 
 ## Integration
-- Scripts reference `${CLAUDE_PLUGIN_ROOT}` for execution paths across `scripts/` directory
-- Hooks integrate with plan mode system (`EnterPlanMode`, `ExitPlanMode`), git workflows, and codemap maintenance
-- Feeds into subagent delegation (`delegate-task-retry.sh`) and session lifecycle management
-- Enables security guardrails (prevent unsafe git ops, block secret commits) and documentation auto-sync
+Connects to `/scripts/` directory (ensure-*.sh, block-*.sh, workflow-hook.sh, restructure-plan.py). Integrates with git/gh workflows, plan mode toggling, and subagent task delegation. Hooks into tool execution pipeline to enforce security (block-protected-push.sh, block-secret-commits.sh) and maintain state (auto-update-codemaps.sh, track-test-failures.sh).
