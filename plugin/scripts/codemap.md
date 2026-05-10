@@ -2,28 +2,31 @@
 
 ## Responsibility
 
-`plugin/scripts/` contains **PreToolUse/PostToolUse hooks** that intercept and shape Claude's tool execution. Hooks gate dangerous operations (protected branch pushes, secret commits), auto-compress large outputs, enforce project conventions (branch naming, plan storage), consolidate memory on session stop, and update codemaps after commits. They also detect and guide recovery from Task delegation failures.
+This directory contains **session lifecycle hooks and automation scripts** that intercept Claude's tool execution, git workflows, and memory consolidation. It enforces constraints (branch naming, protected pushes, secret staging), compresses output, detects task delegation failures, and auto-updates documentation after commits.
 
 ## Design
 
-**Hook-per-concern pattern**: Each script is a single, focused PreToolUse or PostToolUse handler (e.g., `block-protected-push.sh`, `auto-compress-output.sh`). Most read stdin JSON, apply regex/jq filters to the command or response, and emit JSON control decisions (`exit 0` = allow, `exit 2` = block, `exit 1` = escalate).
-
-**Utility scripts** (`check-dependencies.sh`, `cartographer.py`, `auto-update-codemaps.py`) run at SessionStart or post-commit to audit setup and sync documentation. **Memory consolidation** (`auto-dream.sh`, `auto-dream-prompt.md`) uses dual gating (session count + time elapsed) to batch pattern cleanup without token waste.
-
-**Config injection**: Most hooks source `load-config.sh` for settings like `LEAN_FLOW_PROTECTED_BRANCHES`, `LEAN_FLOW_DREAM_SESSIONS`, avoiding hardcoded values.
+- **Hook architecture**: PreToolUse/PostToolUse bash scripts that read stdin JSON, validate/transform commands, emit JSON decisions (`exit 2` = block, `exit 0` = pass-through).
+- **Gate patterns**: `auto-dream.sh` and `auto-observe.sh` use dual gates (session count + time threshold, lock files) to prevent redundant runs.
+- **Config inheritance**: Scripts source `load-config.sh` to read `LEAN_FLOW_*` env vars (protected branches, dream frequency, etc.) — keeps policy in one place.
+- **Token optimization**: `auto-compress-output.sh` intercepts high-output commands (git log, test runs, recursive grep), runs them locally, summarizes via haiku if >25 lines. `cartographer.py` uses incremental file hashing to track repo changes without re-scanning.
+- **Fallback chains**: OAuth → keychain → env var for API credentials; omni/rtk detection with degradation hints in `check-dependencies.sh`.
 
 ## Flow
 
-1. **PreToolUse hooks** (enforce-branch-naming, block-*) intercept commands before execution, emit block/allow decisions or guidance.
-2. **auto-compress-output** (PreToolUse) detects high-output Bash commands (git log, pytest, find), runs them directly, summarizes large output via Haiku, returns compressed result.
-3. **PostToolUse hooks** (delegate-task-retry, auto-update-codemaps) fire after tool completion: detect errors (Task param validation, git issues), append corrective hints, update docs on commit.
-4. **SessionStart** (check-dependencies) audits required/recommended tools (jq, superpowers, omni, GitNexus) and emits install guidance.
-5. **SessionStop** (auto-dream.sh) checks dual gates (N+ sessions AND N+ hours), runs memory consolidation in background via Haiku for pruning patterns.db and MEMORY.md.
+1. **SessionStart**: `check-dependencies.sh` audits installed tools (jq, omni, gitnexus, knowledge-mcp), caches findings by hash to avoid repetition.
+2. **PreToolUse** (command interception):
+   - `auto-compress-output.sh` → detects high-output commands, executes directly, compresses via haiku.
+   - `enforce-branch-naming.sh` → validates `git checkout -b` matches `feature/|fix/|improvement/...` pattern.
+   - `block-*.sh` (5 scripts) → reject protected-branch pushes, `--no-verify` flags, `.env`/credential staging, Claude identity in commits, wrong plan dirs.
+3. **PostToolUse**:
+   - `auto-update-codemaps.sh` → calls Python script to detect changed dirs from HEAD commit, reads files, calls Claude API to fill codemap.md sections.
+   - `delegate-task-retry.sh` → pattern-matches Task tool failures, appends retry guidance (missing params, invalid agent type) to next turn.
+   - `auto-observe.sh` → silently logs session activity (tools used, branch, duration, key commands) to `~/.claude/knowledge/patterns.db`.
+4. **SessionStop**: `auto-dream.sh` (dual-gated by session count + elapsed hours) triggers async memory consolidation (`claude --allowedTools Read,Write,Edit` with max 20 turns, 5-min timeout).
 
 ## Integration
 
-- **Settings**: Hooks read `~/.claude/settings.json` (permissions) and `~/.claude.json` (MCP servers); `check-dependencies.sh` validates wiring.
-- **Git workflow**: Hooks enforce naming (`enforce-branch-naming`), block unsafe operations (`block-protected-push`, `block-no-verify`, `block-secret-commits`), and trigger codemap updates (`auto-update-codemaps.py` via PostToolUse on commit).
-- **Memory system**: `auto-dream.sh` manages `~/.claude/patterns.db` and `MEMORY.md` via Haiku consolidation. `auto-observe.sh` (PostToolUse, SessionStop) captures session patterns.
-- **Subdirectories**: `claude-monitor/` and `project-doctor/` contain related monitoring/repair tooling (not detailed in this codemap).
-- **cartographer.py**: Standalone tool for repo mapping; used by codemaps workflow to track file hashes and detect changes.
+- **Memory system**: `auto-dream.sh` uses `auto-dream-prompt.md` to consolidate `~/.claude/projects/*/memory/MEMORY.md` and prune `patterns.db` (unused patterns, stale refs, duplicates).
+- **Cartographer**: `cartographer.py` maps repos (init hashes, detect changes, update state) — integrates with `auto-update-codemaps.py` to target changed dirs.
+- **Git hooks**: Scripts assume `git` is available; `auto-update-codemaps.py` uses keychain (macOS) or `
