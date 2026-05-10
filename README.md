@@ -111,16 +111,18 @@ All workflow-related hooks are consolidated into a **single entry point**: `work
 
 > **Not consolidated** (kept separate): `ensure-*`, `block-*`, `claude-session-track`, `restructure-plan.py`, `auto-compress-output`, `track-test-failures`, `auto-update-codemaps`, `file-read-gate`
 
-### 📊 Usage Monitor *(macOS)*
-SwiftBar menu bar plugin showing real-time Claude Code usage:
-- Session %, weekly %, sonnet % with reset countdown
-- Color-coded: 🟢 <50% · 🟡 50-80% · 🔴 >80%
-- **Per-model token breakdown** — reads `~/.claude/projects/**/*.jsonl` locally (no API calls): input/output token counts + % share for each model (Sonnet, Haiku, Opus) over the last 7 days
-- Auto-refresh via launchd daemon (every 30s)
+### 📊 Claude Usage Monitoring (Optional)
 
-> **Note:** The usage monitor requires macOS + SwiftBar. On Linux, you can manually check usage with `claude /usage` or read `/tmp/claude-usage-cache.json` if the fetcher is running.
->
-> **macOS permission:** The fetcher daemon runs the Claude CLI to access usage data. If you see a permission dialog for the Claude binary, go to **System Settings → Privacy & Security → App Management** and toggle **Allow** for it. If the binary isn't listed, click **+** and navigate to the path shown by `which claude`. This is a one-time setup.
+For real-time Claude AI usage tracking, install [Claude Usage Tracker](https://github.com/hamed-elfayome/Claude-Usage-Tracker) — a native macOS menu bar app:
+
+```bash
+brew tap hamed-elfayome/claude-usage
+brew install --cask claude-usage-tracker
+```
+
+Then click the menu bar icon to authenticate and configure refresh intervals.
+
+> macOS 14.0 (Sonoma)+. Authentication via Claude Code CLI (auto-detected), browser sign-in, or manual session key. See the project's README for details.
 
 ### 🗺️ Cartographer (Hybrid Codebase Mapping)
 Two-tier documentation system for codebases of any size.
