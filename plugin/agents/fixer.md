@@ -49,8 +49,13 @@ For medium/heavy tasks, the fixer executes the full end-to-end chain:
    - Assign to self: `--assignee @me`
 9. **Code review pass** — spawn `lean-flow:code-reviewer` (sonnet) for code-quality / SOLID / patterns review. Apply any issues raised, re-run tests + linters, push.
 10. **Architecture review pass** — spawn the `oracle` agent (sonnet, think-only) with PR number + files-changed list + summary. Oracle returns `APPROVED` or numbered issues. Apply fixes, re-run tests + linters, push, update PR title/description if scope drifted. Loop steps 9–10 until both return `APPROVED`. **Hard cap: 3 combined rounds.** If still not approved after 3 rounds → escalate to **HUMAN INTERVENTION**: stop, post a comment on the PR summarizing what's blocked, and return to orchestrator. Do not keep looping.
-11. **Hybrid codemap update** (§12a) — run `cartographer.py changes`, dispatch explorer to fill any affected `codemap.md`, fixer writes; if structural changes happened, fixer updates `docs/CODEBASE_MAP.md` (§12a Tier 1).
-12. **CI gate + merge** — wait for GitHub Actions CI to be green on the PR. If red, treat as a code-review issue (loop back to step 9). Once green AND oracle is `APPROVED`, merge with `gh pr merge --squash --delete-branch` (or the repo's convention).
+11. **Plan checklist write-back (Layer 2, conditional)** — If the dispatch prompt includes `plan_path: <absolute-path>`, after each successful step commit:
+   - Edit the plan file, replacing `- [ ]` with `- [x]` for the just-completed step heading
+   - Use exact heading text matching from the dispatch prompt's step list
+   - Include `[step:N]` in commit messages to also enable Layer 3 (hook) auto-sync when user sets `LEAN_FLOW_AUTOSYNC=1` env var
+   - (Layer 3 hook is opt-in only and provides backstop auto-detection; this step is the primary mechanism)
+12. **Hybrid codemap update** (§12a) — run `cartographer.py changes`, dispatch explorer to fill any affected `codemap.md`, fixer writes; if structural changes happened, fixer updates `docs/CODEBASE_MAP.md` (§12a Tier 1).
+13. **CI gate + merge** — wait for GitHub Actions CI to be green on the PR. If red, treat as a code-review issue (loop back to step 9). Once green AND oracle is `APPROVED`, merge with `gh pr merge --squash --delete-branch` (or the repo's convention).
 
 **Step PRs note:** Step branch → parent PRs skip steps 9, 10, 11 (no code-reviewer, no oracle, no codemap). They auto-merge after CI passes. Only the final parent → main PR triggers the full review chain.
 

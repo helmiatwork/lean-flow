@@ -1,5 +1,21 @@
 # Changelog
 
+## [1.6.0] - 2026-05-10
+
+### Added
+
+- **Plan checklist auto-sync (3-layer system)** — automatically marks plan file checkboxes after step commits, regardless of dispatch path:
+  - **Layer 1 (orchestrator contract):** Documented preferred path using `superpowers:executing-plans` skill or explicit plan_path dispatch.
+  - **Layer 2 (fixer contract):** New step 11 — explicit plan checklist write-back when plan_path provided in dispatch prompt.
+  - **Layer 3 (PostToolUse:Task hook):** `update-plan-checklist.sh` — auto-detects `.plans/*/plan-full.md` and `.planning/*/PLAN.md` files, marks matching checkboxes based on commit message keyword matching (2+ keyword threshold, 4-char minimum, case-insensitive).
+- Full test suite with 10 test cases covering `.plans/` and `.planning/` conventions, keyword matching, short-keyword filtering, multiple files, case-insensitivity, special characters, and preserved state.
+
+### Changed
+
+- `plugin/agents/orchestrator.md`: Added §9 "Plan checklist sync (mandatory)" documenting all 3 layers and dispatch requirements.
+- `plugin/agents/fixer.md`: Added new step 11 "Plan checklist write-back (conditional)" in End-to-End Execution Contract (renumbered former steps 11–12 to 12–13).
+- `plugin/hooks/hooks.json`: Registered `update-plan-checklist.sh` in PostToolUse:Task matcher (timeout 5000ms).
+
 ## [1.5.0] - 2026-05-10
 
 ### Added
