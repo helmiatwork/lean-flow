@@ -1,13 +1,16 @@
 # plugin/hooks/
 
 ## Responsibility
-Defines lifecycle hooks that intercept and execute scripts at key plugin events: session initialization, pre/post tool execution, plan mode transitions, and agent completion. Centralizes hook orchestration through `hooks.json` configuration.
+Defines lifecycle hooks that execute at key plugin events (SessionStart, PreToolUse, PostToolUse, SubagentStop, Stop). Orchestrates initialization scripts, git/security guardrails, and workflow callbacks through a declarative hook configuration system.
 
 ## Design
-Event-driven hook system using JSON configuration with matchers (tool types: Bash, Write/Edit, Read, Task, EnterPlanMode, ExitPlanMode) and conditional execution via `if` patterns. Supports timeout enforcement, async flags, and sequential command chaining per lifecycle stage.
+JSON-based hook registry with event-driven architecture. Each hook entry specifies: matcher (tool type filter), conditional execution ("if" patterns), command type (bash/python), timeout, and async behavior. Matchers like "Bash", "Write|Edit", "Read" route hooks to appropriate tool invocations. PreToolUse hooks enforce constraints before execution; PostToolUse hooks react after completion.
 
 ## Flow
-**SessionStart** → runs 11 setup/validation scripts (MCPs, plugins, permissions, dependencies). **PreToolUse** → gates operations by tool type (Bash git safeguards, file access controls, branch/PR validation). **PostToolUse** → triggers workflow hooks, plan restructuring, test tracking, codemap auto-updates on commit. **SubagentStop/Stop** → runs post-execution reviews and cleanup.
+1. **SessionStart**: Sequential initialization chain (knowledge-mcp → plugins → permissions → playwright-mcp → plan-viewer → rtk → omni → gitnexus → cartography → dependencies check → workflow-hook)
+2. **PreToolUse**: Conditional guards intercept Bash (git push/commit/pr), Write/Edit (secret files, plan directory), and Read operations before execution
+3. **PostToolUse**: Matchers trigger on Write/Edit, EnterPlanMode, ExitPlanMode, Bash (with optional async), Task delegation, and global codemap updates
+4. **SubagentStop/Stop**: Post-agent review and final workflow callbacks
 
 ## Integration
-Hooks configuration consumed by plugin runtime to intercept Claude tool execution. Scripts in `${CLAUDE_PLUGIN_ROOT}/scripts/` directory handle enforcement (git safety checks, secret blocking, PR templates), MCP setup (knowledge, playwright, RTK, omni), and state management (plan updates, test tracking, codemap generation). Integrates with git, GitHub CLI, and Python/Bash script ecosystem.
+Hooks execute scripts from `${CLAUDE_PLUGIN_ROOT}/scripts/` directory (ensure-*.sh, block-*.sh, enforce-*.sh, workflow-hook.sh, restructure-plan.py). Timeouts range 3s–60s depending on operation complexity. Integrates with git/GitHub CLI (pre-push validations, PR templates, branch naming), plan mode system (restructure-plan.py), and codemap maintenance (auto-update-codemaps.sh).
