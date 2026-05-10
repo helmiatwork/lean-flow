@@ -213,6 +213,12 @@ Auto pattern recall fires on every UserPromptSubmit (zero tokens if no match).
 
 ---
 
+## Bundled Commands
+
+See [README.md](./README.md#bundled-commands) for the canonical list of bundled slash commands. Maintain only the README; this section is a pointer.
+
+---
+
 ## Project Overrides
 
 Per-project `CLAUDE.md` may override dispatch details (never the orchestrator binding from §1). Project rules win when present.

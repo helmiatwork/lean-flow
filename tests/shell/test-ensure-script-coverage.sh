@@ -41,6 +41,7 @@ for script in \
   "plugin/scripts/knowledge-prefilter.sh" \
   "plugin/scripts/session-summary.sh" \
   "plugin/scripts/token-budget.sh" \
+  "plugin/scripts/project-doctor/score.sh" \
   "plugin/scripts/claude-monitor/claude-session-track.sh" \
   "plugin/scripts/claude-monitor/claude-session-view.sh"; do
   if [ -f "$REPO_ROOT/$script" ]; then
