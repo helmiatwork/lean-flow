@@ -2,31 +2,30 @@
 
 ## Responsibility
 
-Plugin scripts directory provides pre/post-tool hooks and automation tasks that enforce workflow guardrails, consolidate memory, auto-update documentation, and detect repository changes. These scripts run at SessionStart, PreToolUse, PostToolUse, and SessionStop lifecycle events to guide Claude's behavior within the codebase.
+`plugin/scripts/` contains Git hooks, lifecycle automation, and auxiliary tooling that enforce workflow rules, compress token overhead, and maintain repository intelligence. It gates dangerous operations, consolidates memory, detects missing dependencies, and auto-updates documentation on commit.
 
 ## Design
 
-**Hook-based architecture**: Each `.sh` script is a discrete hook (PreToolUse, PostToolUse, SessionStart, SessionStop) that reads stdin JSON, applies pattern matching or state checks, and emits JSON decisions (block/allow/guidance). No inter-script dependencies.
+**Hook architecture**: Scripts are split by event (PreToolUse, PostToolUse, SessionStart, Stop) and concern (blocking, compression, observation, updates). Each is independently executable and silent-failing (exit 0 to allow passthrough).
 
-**Gate patterns**: `auto-dream.sh` uses dual gates (session count + elapsed time) to throttle expensive consolidation. `auto-compress-output.sh` uses line-count threshold to decide whether to invoke haiku summarization. Guards prevent wasteful API calls.
+**Guard patterns**: `block-*.sh` scripts use regex on jq-extracted command strings to detect violations—Claude identity markers, --no-verify flags, direct pushes to protected branches, secret file staging. They emit structured JSON or stderr to signal block/ask decisions.
 
-**Configuration injection**: Scripts source `load-config.sh` to read `LEAN_FLOW_*` environment variables (protected branches, dream intervals, session thresholds) — single source of truth for tunable policies.
+**Token optimization**: `auto-compress-output.sh` intercepts high-output commands (git log, test suites, recursive grep) and delegates to claude-haiku to summarize, avoiding token bloat. `auto-observe.sh` silently captures session patterns into `~/.claude/knowledge/patterns.db` for pattern matching in later sessions.
 
-**Subdirectories**: `claude-monitor/` and `project-doctor/` contain specialized multi-file analysis tools (likely MCP servers or deeper diagnostics).
+**Memory consolidation**: `auto-dream.sh` runs on SessionStop after dual gates (N sessions + N hours) to prune, merge, and reindex memories in `~/.claude/projects/*/memory/` and the patterns database. Uses `auto-dream-prompt.md` as instruction set.
+
+**Documentation sync**: `auto-update-codemaps.py` runs PostToolUse on git commits, reads changed directories via `git diff-tree`, calls Claude API to generate/update `codemap.md` sections with file-level specifics.
+
+**Observability**: `cartographer.py` tracks directory hashes and detects changes (init/changes/update commands) to feed codemap regeneration. `check-dependencies.sh` audits SessionStart for missing/misconfigured companion plugins (superpowers, jq, omni, gitnexus) and emits actionable system messages.
 
 ## Flow
 
-1. **SessionStart**: `check-dependencies.sh` audits installed plugins/tools, caches findings by hash to suppress duplicate warnings.
-2. **PreToolUse**: Git commands route through `block-*.sh` guards (protected branches, no-verify, secret files, branch naming); `auto-compress-output.sh` pre-executes high-output commands (git log, tests) and compresses output via haiku if > 25 lines.
-3. **PostToolUse**: `auto-update-codemaps.py` detects changed directories from `git diff-tree`, reads file contents, calls Claude API to generate/update codemap.md sections. `delegate-task-retry.sh` detects Task tool failures and appends inline fix hints.
-4. **SessionStop**: `auto-dream.sh` checks dual gates; if both pass, spawns background process running `auto-dream-prompt.md` (memory cleanup) via haiku model with 20-turn limit and 5-minute timeout.
+**Pre-commit flow**: Bash command flows through `enforce-branch-naming.sh` (branch name check), `block-*.sh` pipeline (identity, --no-verify, protected branch, secret files). Blocks emit exit 2; asks emit JSON to `permissionDecision: "ask"`.
 
-`auto-observe.sh` silently captures session activity to `~/.claude/knowledge/patterns.db` by parsing session logs and storing tool/command observations keyed by session ID.
+**Execution + observation**: High-output commands trigger `auto-compress-output.sh` (PreToolUse) which runs command directly, compresses via haiku if >25 lines, emits summary via `hookSpecificOutput`. `auto-observe.sh` (silent, no API) reads session log, extracts tool patterns, records to patterns.db.
 
-## Integration
+**Post-commit**: `auto-update-codemaps.py` (PostToolUse) reads git diff-tree output, scans changed dirs, calls Claude API with directory contents and SYSTEM_PROMPT to fill codemap sections. Falls back to env var if keychain OAuth unavailable.
 
-- **Git hooks**: Scripts intercept git commands (commit, push, branch creation) and enforce workflow policies (no Claude identity attribution, no --no-verify, protected branch safety).
-- **API integration**: `auto-update-codemaps.py` reads OAuth token from macOS keychain (fallback: ANTHROPIC_API_KEY) to call Claude API directly.
-- **State management**: Uses `~/.claude/dream-state/`, `.slim/cartography.json`, `~/.claude/knowledge/patterns.db` for persistent lock files, change tracking, and pattern memory.
-- **Model selection**: Uses claude-haiku-4-5-20251001 for token-efficient summarization and memory consolidation tasks.
-- **Subdirectory tools**: `claude-monitor/` and `project-doctor/` likely provide deeper codebase analysis queried by hooks or triggered manually for diagnostics.
+**Lifecycle automation**: `auto-dream.sh` (SessionStop) checks dual gates (session count, hours elapsed), acquires lock, spawns background haiku task to consolidate memories. `check-dependencies.sh` (SessionStart) audits SETTINGS and .claude.json, emits single systemMessage listing missing REQUIRED/RECOMMENDED tools with install hints (cache-keyed to avoid spam).
+
+**Retry logic**: `delegate-task-retry.sh` (PostToolUse on Task tool) pattern-matches errors against table (missing subagent_type, invalid agent,
