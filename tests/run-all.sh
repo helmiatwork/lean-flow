@@ -211,6 +211,7 @@ run_shell_suite "tests/shell/test-tier-routing.sh"
 run_shell_suite "tests/shell/test-agent-contracts.sh"
 run_shell_suite "tests/shell/test-ensure-script-coverage.sh"
 run_shell_suite "tests/shell/test-plan-checklist-autosync.sh"
+run_shell_suite "tests/shell/test-commands.sh"
 
 if command -v node &>/dev/null; then
   for nt in tests/node/*.mjs; do
