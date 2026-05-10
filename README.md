@@ -427,7 +427,7 @@ Everything else is **automatic**. On first session, lean-flow will:
 | Step | What gets installed | Time |
 |:-----|:-------------------|:----:|
 | 🧠 Knowledge MCP | SQLite + FTS5 pattern memory (6 tools) | ~10s |
-| 🔌 Companion Plugins | superpowers + plan-plus (auto-enabled) | ~1s |
+| 🔌 Companion Plugins | superpowers + caveman + plan-plus (auto-enabled) | ~1s |
 | ⚠️ Writing-Plans | Disables superpowers writing-plans skill (conflicts with plan-plus) | ~1s |
 | 🔒 Permissions | Auto-allow workflow tools, block protected branches | ~1s |
 | 🎭 Playwright | `@playwright/mcp` + Chromium browser | ~30s |
@@ -446,8 +446,10 @@ lean-flow automatically enables these companion plugins on first session:
 | Plugin | Source | Purpose |
 |:-------|:-------|:--------|
 | **superpowers** | [claude-plugins-official](https://github.com/anthropics/claude-code-plugins) | Skills & workflows (brainstorming, TDD, debugging, etc.) |
-| **caveman** | [caveman](https://github.com/anthropics/claude-code-plugins) | Token-compressed communication mode |
+| **caveman** | [JuliusBrussee/caveman](https://github.com/JuliusBrussee/caveman) | Token-compressed communication mode |
 | **plan-plus** | [RandyHaylor/plan-plus](https://github.com/RandyHaylor/plan-plus) | Structured planning with skeleton + step files |
+
+**To disable caveman auto-enable**, set `LEAN_FLOW_ENABLE_CAVEMAN=false` in your shell environment, or set `enabledPlugins."caveman@caveman" = false` in `~/.claude/settings.json` (lean-flow respects user-set values).
 
 > **Important:** lean-flow uses **plan-plus** for planning. The flow is:
 > 1. `EnterPlanMode` — opens plan file at `~/.claude/plans/`
@@ -553,7 +555,7 @@ lean-flow/
 │   │   # — Registered hooks (run directly by hooks.json) —
 │   ├── workflow-hook.sh         # Single entry point for workflow events (routes internally)
 │   ├── ensure-knowledge-mcp.sh  # SessionStart: auto-install SQLite pattern memory
-│   ├── ensure-plugins.sh        # SessionStart: auto-enable superpowers + plan-plus
+│   ├── ensure-plugins.sh        # SessionStart: auto-enable superpowers + caveman + plan-plus
 │   ├── ensure-permissions.sh    # SessionStart: auto-configure workflow permissions
 │   ├── ensure-playwright-mcp.sh # SessionStart: auto-install Playwright + Chromium
 │   ├── ensure-claude-monitor.sh # SessionStart: auto-install SwiftBar usage monitor
