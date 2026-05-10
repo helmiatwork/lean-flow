@@ -1,13 +1,16 @@
 # plugin/hooks/
 
 ## Responsibility
-Defines lifecycle hooks that execute scripts at key plugin events (SessionStart, PreToolUse, PostToolUse, SubagentStop). Manages guard rails (git security, secret detection, branch naming), workflow tracking, and automated maintenance tasks triggered by user actions.
+Defines lifecycle hooks that execute during Claude plugin sessions. `hooks.json` specifies automated validation, security checks, and monitoring scripts that run at key workflow moments (SessionStart, PreToolUse, PostToolUse, SubagentStop).
 
 ## Design
-Event-driven architecture using matchers (`Bash`, `Write|Edit`, `Read`, `EnterPlanMode`, etc.) to conditionally execute bash/python scripts. Each hook specifies `type`, `command`, optional `timeout`, `if` condition, and `async` flag. Supports conditional execution via glob patterns (e.g., `Bash(git push *)`) and matcher-specific routing.
+Hook configuration uses a declarative JSON structure with three main trigger points: SessionStart (unconditional initialization), PreToolUse (conditional on tool type via `matcher` field and optional `if` patterns), and PostToolUse (conditional on tool completion). Each hook entry contains a `command` (bash/python script), optional `timeout`, `if` condition for pattern matching, and `async` flag. Default execution is synchronous unless marked `async: false`.
 
 ## Flow
-Plugin lifecycle triggers hook events → matcher evaluates against tool/action type → matched conditionals execute scripts in sequence → scripts enforce policies (block unsafe git ops), track sessions (claude-monitor), update documentation (codemaps), and handle plan mode transitions. SessionStart runs initialization sequence; PreToolUse enforces constraints; PostToolUse performs cleanup/tracking; SubagentStop handles subagent teardown.
+1. **SessionStart** executes sequentially on session init: MCP setup (knowledge, playwright), plugin verification, permission checks, dependency validation
+2. **PreToolUse** conditionally triggers before tool execution—Bash hooks enforce git safety (block protected push, no-verify, secrets), enforce naming/templates; Write/Edit/Read hooks validate file access; monitoring hook logs session activity
+3. **PostToolUse** triggers after tool completion—tracks writes, plan mode transitions, git commits (with auto-codemap update), test failures, and task retries; session tracking logs session events
+4. All scripts resolve `${CLAUDE_PLUGIN_ROOT}` at runtime
 
 ## Integration
-Scripts live in `${CLAUDE_PLUGIN_ROOT}/scripts/` and invoke MCP servers (knowledge, playwright, claude-monitor, omni, gitnexus, cartography). Hooks coordinate with plan-viewer, RTK, and workflow-hook.sh for cross-cutting concerns. PostToolUse triggers codemap regeneration on git commits and tracks test failures, binding to version control and documentation systems.
+Hooks bridge the plugin execution engine and `scripts/` directory utilities. SessionStart ensures downstream tools (RTK, Omni, GitNexus) are initialized. PreToolUse guards call protection, secrets, and file access. PostToolUse drives automation (codemap regeneration, plan restructuring, monitoring). SessionStart and PreToolUse/PostToolUse hooks feed into claude-monitor tracking via `claude-session-track.sh` for observability.
