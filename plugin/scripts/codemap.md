@@ -1,13 +1,19 @@
 # plugin/scripts/
 
 ## Responsibility
-Automation hooks and utilities that intercept Claude's tool use to enforce project rules, optimize tokens, and maintain documentation. Covers git safety (blocks unsafe commits/pushes), output compression, memory consolidation, codemap updates, and repository change tracking.
+Automation hooks and utilities for the Claude plugin ecosystem. Includes PreToolUse/PostToolUse interceptors (compress output, block unsafe git operations, auto-update codemaps), memory consolidation (auto-dream), session observation (patterns.db), and repository mapping (cartographer). All scripts are opt-outable via environment flags.
 
 ## Design
-**Hook-based architecture**: Bash/Python scripts run as PreToolUse/PostToolUse handlers, intercepting commands before execution. **Guard pattern**: `bash-guard.sh` unifies all checks with opt-out env vars (`LEAN_FLOW_*_DISABLED`); individual `block-*.sh` scripts isolate concerns (branch delete, secrets, identity). **State management**: `auto-dream.sh` uses dual gates (session count + time elapsed) to trigger memory consolidation; `cartographer.py` tracks file hashes to detect changes; `auto-observe.sh` logs session events to SQLite pattern database.
+**Hook pattern**: Most scripts read JSON from stdin, validate command/input, output JSON to stdout or exit with code 2 (block). **Guard consolidation**: `bash-guard.sh` unifies all git/gh blockers into one script with per-check `LEAN_FLOW_*_CHECK_DISABLED` flags. **Token budgeting**: `auto-compress-output.sh` intercepts high-output commands (git log, test runs), runs them directly, compresses via Haiku if output exceeds 25 lines. **Dual-gating**: `auto-dream.sh` runs memory consolidation only after N sessions AND N hours elapsed. **File hashing**: `cartographer.py` uses `.slim/cartography.json` to track directory state changes without API calls.
 
 ## Flow
-**PreToolUse** → `bash-guard.sh` / `block-*.sh` reject unsafe git/gh commands (--no-verify, protected branches, secrets, Claude identity, PR comments) or `auto-compress-output.sh` intercepts high-output commands, runs them directly, compresses via Haiku if >25 lines. **PostToolUse** → `auto-update-codemaps.py` reads changed directories from `git diff-tree`, generates/updates `codemap.md` via Claude API. **Background**: `auto-dream.sh` (on session stop) triggers memory consolidation prompt; `auto-observe.sh` silently logs tool usage patterns. **Cartographer**: `init` creates file hashes, `changes` shows diffs, `update` commits state.
+1. **PreToolUse hooks** (bash-guard, block-* scripts, auto-compress-output): intercept Bash commands before execution
+2. **PostToolUse hooks** (auto-update-codemaps): fire after git commit, read `git diff-tree HEAD`, call Claude API for each changed directory
+3. **Background tasks** (auto-dream on session stop, auto-observe logs to patterns.db): triggered by session lifecycle, write to `~/.claude/` directories
+4. **Repository mapping** (cartographer): init creates hash baseline, changes compares current state, update persists new hashes
 
 ## Integration
-Hooked into Claude CLI via `~/.claude/plugins/` (CLAUDE_PLUGIN_ROOT). Reads git state via `git diff-tree`, `git branch`. Uses `ANTHROPIC_API_KEY` or macOS keychain for API calls. Writes to `~/.claude/dream-state/`, `~/.claude/knowledge/patterns.db`, `.slim/cartography.json`. Config loaded from `load-config.sh` (sets LEAN_FLOW_* env vars). Depends on `jq` for JSON parsing, `python3` for heavy lifting. Codemaps integrated with repo structure (one per directory); project-doctor/ subdirectory handles post-commit diagnostics.
+- **With plugin core**: hooks read `CLAUDE_PLUGIN_ROOT`, config via `load-config.sh` (sets `LEAN_FLOW_*` variables)
+- **With CLI**: auto-compress-output uses `claude` binary for Haiku summarization; auto-dream/auto-update-codemaps use Claude API (OAuth from macOS keychain or `ANTHROPIC_API_KEY`)
+- **With git/gh**: all guard scripts parse command strings, block unsafe patterns (--no-verify, protected branches, secret files, Claude identity)
+- **With knowledge system**: auto-observe writes to `~/.claude/knowledge/patterns.db`; auto-dream reads/prunes memory files in `~/.claude/projects/`
