@@ -54,7 +54,7 @@ Fires before Edit or Write tool call. Prevents code without planning and stops s
 
 | Hook | Script | Default | Env Toggle | Purpose |
 |------|--------|---------|------------|---------|
-| require-plan-for-medium-heavy | `require-plan-for-medium-heavy.sh` | opt-in | `LEAN_FLOW_REQUIRE_PLAN_ENABLED` | Enforce plan existence for medium/heavy tasks before code edits |
+| require-plan-for-medium-heavy | `require-plan-for-medium-heavy.sh` | opt-out | `LEAN_FLOW_REQUIRE_PLAN_DISABLED` | Enforce plan existence for medium/heavy tasks before code edits |
 | warn-secret-files | `warn-secret-files.sh` | opt-out | `LEAN_FLOW_WARN_SECRET_FILES_DISABLED` | Warn when editing .env or credential files |
 | block-wrong-plan-dir | `block-wrong-plan-dir.sh` | opt-out | `LEAN_FLOW_BLOCK_WRONG_PLAN_DIR_DISABLED` | Prevent plan files in wrong directory (must be in `/plans/`) |
 
@@ -164,8 +164,7 @@ Fires when the user submits a new prompt (before STAR classification).
 Set `<ENV_TOGGLE>=true` to disable. Most hooks are production-ready and run by default.
 
 ### Opt-in (disabled by default)
-Set `<ENV_TOGGLE>=true` to enable. These are experimental or context-sensitive:
-- `LEAN_FLOW_REQUIRE_PLAN_ENABLED` — enforce plan requirement (stronger guardrail)
+Set `<ENV_TOGGLE>=true` to enable. These are experimental or context-sensitive: (none currently)
 
 ---
 

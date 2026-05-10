@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # Behavioral test for require-plan-for-medium-heavy.sh
-# Verifies opt-in gate and plan enforcement for medium/heavy tasks
+# Verifies opt-out gate and plan enforcement for medium/heavy tasks
 
 set -euo pipefail
 
@@ -27,7 +27,7 @@ mkdir -p "$STATE_DIR"
 
 check() {
   local name="$1"
-  local enabled="$2"
+  local disabled="$2"
   local classification="$3"
   local plan_exists="$4"
   local expected_exit="$5"
@@ -44,7 +44,7 @@ check() {
 
   local actual_exit=0
   CLAUDE_STATE_DIR="$STATE_DIR" \
-  LEAN_FLOW_REQUIRE_PLAN_ENABLED="$enabled" \
+  LEAN_FLOW_REQUIRE_PLAN_DISABLED="$disabled" \
   bash "$SCRIPT" >/dev/null 2>&1 || actual_exit=$?
 
   if [ "$actual_exit" = "$expected_exit" ]; then
@@ -60,41 +60,53 @@ echo "Testing require-plan-for-medium-heavy.sh"
 echo "=========================================="
 echo ""
 
-echo "Opt-in disabled (default):"
-check "disabled: medium task without plan -> allow" \
-  "false" "medium" "false" \
+echo "Default (opt-out enabled, LEAN_FLOW_REQUIRE_PLAN_DISABLED not set):"
+check "default: no classification -> allow" \
+  "false" "" "false" \
   0
 
-check "disabled: heavy task without plan -> allow" \
+check "default: simple task -> allow" \
+  "false" "simple" "false" \
+  0
+
+check "default: medium without plan -> block" \
+  "false" "medium" "false" \
+  2
+
+check "default: medium with plan -> allow" \
+  "false" "medium" "true" \
+  0
+
+check "default: heavy without plan -> block" \
   "false" "heavy" "false" \
+  2
+
+check "default: heavy with plan -> allow" \
+  "false" "heavy" "true" \
   0
 
 echo ""
-echo "Opt-in enabled (LEAN_FLOW_REQUIRE_PLAN_ENABLED=true):"
+echo "Opt-out disabled (LEAN_FLOW_REQUIRE_PLAN_DISABLED=true):"
 
-check "enabled: no classification -> allow" \
+check "disabled: no classification -> allow" \
   "true" "" "false" \
   0
 
-check "enabled: simple task -> allow" \
-  "true" "simple" "false" \
+check "disabled: medium task without plan -> allow" \
+  "true" "medium" "false" \
   0
 
-check "enabled: medium with plan -> allow" \
+check "disabled: heavy task without plan -> allow" \
+  "true" "heavy" "false" \
+  0
+
+check "disabled: medium with plan -> allow" \
   "true" "medium" "true" \
   0
 
-check "enabled: medium without plan -> block" \
-  "true" "medium" "false" \
-  2
-
-check "enabled: heavy with plan -> allow" \
+check "disabled: heavy with plan -> allow" \
   "true" "heavy" "true" \
   0
-
-check "enabled: heavy without plan -> block" \
-  "true" "heavy" "false" \
-  2
 
 echo ""
 echo "=========================================="
