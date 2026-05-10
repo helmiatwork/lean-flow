@@ -442,7 +442,7 @@ fi
 PERCENT=$(( PRESENT * 100 / TOTAL ))
 
 if [ "$MODE" = "score-only" ]; then
-  echo "$PERCENT"
+  echo "$PRESENT"
   exit 0
 fi
 
