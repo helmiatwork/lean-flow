@@ -1,0 +1,10 @@
+lean-flow
+Copyright (c) 2026 helmiatwork
+
+This product includes software developed at claude-mem
+(https://github.com/thedotmack/claude-mem), licensed under Apache-2.0.
+
+Skills imported from claude-mem (verbatim, with attribution headers added):
+- plugin/skills/babysit.md
+- plugin/skills/pathfinder.md
+- plugin/skills/learn-codebase.md

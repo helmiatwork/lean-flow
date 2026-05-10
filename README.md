@@ -162,6 +162,14 @@ lean-flow auto-enables the [superpowers](https://github.com/anthropics/claude-co
 | `finishing-a-development-branch` | When implementation is complete, deciding merge/PR/cleanup |
 | `using-git-worktrees` | When feature work needs isolation from main workspace |
 
+**Imported from claude-mem:**
+
+| Skill | When it's used |
+|:------|:---------------|
+| `babysit` | Watch a pull request or review cycle until it is ready to merge |
+| `pathfinder` | Map codebase into feature-grouped flowcharts, identify duplicated concerns, propose unified architecture |
+| `learn-codebase` | Prime a codebase by reading every source file in full |
+
 > Skills are invoked automatically when their context matches. No manual activation needed.
 
 ### 🔍 Bundled Commands
