@@ -69,13 +69,13 @@ assert "default emits Score: line" "1" "$SCORE_LINE"
 cd /
 rm -rf "$TMPDIR"
 
-# Test 6: default mode emits 25 rows (items 1-25)
+# Test 6: default mode emits 27 rows (25 scored + 2 advisory)
 TMPDIR=$(mktemp -d)
 cd "$TMPDIR"
 git init -q
 OUT=$("$SCRIPT" 2>/dev/null)
 ROW_COUNT=$(echo "$OUT" | grep -E '^\| [0-9]' | wc -l | tr -d ' ')
-assert "default emits 25 item rows" "25" "$ROW_COUNT"
+assert "default emits 27 total rows (25+2 advisory)" "27" "$ROW_COUNT"
 cd /
 rm -rf "$TMPDIR"
 
@@ -120,6 +120,30 @@ echo "# Test" > CLAUDE.md
 HOME=/nonexistent OUT=$("$SCRIPT" 2>/dev/null)
 echo "$OUT" | grep -qE '^\| 22 \|.*\[MISSING\]' && MISS22=1 || MISS22=0
 assert "check 22 MISSING without binding" "1" "$MISS22"
+cd /
+rm -rf "$TEST_TMPDIR"
+
+# Test 11: advisory rows show [OK] or [ADVISORY], not [MISSING]
+TEST_TMPDIR=$(mktemp -d)
+cd "$TEST_TMPDIR"
+git init -q
+OUT=$("$SCRIPT" 2>/dev/null)
+echo "$OUT" | grep -qE '^\| (26|27) \|.*\[(OK|ADVISORY)\]' && ADVISORY_OK=1 || ADVISORY_OK=0
+assert "advisory rows show [OK] or [ADVISORY]" "1" "$ADVISORY_OK"
+cd /
+rm -rf "$TEST_TMPDIR"
+
+# Test 12: advisory rows EXCLUDED from --missing-only output
+TEST_TMPDIR=$(mktemp -d)
+cd "$TEST_TMPDIR"
+git init -q
+MISSING=$("$SCRIPT" --missing-only 2>/dev/null)
+if echo "$MISSING" | grep -q '^26\|' || echo "$MISSING" | grep -q '^27\|'; then
+  ADVISORY_EXCLUDED=0
+else
+  ADVISORY_EXCLUDED=1
+fi
+assert "advisory rows excluded from --missing-only" "1" "$ADVISORY_EXCLUDED"
 cd /
 rm -rf "$TEST_TMPDIR"
 

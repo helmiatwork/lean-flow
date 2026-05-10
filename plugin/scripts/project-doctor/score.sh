@@ -52,6 +52,7 @@ is_stale() {
 }
 
 declare -a RESULTS=()
+declare -a ADVISORY=()
 PRESENT=0
 TOTAL=25
 
@@ -61,6 +62,12 @@ check() {
   if [ "$status" = "[OK]" ]; then
     PRESENT=$((PRESENT + 1))
   fi
+}
+
+# Helper: advisory check (informational, no score impact)
+advisory() {
+  local num="$1" label="$2" file="$3" severity="$4" status="$5"
+  ADVISORY+=("$num|$label|$file|$severity|$status")
 }
 
 # 1. Project overview — require explicit "Overview"/"About" section, OR
@@ -438,6 +445,20 @@ else
   check 25 "Pattern memory" "CLAUDE.md" P2 "[MISSING]"
 fi
 
+# 26. RTK CLI installed (advisory, no score impact)
+if command -v rtk >/dev/null 2>&1; then
+  advisory 26 "RTK CLI installed" "\$PATH" P3 "[OK]"
+else
+  advisory 26 "RTK CLI installed" "\$PATH" P3 "[ADVISORY]"
+fi
+
+# 27. omni CLI installed (advisory, no score impact)
+if command -v omni >/dev/null 2>&1; then
+  advisory 27 "omni CLI installed" "\$PATH" P3 "[OK]"
+else
+  advisory 27 "omni CLI installed" "\$PATH" P3 "[ADVISORY]"
+fi
+
 # Output
 PERCENT=$(( PRESENT * 100 / TOTAL ))
 
@@ -447,6 +468,7 @@ if [ "$MODE" = "score-only" ]; then
 fi
 
 if [ "$MODE" = "missing-only" ]; then
+  # Advisory rows EXCLUDED from --missing-only (they are informational, not actionable)
   printf '%s\n' "${RESULTS[@]}" | awk -F'|' '$5=="[MISSING]" || $5=="[STALE]" { print $1 "|" $2 "|" $3 "|" $4 }'
   exit 0
 fi
@@ -456,6 +478,11 @@ echo ""
 echo "| # | Item | File | Severity | Status |"
 echo "|---|------|------|----------|--------|"
 for row in "${RESULTS[@]}"; do
+  IFS='|' read -r n l f s st <<< "$row"
+  printf "| %-2s | %s | %s | %s | %s |\n" "$n" "$l" "$f" "$s" "$st"
+done
+# Append advisory rows (no score impact, informational only)
+for row in "${ADVISORY[@]}"; do
   IFS='|' read -r n l f s st <<< "$row"
   printf "| %-2s | %s | %s | %s | %s |\n" "$n" "$l" "$f" "$s" "$st"
 done
