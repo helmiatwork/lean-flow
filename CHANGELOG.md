@@ -1,5 +1,23 @@
 # Changelog
 
+## [2.2.0] - 2026-05-10
+
+### Added
+
+- **6 new safety/workflow hooks** ported from user-personal config:
+  - `block-branch-delete.sh` — guards `git push --delete` to prevent closing PRs
+  - `block-pr-comments.sh` — prevents accidental `gh pr review|comment` dispatches
+  - `bash-guard.sh` — unified Bash PreToolUse guard combining all git/gh blockers (no-verify, no-gpg-sign, protected branches, secret files, Claude identity, PR comments)
+  - `require-plan-for-medium-heavy.sh` — enforces STAR plan gate on UserPromptSubmit; blocks Edit/Write on medium/heavy tasks without a plan
+  - `compact-nudge.js` — PreCompact hook suggesting context compaction when usage exceeds 30%
+  - `warn-browser-snapshot.sh` — warns before browser_snapshot calls on heavy pages (20MB limit)
+- Each hook supports opt-out via `LEAN_FLOW_<NAME>_DISABLED=true` environment variable
+- Full registration in `hooks.json` with appropriate event matchers (PreToolUse:Bash, UserPromptSubmit, PreCompact, PreToolUse:Bash)
+
+### Changed
+
+- Version bump: 2.1.0 → 2.2.0
+
 ## [2.1.0] - 2026-05-10
 
 ### Removed

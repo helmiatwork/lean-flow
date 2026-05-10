@@ -117,7 +117,7 @@ Organized by event type:
 | Event | Trigger | Hooks | Purpose |
 |-------|---------|-------|---------|
 | **SessionStart** | Session opens | ensure-knowledge-mcp, ensure-plugins, ensure-permissions, ensure-playwright, ensure-monitor, ensure-rtk, ensure-cartography, ensure-plan-viewer, workflow-hook (routes internally) | Bootstrap dependencies, session briefing. |
-| **PreToolUse Bash** | Before bash execution | block-protected-push, block-no-verify, block-secret-commits, block-claude-identity, workflow-hook (star-clarify if first prompt) | Block unsafe git, security gates. |
+| **PreToolUse Bash** | Before bash execution | bash-guard (unified: protected-push, no-verify, secret-files, claude-identity, branch-delete, pr-comments), workflow-hook (star-clarify if first prompt) | Block unsafe git, security gates. |
 | **PreToolUse Write\|Edit** | Before file write | warn-secret-files, block-wrong-plan-dir, workflow-hook (enforce-tdd) | Warn near secrets, TDD reminder. |
 | **PreToolUse Read** | Before file read | file-read-gate, workflow-hook (star-clarify) | Inject git context, check vague prompts. |
 | **PostToolUse Write\|Edit** | After file write | enforce-tdd, auto-update-codemaps | Remind TDD, update codemaps. |

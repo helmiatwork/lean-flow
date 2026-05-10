@@ -620,10 +620,7 @@ lean-flow/
 │   ├── ensure-plan-viewer.sh    # SessionStart: auto-start plan viewer server
 │   ├── ensure-rtk.sh            # SessionStart: auto-install RTK
 │   ├── ensure-cartography.sh    # SessionStart: detect codebase map changes
-│   ├── block-protected-push.sh  # PreToolUse Bash(git push): block push to main/master/staging
-│   ├── block-no-verify.sh       # PreToolUse Bash(git *--no-verify*): block bypass flags
-│   ├── block-secret-commits.sh  # PreToolUse Bash(git add): block staging .env/credentials
-│   ├── block-claude-identity.sh # PreToolUse Bash(git commit|gh pr): block Claude attribution
+│   ├── bash-guard.sh            # PreToolUse Bash: unified guard (protected-push, no-verify, secrets, Claude identity, PR comments, branch-delete)
 │   ├── warn-secret-files.sh     # PreToolUse Write|Edit: warn near secret paths
 │   ├── block-wrong-plan-dir.sh  # PreToolUse Write|Edit: block plans outside ~/.claude/plans/
 │   ├── auto-compress-output.sh  # PreToolUse Bash: compress high-output commands via Haiku

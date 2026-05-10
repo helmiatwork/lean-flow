@@ -408,7 +408,7 @@ fi
 HAS_GATES=false
 # Check project .claude/settings.json
 if [ -f "$ROOT/.claude/settings.json" ]; then
-  if grep -qE 'block-claude-identity|block-no-verify|block-protected-push' "$ROOT/.claude/settings.json" 2>/dev/null; then
+  if grep -qE 'bash-guard|block-wrong-plan-dir' "$ROOT/.claude/settings.json" 2>/dev/null; then
     HAS_GATES=true
   fi
 fi
@@ -416,7 +416,7 @@ fi
 if [ "$HAS_GATES" = "false" ] && [ -n "${CLAUDE_PLUGIN_ROOT:-}" ]; then
   PLUGIN_HOOKS="$CLAUDE_PLUGIN_ROOT/hooks/hooks.json"
   if [ -f "$PLUGIN_HOOKS" ]; then
-    if grep -qE 'block-claude-identity|block-no-verify|block-protected-push' "$PLUGIN_HOOKS" 2>/dev/null; then
+    if grep -qE 'bash-guard|block-wrong-plan-dir' "$PLUGIN_HOOKS" 2>/dev/null; then
       HAS_GATES=true
     fi
   fi

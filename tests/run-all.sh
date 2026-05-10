@@ -195,6 +195,10 @@ run_shell_suite "tests/shell/test-agent-contracts.sh"
 run_shell_suite "tests/shell/test-ensure-script-coverage.sh"
 run_shell_suite "tests/shell/test-plan-checklist-autosync.sh"
 run_shell_suite "tests/shell/test-commands.sh"
+run_shell_suite "tests/shell/test-bash-guard.sh"
+run_shell_suite "tests/shell/test-warn-browser-snapshot.sh"
+run_shell_suite "tests/shell/test-compact-nudge.sh"
+run_shell_suite "tests/shell/test-require-plan.sh"
 
 if command -v node &>/dev/null; then
   for nt in tests/node/*.mjs; do
