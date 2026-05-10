@@ -149,6 +149,16 @@ For medium/heavy tasks, the orchestrator hands the entire execution to `lean-flo
 ## 8. Communicate
 Relay the result to the user concisely. State what changed, where, and what's next.
 
+## 9. Plan checklist sync (3-layer system, opt-in)
+
+When a plan file exists at `.plans/<name>/plan-full.md` (superpowers convention), `.planning/<phase>/PLAN.md` (GSD convention), or `.planning/phases/<phase>/PLAN.md`, the orchestrator chooses the right layer:
+
+**Layer 1 (preferred):** Dispatch via `superpowers:executing-plans` skill (which handles checklist write-back automatically via fixer's step 11).
+
+**Layer 2 (explicit):** Pass the absolute `plan_path` to fixer in the dispatch prompt with instruction: "after each step commit succeeds, edit `<plan_path>` and replace `- [ ]` with `- [x]` for the corresponding step heading. Include `[step:N]` in the commit message to enable Layer 3 automation."
+
+**Layer 3 (backstop, opt-in only):** PostToolUse:Bash hook (`update-plan-checklist.sh`) runs ONLY if `LEAN_FLOW_AUTOSYNC=1` env var is set. It auto-detects `.plans/`, `.planning/`, and `.planning/phases/` directories and marks checkboxes based on commit message **structured markers only**: `[step:N]` or `closes step-N` (no fuzzy keyword matching). Marks the Nth unchecked checkbox via SHA-cached idempotency.
+
 </Workflow>
 
 <IssueRoutingRules>
