@@ -77,7 +77,8 @@
         "matcher": "Bash",
         "hooks": [
           { "type": "command", "command": "bash ${CLAUDE_PLUGIN_ROOT}/scripts/workflow-hook.sh PostToolUse Bash", "if": "Bash(gh pr create*)", "async": false },
-          { "type": "command", "command": "bash ${CLAUDE_PLUGIN_ROOT}/scripts/track-test-failures.sh", "timeout": 3000 }
+          { "type": "command", "command": "bash ${CLAUDE_PLUGIN_ROOT}/scripts/track-test-failures.sh", "timeout": 3000 },
+          { "type": "command", "command": "bash ${CLAUDE_PLUGIN_ROOT}/scripts/update-plan-checklist.sh", "if": "Bash(git commit*)", "timeout": 5000 }
         ]
       },
       {
@@ -88,8 +89,7 @@
       {
         "matcher": "Task",
         "hooks": [
-          { "type": "command", "command": "bash ${CLAUDE_PLUGIN_ROOT}/scripts/delegate-task-retry.sh", "timeout": 3000 },
-          { "type": "command", "command": "bash ${CLAUDE_PLUGIN_ROOT}/scripts/update-plan-checklist.sh", "timeout": 5000 }
+          { "type": "command", "command": "bash ${CLAUDE_PLUGIN_ROOT}/scripts/delegate-task-retry.sh", "timeout": 3000 }
         ]
       },
       {
