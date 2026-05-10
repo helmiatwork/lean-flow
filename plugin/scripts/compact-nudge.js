@@ -1,5 +1,5 @@
 #!/usr/bin/env node
-// Compact Nudge — PreCompact hook
+// Compact Nudge — PostToolUse hook
 // Reminds Claude (and the user) to run /compact once context usage crosses 30%.
 // Reads metrics from the statusline bridge file at /tmp/claude-ctx-{session_id}.json.
 // Opt-out: LEAN_FLOW_COMPACT_NUDGE_DISABLED=true
@@ -40,34 +40,34 @@ process.stdin.on('end', () => {
 
     const nudgePath = path.join(tmpDir, `claude-compact-nudge-${sessionId}.json`);
     let nudgeData = { callsSinceNudge: 0 };
-    let firstNudge = true;
     if (fs.existsSync(nudgePath)) {
       try {
         nudgeData = JSON.parse(fs.readFileSync(nudgePath, 'utf8'));
-        firstNudge = false;
       } catch {}
     }
     nudgeData.callsSinceNudge = (nudgeData.callsSinceNudge || 0) + 1;
 
-    if (!firstNudge && nudgeData.callsSinceNudge < DEBOUNCE_CALLS) {
+    if (nudgeData.callsSinceNudge < DEBOUNCE_CALLS) {
       fs.writeFileSync(nudgePath, JSON.stringify(nudgeData));
       process.exit(0);
     }
     nudgeData.callsSinceNudge = 0;
     fs.writeFileSync(nudgePath, JSON.stringify(nudgeData));
 
-    const message =
+    // Build the message
+    let message =
       `CONTEXT NUDGE: Usage at ${usedPct}%. Recommend running /compact at the next ` +
       `natural stopping point to keep responses sharp and reduce per-turn token cost. ` +
       `Inform the user; do not run /compact autonomously.`;
 
     const output = {
       hookSpecificOutput: {
-        hookEventName: "PreCompact",
+        hookEventName: "PostToolUse",
         additionalContext: message
       }
     };
     process.stdout.write(JSON.stringify(output));
+    process.exit(0);
   } catch {
     process.exit(0);
   }
