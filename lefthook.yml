@@ -1,0 +1,24 @@
+pre-commit:
+  parallel: true
+  commands:
+    shellcheck:
+      glob: "*.sh"
+      run: shellcheck --severity=warning {staged_files}
+    secret-scan:
+      run: |
+        if command -v gitleaks >/dev/null 2>&1; then
+          gitleaks protect --staged --no-banner
+        else
+          echo "[lefthook] gitleaks not installed; skipping secret scan"
+        fi
+    json-validate:
+      glob: "*.json"
+      run: |
+        for f in {staged_files}; do
+          jq -e . "$f" >/dev/null || { echo "Invalid JSON: $f"; exit 1; }
+        done
+
+pre-push:
+  commands:
+    test-suite:
+      run: bash tests/run-all.sh

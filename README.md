@@ -459,6 +459,34 @@ lean-flow automatically enables these companion plugins on first session:
 
 > Restart session after first install to activate.
 
+## Onboarding for New Projects
+
+Once lean-flow is enabled, auditing + bootstrapping any project is one command:
+
+```bash
+/project-doctor              # read-only: audit project AI-readiness (25 items)
+/project-doctor-fix          # auto-generate all missing artefacts in one pass
+```
+
+The audit checks for:
+- **CLAUDE.md** — project conventions, tech stack, branch rules.
+- **docs/CODEBASE_MAP.md** — architecture atlas.
+- **docs/ARCHITECTURE.md** — system design.
+- **docs/DOMAIN.md** — entity relationships.
+- **per-folder codemap.md** — module-level detail.
+- **Hooks** — `.claude/settings.json`, `.claude/hooks/session-start.sh`.
+- **ADRs** — `docs/adr/` architecture decisions.
+- **CI/CD** — `.github/workflows/`, coverage gates.
+- **Pre-commit gates** — `lefthook.yml`, `.pre-commit-config.yaml`.
+
+If items are missing, `/project-doctor-fix` generates them automatically:
+1. Asks 4W1H questions per cluster.
+2. Dispatches `lean-flow:fixer` to write each file atomically.
+3. Commits + pushes the bootstrap branch.
+4. Opens a PR (no reviews needed for greenfield bootstrap).
+
+**Result:** Your project gains immediate AI-readiness: clear conventions, documented architecture, test hooks, and orchestrator binding.
+
 ---
 
 ## Bundled Commands
