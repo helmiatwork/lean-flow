@@ -21,6 +21,9 @@
       {
         "matcher": "Bash",
         "hooks": [
+          { "type": "command", "command": "bash ${CLAUDE_PLUGIN_ROOT}/scripts/bash-guard.sh", "timeout": 5000 },
+          { "type": "command", "command": "bash ${CLAUDE_PLUGIN_ROOT}/scripts/block-branch-delete.sh", "if": "Bash(git push *--delete*)" },
+          { "type": "command", "command": "bash ${CLAUDE_PLUGIN_ROOT}/scripts/block-pr-comments.sh", "if": "Bash(gh pr *)" },
           { "type": "command", "command": "bash ${CLAUDE_PLUGIN_ROOT}/scripts/block-protected-push.sh", "if": "Bash(git push *)" },
           { "type": "command", "command": "bash ${CLAUDE_PLUGIN_ROOT}/scripts/block-no-verify.sh", "if": "Bash(git *--no-verify*)" },
           { "type": "command", "command": "bash ${CLAUDE_PLUGIN_ROOT}/scripts/block-secret-commits.sh", "if": "Bash(git add *)" },
@@ -30,6 +33,7 @@
           { "type": "command", "command": "bash ${CLAUDE_PLUGIN_ROOT}/scripts/enforce-branch-naming.sh", "if": "Bash(git checkout -b *)" },
           { "type": "command", "command": "bash ${CLAUDE_PLUGIN_ROOT}/scripts/enforce-branch-naming.sh", "if": "Bash(git switch -c *)" },
           { "type": "command", "command": "bash ${CLAUDE_PLUGIN_ROOT}/scripts/prepush-rubocop.sh", "if": "Bash(git push *)", "timeout": 300000 },
+          { "type": "command", "command": "bash ${CLAUDE_PLUGIN_ROOT}/scripts/warn-browser-snapshot.sh", "if": "Bash(*browser*snapshot*)", "timeout": 5000 },
           { "type": "command", "command": "bash ${CLAUDE_PLUGIN_ROOT}/scripts/auto-compress-output.sh", "timeout": 30000 }
         ]
       },
@@ -107,6 +111,13 @@
         ]
       }
     ],
+    "PreCompact": [
+      {
+        "hooks": [
+          { "type": "command", "command": "node ${CLAUDE_PLUGIN_ROOT}/scripts/compact-nudge.js", "timeout": 5000 }
+        ]
+      }
+    ],
     "PostCompact": [
       {
         "hooks": [
@@ -117,6 +128,7 @@
     "UserPromptSubmit": [
       {
         "hooks": [
+          { "type": "command", "command": "bash ${CLAUDE_PLUGIN_ROOT}/scripts/require-plan-for-medium-heavy.sh", "timeout": 5000 },
           { "type": "command", "command": "bash ${CLAUDE_PLUGIN_ROOT}/scripts/workflow-hook.sh UserPromptSubmit", "timeout": 15000 }
         ]
       },
