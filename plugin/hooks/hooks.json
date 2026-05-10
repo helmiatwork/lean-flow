@@ -7,7 +7,6 @@
           { "type": "command", "command": "bash ${CLAUDE_PLUGIN_ROOT}/scripts/ensure-plugins.sh", "timeout": 10000 },
           { "type": "command", "command": "bash ${CLAUDE_PLUGIN_ROOT}/scripts/ensure-permissions.sh", "timeout": 10000 },
           { "type": "command", "command": "bash ${CLAUDE_PLUGIN_ROOT}/scripts/ensure-playwright-mcp.sh", "timeout": 30000 },
-          { "type": "command", "command": "bash ${CLAUDE_PLUGIN_ROOT}/scripts/ensure-claude-monitor.sh", "timeout": 30000 },
           { "type": "command", "command": "bash ${CLAUDE_PLUGIN_ROOT}/scripts/ensure-plan-viewer.sh", "timeout": 5000 },
           { "type": "command", "command": "bash ${CLAUDE_PLUGIN_ROOT}/scripts/ensure-rtk.sh", "timeout": 15000 },
           { "type": "command", "command": "bash ${CLAUDE_PLUGIN_ROOT}/scripts/ensure-omni.sh", "timeout": 60000 },
@@ -45,11 +44,6 @@
         "matcher": "Read",
         "hooks": [
           { "type": "command", "command": "bash ${CLAUDE_PLUGIN_ROOT}/scripts/file-read-gate.sh", "timeout": 3000 }
-        ]
-      },
-      {
-        "hooks": [
-          { "type": "command", "command": "bash ${CLAUDE_PLUGIN_ROOT}/scripts/claude-monitor/claude-session-track.sh PreToolUse" }
         ]
       }
     ],
@@ -91,11 +85,6 @@
         "hooks": [
           { "type": "command", "command": "bash ${CLAUDE_PLUGIN_ROOT}/scripts/delegate-task-retry.sh", "timeout": 3000 }
         ]
-      },
-      {
-        "hooks": [
-          { "type": "command", "command": "bash ${CLAUDE_PLUGIN_ROOT}/scripts/claude-monitor/claude-session-track.sh PostToolUse" }
-        ]
       }
     ],
     "SubagentStop": [
@@ -110,11 +99,6 @@
       {
         "hooks": [
           { "type": "command", "command": "bash ${CLAUDE_PLUGIN_ROOT}/scripts/todo-hygiene.sh stop", "timeout": 3000 }
-        ]
-      },
-      {
-        "hooks": [
-          { "type": "command", "command": "bash ${CLAUDE_PLUGIN_ROOT}/scripts/claude-monitor/claude-session-track.sh Stop" }
         ]
       },
       {
@@ -139,11 +123,6 @@
       {
         "hooks": [
           { "type": "command", "command": "bash ${CLAUDE_PLUGIN_ROOT}/scripts/todo-hygiene.sh user-prompt-submit", "timeout": 3000 }
-        ]
-      },
-      {
-        "hooks": [
-          { "type": "command", "command": "bash ${CLAUDE_PLUGIN_ROOT}/scripts/claude-monitor/claude-session-track.sh UserPromptSubmit" }
         ]
       }
     ]

@@ -1,22 +1,22 @@
 # plugin/hooks/
 
 ## Responsibility
-Defines lifecycle hooks that trigger automated scripts during Claude plugin sessions. Orchestrates initialization, tool validation, and post-execution workflows to maintain code quality, security, and documentation standards.
+Central lifecycle hook configuration for the Claude plugin system. Defines event-driven triggers (SessionStart, PreToolUse, PostToolUse, SubagentStop, Stop) that execute validation, enforcement, and automation scripts at key workflow moments.
 
 ## Design
-- **Hook-based architecture**: `hooks.json` declares event triggers (`SessionStart`, `PreToolUse`, `PostToolUse`) with conditional matchers (`Bash`, `Write|Edit`, `Read`, `Task`, plan modes)
-- **Command pattern**: Each hook executes bash or Python scripts with configurable timeouts and conditional guards (`if` fields)
-- **Matcher filtering**: Hooks target specific tool types or patterns (e.g., `Bash(git push *)`, `Bash(gh pr create*)`) to avoid unnecessary execution
-- **Async control**: Most hooks run synchronously; workflow hooks support async execution for non-blocking operations
+- **Event-based architecture**: hooks.json organizes scripts by lifecycle phases (SessionStart, Pre/PostToolUse, SubagentStop, Stop)
+- **Conditional execution**: PreToolUse hooks use matchers (Bash, Write|Edit, Read) and `if` patterns to target specific tool invocations
+- **Timeout management**: Each hook specifies explicit timeouts (3s–60s) to prevent hangs during tool execution
+- **Tool-specific gating**: Separate hook chains for Bash commands (git/gh operations), file operations (Write/Edit/Read), and plan mode transitions
 
 ## Flow
-1. **SessionStart**: Chains 12 initialization scripts (MCP servers, plugins, permissions, dependencies) with 5-60s timeouts
-2. **PreToolUse**: Validates incoming tool calls—blocks dangerous git operations, enforces naming/templates, gates file reads, tracks sessions
-3. **PostToolUse**: Reacts to tool completion—updates checklists, regenerates codemaps, tracks test failures, restructures plans, delegates task retries
-4. Each phase gates execution via matchers, allowing precise interception of specific operations
+1. **SessionStart**: Initializes plugin infrastructure (MCP servers, dependencies, permissions) sequentially before user interaction
+2. **PreToolUse**: Intercepts tool execution—validates git operations (no --no-verify, branch naming), warns on secret file access, gates file reads
+3. **PostToolUse**: Post-execution actions (PR template enforcement, plan restructuring, test tracking, codemap updates) triggered by tool type and bash patterns
+4. **SubagentStop/Stop**: Cleanup and review hooks when subagents or sessions terminate
 
 ## Integration
-- Invoked by Claude plugin runtime at session and tool-use boundaries
-- References scripts in `${CLAUDE_PLUGIN_ROOT}/scripts/` (enforce-pr-template.sh, block-protected-push.sh, auto-update-codemaps.sh, etc.)
-- Integrates with external tools: git, GitHub CLI (`gh`), Playwright MCP, rubocop, knowledge bases
-- Feeds data to monitoring (claude-monitor/claude-session-track.sh) and plan management (restructure-plan.py, update-plan-checklist.sh)
+- Executes scripts from `${CLAUDE_PLUGIN_ROOT}/scripts/` (bash and Python runners)
+- Hooks into Claude's tool execution pipeline via matcher conditions
+- Enforces guardrails (block-protected-push.sh, warn-secret-files.sh) and automates workflows (auto-update-codemaps.sh, update-plan-checklist.sh)
+- Async option available for non-blocking PR workflows; timeout values prevent system deadlock

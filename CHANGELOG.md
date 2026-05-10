@@ -1,5 +1,20 @@
 # Changelog
 
+## [2.1.0] - 2026-05-10
+
+### Removed
+
+- Custom Claude usage monitor (SwiftBar plugin + Python fetcher + launchd) — replaced by external native app pointer.
+
+### Changed
+
+- README now points to hamed-elfayome/Claude-Usage-Tracker for usage tracking. Cleaner separation: lean-flow ships workflow + agents, monitoring delegated to specialized tools.
+
+### Migration
+
+- Existing SwiftBar plugins under `~/Library/Application Support/SwiftBar/Plugins/claude-usage.*.sh` may be removed manually.
+- Existing launchd job: `launchctl unload ~/Library/LaunchAgents/com.claude.usage-fetch.plist && rm ~/Library/LaunchAgents/com.claude.usage-fetch.plist`
+
 ## [2.0.0] - 2026-05-10
 
 ### Added
