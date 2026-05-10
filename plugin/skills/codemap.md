@@ -1,30 +1,42 @@
 # plugin/skills/
 
-# plugin/skills/ Codemap
+# codemap.md for `plugin/skills/`
 
 ## Responsibility
 
-This directory houses 15 **skill definitions** that orchestrate Claude's behavior across planning, codebase analysis, code modification, and project documentation tasks. Each `.md` file is a structured skill spec—not implementation, but behavioral contract defining when a skill triggers, what it does step-by-step, and what it outputs. Skills are invoked by the orchestrator or user via slash commands; they coordinate sub-agent dispatch (explorer, fixer, librarian) and gate complex workflows.
+Repository of agent-invocable skills that orchestrate complex workflows before implementation. Each skill encapsulates a distinct phase (discuss, plan, map, audit, finish) and hands off to the next. Skills are coordination tools, not implementation — they produce guidance, decisions, or structured output that guides fixer/explorer work.
 
 ## Design
 
-- **Skill = behavioral spec + process flow.** Each file contains: trigger conditions, step-by-step process (often with numbered phases), output format/examples, rules/constraints, and anti-patterns.
-- **Two skill types:** Read-only (map-codebase, phase-researcher, project-doctor) dispatch explorers; write-capable (brainstorming, finishing-a-development-branch, simplify) dispatch fixers.
-- **Gating patterns:** Skills like `brainstorming` enforce hard gates (no code until design approved); `plan-checker` validates completeness before execution; `nyquist-auditor` enforces test-only writes.
-- **Precedence:** Skills reference each other (brainstorming → writing-plans; assumptions-analyzer → spike if blockers found; ingest-docs → plan-checker).
+**Skill types by lifecycle phase:**
+- **Pre-plan**: `discuss.md`, `ingest-docs.md`, `assumptions-analyzer.md`, `phase-researcher.md` — lock decisions & validate assumptions before planning
+- **Planning**: `map-codebase.md`, `pathfinder.md`, `cartography.md` — understand existing architecture
+- **Execution**: `brainstorming.md`, `delegate-to-haiku.md` — coordinate implementation work
+- **Verification**: `plan-checker.md`, `nyquist-auditor.md` — validate plans & test coverage
+- **Completion**: `babysit.md`, `finishing-a-development-branch.md` — shepherd work to merge
+- **Onboarding**: `learn-codebase.md` — bootstrap context by reading all source
+
+**No skill writes implementation code.** All spawn sub-agents (explorer/fixer) or produce decision documents (specs, plans, audits). Skills are orchestration + decision gates.
 
 ## Flow
 
-1. **User request** → Orchestrator determines skill(s) needed
-2. **Skill execution:** Read spec → Execute steps → Dispatch sub-agents (explorer/fixer/librarian) → Collect results → Format output
-3. **Decision gates:** Skills like `discuss` and `brainstorming` pause for user confirmation before proceeding
-4. **Chaining:** Skills hand off to next (e.g., brainstorming → writing-plans → plan-checker → fixer execution)
-5. **Cleanup:** Skills like `finishing-a-development-branch` and `spike` manage artifact lifecycle (merge/delete)
+1. User describes work → invoke `discuss` (lock decisions) → `ingest-docs` (read existing constraints)
+2. Validate assumptions → `assumptions-analyzer` → `phase-researcher` (verify approach)
+3. Understand codebase → `learn-codebase` / `map-codebase` / `pathfinder` (extract architecture)
+4. Plan implementation → `brainstorming` (design) → create plan (external)
+5. Check plan → `plan-checker` (8-dimension verification)
+6. Execute → `delegate-to-haiku` (route mechanical work) + `cartography` (update maps)
+7. Verify → `nyquist-auditor` (fill test gaps)
+8. Finish → `babysit` (watch PR) → `finishing-a-development-branch` (merge)
+
+Each skill is independent; user or orchestrator invokes by name. No skill calls another directly.
 
 ## Integration
 
-- **Orchestrator entry points:** Slash commands (project-doctor, cartographer) map to skill files
-- **Precedent files:** Skills reference `CLAUDE.md`, `AGENTS.md`, project docs (ADRs, SPECs)
-- **Sub-agent dispatch:** Skills define haiku/sonnet agent prompts; delegate-to-haiku governs when NOT to run commands directly in orchestrator
-- **Output artifacts:** Skills write to `docs/` (CODEBASE_MAP.md, design specs) or commit via fixer (git, files)
-- **Cross-skill dependencies:** assumptions-analyzer may invoke spike; brainstorming hands to writing-plans; plan-checker gates fixer dispatch
+**Subagent dispatch**: Skills spawn explorer (read-only, haiku) and fixer (write-capable, haiku) via standard agent tool. `delegate-to-haiku.md` formalizes routing to avoid expensive model for pure command work.
+
+**Artifact outputs**: Skills write to `docs/`, `.planning/`, or `PATHFINDER-*/` directories. Skills read existing outputs (e.g., `plan-checker` reads `.planning/plan.md`).
+
+**Codebase scanning**: `cartography.md` and `map-codebase.md` use parallel Sonnet subagents to analyze large codebases efficiently — orchestrator coordinates, Sonnet reads, haiku writes.
+
+**Decision capture**: `discuss.md` output feeds downstream tools; confirmed decisions are referenced by `assumptions-analyzer` and `plan-checker` to catch contradictions.
