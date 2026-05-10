@@ -405,9 +405,9 @@ if [ -f "$ROOT/.claude/settings.json" ]; then
     HAS_GATES=true
   fi
 fi
-# Check lean-flow plugin hooks.json (vendored)
-if [ "$HAS_GATES" = "false" ]; then
-  PLUGIN_HOOKS="${CLAUDE_PLUGIN_ROOT:-$ROOT/plugin}/hooks/hooks.json"
+# Check lean-flow plugin hooks.json (vendored) — only when plugin is explicitly set
+if [ "$HAS_GATES" = "false" ] && [ -n "${CLAUDE_PLUGIN_ROOT:-}" ]; then
+  PLUGIN_HOOKS="$CLAUDE_PLUGIN_ROOT/hooks/hooks.json"
   if [ -f "$PLUGIN_HOOKS" ]; then
     if grep -qE 'block-claude-identity|block-no-verify|block-protected-push' "$PLUGIN_HOOKS" 2>/dev/null; then
       HAS_GATES=true
