@@ -79,6 +79,50 @@ assert "default emits 25 item rows" "25" "$ROW_COUNT"
 cd /
 rm -rf "$TMPDIR"
 
+# Test 7: check 21 detects STAR PROTOCOL
+TEST_TMPDIR=$(mktemp -d)
+cd "$TEST_TMPDIR"
+git init -q
+echo "## STAR PROTOCOL" > CLAUDE.md
+OUT=$("$SCRIPT" 2>/dev/null)
+echo "$OUT" | grep -qE '^\| 21 \|.*\[OK\]' && OK21=1 || OK21=0
+assert "check 21 detects STAR PROTOCOL" "1" "$OK21"
+cd /
+rm -rf "$TEST_TMPDIR"
+
+# Test 8: check 21 MISSING without STAR
+TEST_TMPDIR=$(mktemp -d)
+cd "$TEST_TMPDIR"
+git init -q
+echo "# Test" > CLAUDE.md
+HOME=/nonexistent OUT=$("$SCRIPT" 2>/dev/null)
+echo "$OUT" | grep -qE '^\| 21 \|.*\[MISSING\]' && MISS21=1 || MISS21=0
+assert "check 21 MISSING without STAR" "1" "$MISS21"
+cd /
+rm -rf "$TEST_TMPDIR"
+
+# Test 9: check 22 detects orchestrator binding
+TEST_TMPDIR=$(mktemp -d)
+cd "$TEST_TMPDIR"
+git init -q
+echo "Orchestrator never edits code for medium/heavy tasks." > CLAUDE.md
+OUT=$("$SCRIPT" 2>/dev/null)
+echo "$OUT" | grep -qE '^\| 22 \|.*\[OK\]' && OK22=1 || OK22=0
+assert "check 22 detects orchestrator binding" "1" "$OK22"
+cd /
+rm -rf "$TEST_TMPDIR"
+
+# Test 10: check 22 MISSING without binding
+TEST_TMPDIR=$(mktemp -d)
+cd "$TEST_TMPDIR"
+git init -q
+echo "# Test" > CLAUDE.md
+HOME=/nonexistent OUT=$("$SCRIPT" 2>/dev/null)
+echo "$OUT" | grep -qE '^\| 22 \|.*\[MISSING\]' && MISS22=1 || MISS22=0
+assert "check 22 MISSING without binding" "1" "$MISS22"
+cd /
+rm -rf "$TEST_TMPDIR"
+
 echo "---"
 echo "PASS: $PASS, FAIL: $FAIL"
 [ "$FAIL" -eq 0 ]
