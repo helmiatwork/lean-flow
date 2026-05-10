@@ -173,8 +173,27 @@ lean-flow auto-enables the [superpowers](https://github.com/anthropics/claude-co
 
 > Skills are invoked automatically when their context matches. No manual activation needed.
 
-### 🔍 Bundled Commands
+### 🔍 Slash Commands
 
+#### Reference Commands
+- **`/lean-flow:agents`** — List all subagents with model, role, dispatch criteria, and tools
+- **`/lean-flow:workflow`** — Display standard development flow (STAR routing, tier paths, hard rules)
+- **`/lean-flow:pattern-search`** — Search knowledge MCP patterns with compact preview; view full or store new
+
+#### Cartography & Mapping
+- **`/lean-flow:generate-codemap`** — Tier 1 full codebase map refresh (cartographer script, user confirm, atomic commit)
+- **`/lean-flow:update-codemap`** — Tier 2 incremental codemap updates for changed folders (haiku explorer, cheap)
+
+#### Quality & Testing
+- **`/lean-flow:lint`** — Run language-specific linters (shellcheck, pyflakes, eslint, rubocop); non-blocking audit
+- **`/lean-flow:test`** — Execute test suite and report pass/fail summary with failure details
+
+#### Workflow & Reviews
+- **`/lean-flow:status`** — Composite project health dashboard (AI-readiness score, branch, recent commits, open PRs)
+- **`/lean-flow:review`** — Trigger code-reviewer + oracle in parallel on branch or specific PR
+- **`/lean-flow:sync-checklist`** — Manual plan checklist marking (user-driven explicit per-step confirmation)
+
+#### Legacy Commands
 - **`/project-doctor`** — read-only audit of project context artefacts (25 scored + 2 advisory items). Use to diagnose AI-readiness gaps.
 - **`/project-doctor-fix`** — single-shot generation of all missing artefacts via 4W1H clusters + lean-flow:fixer dispatch.
 

@@ -1,5 +1,26 @@
 # Changelog
 
+## [2.0.0] - 2026-05-10
+
+### Added
+
+- **10 new slash commands** — comprehensive command suite for lean-flow ecosystem operations:
+  - `/lean-flow:agents` — Reference: list all subagents with model, role, dispatch criteria, and tools
+  - `/lean-flow:workflow` — Reference: display standard development flow (STAR routing, tier paths, hard rules)
+  - `/lean-flow:generate-codemap` — Tier 1 full codebase map refresh (cartographer script, user confirm, atomic commit)
+  - `/lean-flow:update-codemap` — Tier 2 incremental codemap updates for changed folders (haiku explorer, cheap)
+  - `/lean-flow:lint` — Run language-specific linters (shellcheck, pyflakes, eslint, rubocop); non-blocking audit
+  - `/lean-flow:test` — Execute test suite and report pass/fail summary with failure details
+  - `/lean-flow:status` — Composite project health dashboard (score, branch, recent commits, open PRs)
+  - `/lean-flow:review` — Trigger code-reviewer + oracle in parallel on branch or PR
+  - `/lean-flow:sync-checklist` — Manual plan checklist marking (user-driven explicit per-step confirmation)
+  - `/lean-flow:pattern-search` — Search knowledge MCP patterns with compact preview, view full, or store new
+- Full test suite (`tests/shell/test-commands.sh`) validating all command definitions (frontmatter, headings, structure)
+
+### Changed
+
+- **Major version bump (1.7.0 → 2.0.0):** Significant surface expansion — 10 new reference and operational commands, unified command interface for ecosystem operations
+
 ## [1.6.0] - 2026-05-10
 
 ### Added
