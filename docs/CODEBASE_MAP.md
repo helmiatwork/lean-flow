@@ -55,12 +55,9 @@ Hook bodies and utilities (all registered in hooks.json or used by other scripts
 - `auto-observe.sh` — Stop: session observations (background).
 - `session-summary.sh` — Stop/PostCompact: write summary (background).
 
-**Safety hooks** (separate):
+**Safety hooks**:
 
-- `block-protected-push.sh` — PreToolUse Bash: block push to main/master/staging.
-- `block-no-verify.sh` — PreToolUse Bash: block --no-verify flags.
-- `block-secret-commits.sh` — PreToolUse Bash: block .env/.credentials staging.
-- `block-claude-identity.sh` — PreToolUse Bash: block Claude attribution.
+- `bash-guard.sh` — PreToolUse Bash: unified guard blocking protected-push, --no-verify, --no-gpg-sign, secret-file staging, Claude identity, PR comments, branch-delete.
 - `warn-secret-files.sh` — PreToolUse Write/Edit: warn near secret paths.
 - `block-wrong-plan-dir.sh` — PreToolUse Write/Edit: block plans outside ~/.claude/plans/.
 

@@ -21,21 +21,19 @@
       {
         "matcher": "Bash",
         "hooks": [
-          { "type": "command", "command": "bash ${CLAUDE_PLUGIN_ROOT}/scripts/block-protected-push.sh", "if": "Bash(git push *)" },
-          { "type": "command", "command": "bash ${CLAUDE_PLUGIN_ROOT}/scripts/block-no-verify.sh", "if": "Bash(git *--no-verify*)" },
-          { "type": "command", "command": "bash ${CLAUDE_PLUGIN_ROOT}/scripts/block-secret-commits.sh", "if": "Bash(git add *)" },
-          { "type": "command", "command": "bash ${CLAUDE_PLUGIN_ROOT}/scripts/block-claude-identity.sh", "if": "Bash(git commit *)" },
-          { "type": "command", "command": "bash ${CLAUDE_PLUGIN_ROOT}/scripts/block-claude-identity.sh", "if": "Bash(gh pr create*)" },
+          { "type": "command", "command": "bash ${CLAUDE_PLUGIN_ROOT}/scripts/bash-guard.sh", "timeout": 5000 },
           { "type": "command", "command": "bash ${CLAUDE_PLUGIN_ROOT}/scripts/enforce-pr-template.sh", "if": "Bash(gh pr create*)" },
           { "type": "command", "command": "bash ${CLAUDE_PLUGIN_ROOT}/scripts/enforce-branch-naming.sh", "if": "Bash(git checkout -b *)" },
           { "type": "command", "command": "bash ${CLAUDE_PLUGIN_ROOT}/scripts/enforce-branch-naming.sh", "if": "Bash(git switch -c *)" },
           { "type": "command", "command": "bash ${CLAUDE_PLUGIN_ROOT}/scripts/prepush-rubocop.sh", "if": "Bash(git push *)", "timeout": 300000 },
+          { "type": "command", "command": "bash ${CLAUDE_PLUGIN_ROOT}/scripts/warn-browser-snapshot.sh", "if": "Bash(*browser*snapshot*)", "timeout": 5000 },
           { "type": "command", "command": "bash ${CLAUDE_PLUGIN_ROOT}/scripts/auto-compress-output.sh", "timeout": 30000 }
         ]
       },
       {
         "matcher": "Write|Edit",
         "hooks": [
+          { "type": "command", "command": "bash ${CLAUDE_PLUGIN_ROOT}/scripts/require-plan-for-medium-heavy.sh", "timeout": 5000 },
           { "type": "command", "command": "bash ${CLAUDE_PLUGIN_ROOT}/scripts/warn-secret-files.sh", "timeout": 3000 },
           { "type": "command", "command": "bash ${CLAUDE_PLUGIN_ROOT}/scripts/block-wrong-plan-dir.sh", "timeout": 3000 }
         ]
@@ -72,10 +70,12 @@
         "hooks": [
           { "type": "command", "command": "bash ${CLAUDE_PLUGIN_ROOT}/scripts/workflow-hook.sh PostToolUse Bash", "if": "Bash(gh pr create*)", "async": false },
           { "type": "command", "command": "bash ${CLAUDE_PLUGIN_ROOT}/scripts/track-test-failures.sh", "timeout": 3000 },
-          { "type": "command", "command": "bash ${CLAUDE_PLUGIN_ROOT}/scripts/update-plan-checklist.sh", "if": "Bash(git commit*)", "timeout": 5000 }
+          { "type": "command", "command": "bash ${CLAUDE_PLUGIN_ROOT}/scripts/update-plan-checklist.sh", "if": "Bash(git commit*)", "timeout": 5000 },
+          { "type": "command", "command": "node ${CLAUDE_PLUGIN_ROOT}/scripts/compact-nudge.js", "timeout": 5000 }
         ]
       },
       {
+        "matcher": "Bash",
         "hooks": [
           { "type": "command", "command": "bash ${CLAUDE_PLUGIN_ROOT}/scripts/auto-update-codemaps.sh", "if": "Bash(git commit*)", "timeout": 60000 }
         ]
