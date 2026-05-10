@@ -149,6 +149,15 @@ For medium/heavy tasks, the orchestrator hands the entire execution to `lean-flo
 ## 8. Communicate
 Relay the result to the user concisely. State what changed, where, and what's next.
 
+## 9. Plan checklist sync (mandatory)
+
+When a plan file exists at `.plans/<name>/plan-full.md` (superpowers convention) or `.planning/<phase>/PLAN.md` (GSD convention), the orchestrator MUST either:
+
+1. **Dispatch via `superpowers:executing-plans` skill** (which handles checklist write-back automatically), OR
+2. **Pass the absolute plan_path to fixer** in the dispatch prompt with explicit instruction: "after each step commit succeeds, edit `<plan_path>` and replace `- [ ]` with `- [x]` for the corresponding step heading."
+
+Layer 3 hook (`update-plan-checklist.sh`) provides backstop coverage if both layers above are missed — it auto-detects `.plans/` and `.planning/` directories and marks checkboxes based on recent commit keyword matching.
+
 </Workflow>
 
 <IssueRoutingRules>

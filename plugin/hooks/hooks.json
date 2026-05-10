@@ -88,7 +88,8 @@
       {
         "matcher": "Task",
         "hooks": [
-          { "type": "command", "command": "bash ${CLAUDE_PLUGIN_ROOT}/scripts/delegate-task-retry.sh", "timeout": 3000 }
+          { "type": "command", "command": "bash ${CLAUDE_PLUGIN_ROOT}/scripts/delegate-task-retry.sh", "timeout": 3000 },
+          { "type": "command", "command": "bash ${CLAUDE_PLUGIN_ROOT}/scripts/update-plan-checklist.sh", "timeout": 5000 }
         ]
       },
       {
