@@ -54,23 +54,6 @@ else
   cat /tmp/test-load-config.log
 fi
 
-# Test: test-claude-monitor.sh
-echo -n "Running tests/shell/test-claude-monitor.sh... "
-TOTAL=$((TOTAL+1))
-start_time=$(date +%s)
-if bash "tests/shell/test-claude-monitor.sh" > /tmp/test-claude-monitor.log 2>&1; then
-  end_time=$(date +%s)
-  elapsed=$((end_time - start_time))
-  printf "${GREEN}✓${RESET} test-claude-monitor.sh (${elapsed}s)\n"
-  PASS=$((PASS+1))
-else
-  end_time=$(date +%s)
-  elapsed=$((end_time - start_time))
-  printf "${RED}✗${RESET} test-claude-monitor.sh (${elapsed}s)\n"
-  FAIL=$((FAIL+1))
-  cat /tmp/test-claude-monitor.log
-fi
-
 # Test: test-hooks-pretooluse.sh
 echo -n "Running tests/shell/test-hooks-pretooluse.sh... "
 TOTAL=$((TOTAL+1))

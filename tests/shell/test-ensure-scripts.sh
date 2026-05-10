@@ -51,9 +51,7 @@ export CLAUDE_PLUGIN_ROOT="$TEST_PLUGIN_ROOT"
 
 # Copy plugin structure for tests that need it
 mkdir -p "$TEST_PLUGIN_ROOT/mcp-servers/knowledge"
-mkdir -p "$TEST_PLUGIN_ROOT/scripts/claude-monitor"
 cp -r "$REPO_ROOT/plugin/mcp-servers/knowledge"/* "$TEST_PLUGIN_ROOT/mcp-servers/knowledge/" 2>/dev/null || true
-cp -r "$REPO_ROOT/plugin/scripts/claude-monitor"/* "$TEST_PLUGIN_ROOT/scripts/claude-monitor/" 2>/dev/null || true
 
 echo "=== Test 1: ensure-permissions.sh (first run) ==="
 output=$(bash "$REPO_ROOT/plugin/scripts/ensure-permissions.sh" 2>&1 || true)
@@ -149,22 +147,6 @@ cd "$REPO_ROOT"
 output=$(bash "$REPO_ROOT/plugin/scripts/ensure-cartography.sh" 2>&1 || true)
 exit_code=$?
 assert_exit "$exit_code" "0" "ensure-cartography: exits 0"
-
-echo ""
-echo "=== Test 12: ensure-claude-monitor.sh (macOS check) ==="
-output=$(bash "$REPO_ROOT/plugin/scripts/ensure-claude-monitor.sh" 2>&1 || true)
-exit_code=$?
-assert_exit "$exit_code" "0" "ensure-claude-monitor: exits 0"
-# On macOS, may create symlink; on other platforms, should still exit 0
-if [ "$(uname)" = "Darwin" ]; then
-  if ls "$TEST_HOME/Library/Application Support/SwiftBar/Plugins"/claude-usage.*.sh &>/dev/null 2>&1; then
-    echo "✓ ensure-claude-monitor: SwiftBar plugin symlink created"
-    PASS=$((PASS+1))
-  else
-    echo "⊘ ensure-claude-monitor: SwiftBar plugin not created (SwiftBar not installed, expected)"
-    PASS=$((PASS+1))
-  fi
-fi
 
 echo ""
 echo "=== Test 13: ensure-playwright-mcp.sh (first run) ==="
