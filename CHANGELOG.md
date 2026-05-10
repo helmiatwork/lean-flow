@@ -1,5 +1,21 @@
 # Changelog
 
+## [1.5.0] - 2026-05-10
+
+### Added
+
+- **P3 advisory checks for optional CLI tools** (#26, #27):
+  - Check 26: RTK CLI installed — informational check for token-optimization CLI tool
+  - Check 27: omni CLI installed — informational check for communication compression tool
+- Advisory rows display in project-doctor report without affecting the 25-item score denominator.
+- Advisory checks excluded from `--missing-only` output (informational only, not actionable).
+
+### Changed
+
+- `/project-doctor` report now includes 2 advisory rows (items 26–27) after the 25 scored items.
+- Advisory rows use `[OK]` or `[ADVISORY]` status instead of `[MISSING]`.
+- Documentation updated to clarify advisory vs. scored items in project-doctor and project-doctor-fix commands.
+
 ## [1.4.0] - 2026-05-10
 
 ### Added

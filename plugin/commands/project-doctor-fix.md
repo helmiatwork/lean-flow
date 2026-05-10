@@ -40,6 +40,8 @@ Apply consistently: each item's file-present check uses the rules above, with th
 
 Run `${CLAUDE_PLUGIN_ROOT}/scripts/project-doctor/score.sh --missing-only` to get a machine-readable list of missing items, one per line, format: `<num>|<label>|<file>|<severity>`. Re-validate each item from `--missing-only` output by also checking the file-present criteria above for items the scanner reported as `[OK]` but might be empty.
 
+**Note on advisory items (26, 27):** These are informational checks for optional CLI tools (RTK, omni) and do NOT appear in `--missing-only` output. Skip them entirely in the fix flow — they have no auto-generated remediation.
+
 ## Step 3 — Gather context (explicit 4W1H clusters)
 
 Group missing items into these clusters and ask 4W1H per cluster (one AskUserQuestion call per cluster, ≤4 questions each):
@@ -51,6 +53,7 @@ Group missing items into these clusters and ask 4W1H per cluster (one AskUserQue
 - **memory cluster** (items 14, 15): agent memory, symbol graph tool choice.
 - **tooling cluster** (items 13, 16, 17, 19, 20, 23, 24): SessionStart hook, coverage gate, pre-commit, hooks declared, CI, companion plugins, pre-commit gates.
 - **rules cluster** (items 18, 21, 22, 25): per-folder CLAUDE.md targets, STAR enforcement, orchestrator binding, pattern memory usage.
+- **advisory cluster** (items 26, 27): RTK + omni CLI tools — informational only, skip in this flow.
 
 Skip a cluster if no items in it are missing. Combine 1-2 questions per cluster covering all sub-items via concise multi-select prompts.
 
@@ -108,6 +111,9 @@ Special-case items:
 - **Companion plugins (#23)**: when missing, guide user to enable superpowers and caveman plugins via `/plugin enable superpowers@claude-plugins-official` and `/plugin enable caveman@caveman` in the Claude Code session. Document this in the fix output; do not attempt to modify settings.json directly.
 - **Pre-commit gates (#24)**: check if `.claude/settings.json` or the lean-flow plugin's `hooks.json` declares the gate hooks. If missing, instruct user that gates are auto-declared by lean-flow plugin on install; if gates are actually absent, recommend running `gh extension install cli/gh-extension-preinstall` and re-initializing hooks. Do not auto-generate.
 - **Pattern memory (#25)**: check if `CLAUDE.md` (root or global fallback) mentions pattern_search or pattern_store. If missing, instruct user to add a "Knowledge MCP" or "Pattern Memory" section to CLAUDE.md as part of their team/project rules. Do not auto-generate content.
+- **RTK CLI (#26)** and **omni CLI (#27)**: These are advisory items. Do NOT auto-generate. Instead, print install hints if missing:
+  - RTK: `cargo install rtk` or https://github.com/yourusername/rtk
+  - omni: `brew install omni` or https://github.com/yourusername/omni
 
 ## Step 5 — Re-scan + delta report
 
