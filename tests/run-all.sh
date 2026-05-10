@@ -234,6 +234,21 @@ else
 fi
 
 echo ""
+echo "=== shellcheck (P1 coverage gate) ==="
+if command -v shellcheck >/dev/null 2>&1; then
+  find plugin/scripts tests/shell .claude/hooks -name "*.sh" -type f 2>/dev/null \
+    | xargs shellcheck --severity=warning 2>&1 || {
+      echo "FAIL: shellcheck reported warnings"
+      FAIL=$((FAIL+1))
+    }
+  if [ $? -eq 0 ]; then
+    echo "  ok: shellcheck clean"
+  fi
+else
+  echo "  skip: shellcheck not installed"
+fi
+
+echo ""
 echo "================================"
 if [ "$FAIL" -eq 0 ]; then
   printf "${GREEN}$PASS/$TOTAL suites passed${RESET}\n"
