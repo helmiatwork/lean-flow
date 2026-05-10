@@ -7,17 +7,17 @@
 #   ${CLAUDE_STATE_DIR:-~/.claude/state}/current-task.classification   contents: simple|medium|heavy|hotfix|bug
 #   ${CLAUDE_STATE_DIR:-~/.claude/state}/current-task.plan             contents: path or marker (presence = plan exists)
 #
-# Behavior:
-#   - LEAN_FLOW_REQUIRE_PLAN_ENABLED != "true"  -> allow (opt-in disabled by default)
+# Behavior (opt-out default):
+#   - LEAN_FLOW_REQUIRE_PLAN_DISABLED == "true"  -> allow (opt-out; hook disabled)
 #   - No classification file present  -> allow (unclassified / simple-by-default)
 #   - classification = medium|heavy   -> REQUIRE plan marker, else BLOCK (exit 2)
 #   - any other classification        -> allow
 #
-# Opt-in: LEAN_FLOW_REQUIRE_PLAN_ENABLED=true
+# Opt-out: LEAN_FLOW_REQUIRE_PLAN_DISABLED=true (to disable the hook)
 
 set -uo pipefail
 
-[[ "${LEAN_FLOW_REQUIRE_PLAN_ENABLED:-}" != "true" ]] && exit 0
+[[ "${LEAN_FLOW_REQUIRE_PLAN_DISABLED:-}" == "true" ]] && exit 0
 
 STATE_DIR="${CLAUDE_STATE_DIR:-${HOME}/.claude/state}"
 CLASSIFICATION_FILE="${STATE_DIR}/current-task.classification"
