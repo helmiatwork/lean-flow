@@ -15,7 +15,7 @@ Run `${CLAUDE_PLUGIN_ROOT}/scripts/project-doctor/score.sh`. Capture stdout.
 
 Print the scanner's 5-column markdown table verbatim: # | Item | File | Severity | Status. Do not reformat.
 
-Print final score: `X/20 (Y%)` and `P0 missing: N`.
+Print final score: `X/25 (Y%)` and `P0 missing: N`.
 
 ## Step 3 — Recommend next action
 

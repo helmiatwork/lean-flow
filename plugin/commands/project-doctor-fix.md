@@ -49,8 +49,8 @@ Group missing items into these clusters and ask 4W1H per cluster (one AskUserQue
 - **data cluster** (items 7, 8): ERD, API contract.
 - **adr cluster** (item 11): past architectural decisions worth recording.
 - **memory cluster** (items 14, 15): agent memory, symbol graph tool choice.
-- **tooling cluster** (items 13, 16, 17, 19, 20): SessionStart hook, coverage gate, pre-commit, hooks declared, CI.
-- **rules cluster** (item 18): per-folder CLAUDE.md targets.
+- **tooling cluster** (items 13, 16, 17, 19, 20, 23, 24): SessionStart hook, coverage gate, pre-commit, hooks declared, CI, companion plugins, pre-commit gates.
+- **rules cluster** (items 18, 21, 22, 25): per-folder CLAUDE.md targets, STAR enforcement, orchestrator binding, pattern memory usage.
 
 Skip a cluster if no items in it are missing. Combine 1-2 questions per cluster covering all sub-items via concise multi-select prompts.
 
@@ -103,10 +103,15 @@ Special-case items:
 - **MEMORY.md (#14)**: write `.claude/MEMORY.md` with seed structure (Index + sections).
 - **Symbol graph (#15)**: don't auto-generate index files; instead write a `docs/SYMBOL_GRAPH.md` documenting which tool the team picked + how to refresh.
 - **ADR folder (#11)**: create `docs/adr/template.md` (Nygard format) and `docs/adr/0001-baseline.md` summarizing major existing tech decisions detected from CLAUDE.md / Gemfile / package.json. Commit message MUST be: `docs(adr): add baseline ADR seed — review before finalizing`. The summary is auto-generated and quality is unverified.
+- **STAR enforcement (#21)**: check if `CLAUDE.md` (root or global fallback) contains STAR PROTOCOL or Tier Routing sections. If missing, do not auto-generate — instead instruct user to run `/init` or manually add the relevant section to CLAUDE.md. This is a rules item, not auto-fillable content.
+- **Orchestrator binding (#22)**: check if `CLAUDE.md` (root or global fallback) contains explicit orchestrator governance (phrases like "orchestrator never edits" and "orchestrator never pushes"). If missing, do not auto-generate — instruct user to add via `/init` or manual CLAUDE.md edit. This is a rules item.
+- **Companion plugins (#23)**: when missing, guide user to enable superpowers and caveman plugins via `/plugin enable superpowers@claude-plugins-official` and `/plugin enable caveman@caveman` in the Claude Code session. Document this in the fix output; do not attempt to modify settings.json directly.
+- **Pre-commit gates (#24)**: check if `.claude/settings.json` or the lean-flow plugin's `hooks.json` declares the gate hooks. If missing, instruct user that gates are auto-declared by lean-flow plugin on install; if gates are actually absent, recommend running `gh extension install cli/gh-extension-preinstall` and re-initializing hooks. Do not auto-generate.
+- **Pattern memory (#25)**: check if `CLAUDE.md` (root or global fallback) mentions pattern_search or pattern_store. If missing, instruct user to add a "Knowledge MCP" or "Pattern Memory" section to CLAUDE.md as part of their team/project rules. Do not auto-generate content.
 
 ## Step 5 — Re-scan + delta report
 
-Run scanner again. Print before/after score: `X/20 → Y/20 (+Z items)`. List remaining missing items if any.
+Run scanner again. Print before/after score: `X/25 → Y/25 (+Z items)`. List remaining missing items if any.
 
 ## Step 6 — Push commits
 

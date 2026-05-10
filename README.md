@@ -166,7 +166,7 @@ lean-flow auto-enables the [superpowers](https://github.com/anthropics/claude-co
 
 ### 🔍 Bundled Commands
 
-- **`/project-doctor`** — read-only audit of project context artefacts (20 items). Use to diagnose AI-readiness gaps.
+- **`/project-doctor`** — read-only audit of project context artefacts (25 items). Use to diagnose AI-readiness gaps.
 - **`/project-doctor-fix`** — single-shot generation of all missing artefacts via 4W1H clusters + lean-flow:fixer dispatch.
 
 ### 📺 Live Plan Viewer
@@ -542,7 +542,7 @@ lean-flow/
 │   ├── designer.md              # Sonnet — UI/UX
 │   └── explorer.md              # Haiku — codebase navigation, codebase map scanning, pre-oracle reads
 ├── commands/
-│   ├── project-doctor.md        # /project-doctor — read-only audit (20 items)
+│   ├── project-doctor.md        # /project-doctor — read-only audit (25 items)
 │   └── project-doctor-fix.md    # /project-doctor-fix — single-shot generation
 ├── skills/
 │   ├── cartography.md           # Codebase mapping skill (cartographer)
