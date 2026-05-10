@@ -53,9 +53,11 @@ check_command() {
     return 1
   fi
 
-  # 4. File is well-formed (not empty, closes frontmatter)
-  if ! grep -q "^---$" "$cmd_file" | head -2; then
-    echo "FAIL (malformed frontmatter)"
+  # 4. File is well-formed (has body content after frontmatter)
+  local line_count
+  line_count=$(wc -l < "$cmd_file")
+  if [ "$line_count" -lt 10 ]; then
+    echo "FAIL (file too short, likely empty or malformed)"
     ((FAIL++))
     return 1
   fi
