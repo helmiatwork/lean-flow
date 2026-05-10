@@ -1,14 +1,20 @@
 # Changelog
 
-## 1.2.1 — 2026-05-10
+## 1.3.0 — 2026-05-10
 
 ### Added
 
 - `ensure-plugins.sh` now auto-enables `caveman@caveman` plugin (token-compressed communication mode) on SessionStart. Idempotent — does nothing if already enabled.
+- `LEAN_FLOW_ENABLE_CAVEMAN` environment variable for users to opt out of caveman auto-enable (set to `false` to skip).
+
+### Fixed
+
+- `ensure-plugins.sh` now respects user-set `false` values in `enabledPlugins` — was silently re-enabling plugins that users explicitly disabled.
 
 ### Changed
 
 - Updated companion plugin list in README.md to include caveman.
+- `ensure-plugins.sh` now uses `has(...)` checks instead of `jq -e` to distinguish between absent keys (auto-enable) and explicit `false` values (respect user choice).
 
 ## 1.2.0 — 2026-05-10
 
