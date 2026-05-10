@@ -122,6 +122,23 @@ else
   cat /tmp/test-ensure-scripts.log
 fi
 
+# Test: test-project-doctor.sh
+echo -n "Running tests/shell/test-project-doctor.sh... "
+TOTAL=$((TOTAL+1))
+start_time=$(date +%s)
+if bash "tests/shell/test-project-doctor.sh" > /tmp/test-project-doctor.log 2>&1; then
+  end_time=$(date +%s)
+  elapsed=$((end_time - start_time))
+  printf "${GREEN}✓${RESET} test-project-doctor.sh (${elapsed}s)\n"
+  PASS=$((PASS+1))
+else
+  end_time=$(date +%s)
+  elapsed=$((end_time - start_time))
+  printf "${RED}✗${RESET} test-project-doctor.sh (${elapsed}s)\n"
+  FAIL=$((FAIL+1))
+  cat /tmp/test-project-doctor.log
+fi
+
 # Test: test_cartographer.py
 if [[ " ${missing_deps[@]} " =~ " python3 " ]]; then
   echo "⊘ tests/python/test_cartographer.py (skipped: python3 not found)"
