@@ -1,5 +1,26 @@
 # Changelog
 
+## [1.4.0] - 2026-05-10
+
+### Added
+
+- **`/project-doctor` extended to 25 checks** — 5 new audit items for governance and tooling:
+  - **Check 21: STAR enforcement** (P1) — validates project has Tier Routing and STAR PROTOCOL documentation in CLAUDE.md
+  - **Check 22: Orchestrator binding** (P1) — ensures orchestrator governance rules are explicitly documented
+  - **Check 23: Companion plugins** (P2) — confirms superpowers and caveman plugins are active
+  - **Check 24: Pre-commit gates** (P1) — verifies security gates (block-protected-push, block-no-verify, etc.) are declared
+  - **Check 25: Pattern memory usage** (P2) — checks if pattern_search/pattern_store are documented in CLAUDE.md
+- Updated scoring denominator: checks now total 25 (previously 20). Existing project scores will shift slightly.
+- New clustering for `/project-doctor-fix`: rules cluster now includes items 18, 21, 22, 25; tooling cluster expanded to 23, 24.
+
+### Changed
+
+- `score.sh` total denominator updated from 20 to 25.
+- `/project-doctor` final score now reported as `X/25 (Y%)`.
+- `/project-doctor-fix` score delta now shows `X/25 → Y/25`.
+- Test suite extended: smoke test now asserts 25 item rows in default markdown table output.
+- README.md references updated to reflect 25-item audit.
+
 ## 1.3.0 — 2026-05-10
 
 ### Added
