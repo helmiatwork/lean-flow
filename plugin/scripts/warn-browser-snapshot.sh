@@ -9,7 +9,7 @@
 TOOL_NAME="${CLAUDE_TOOL_NAME:-}"
 
 if [[ "$TOOL_NAME" == "mcp__playwright__browser_snapshot" ]]; then
-  cat <<'MSG'
+  cat >&2 <<'MSG'
 Warning: browser_snapshot can exceed 20MB on heavy pages.
 Consider using browser_evaluate to extract only the data you need,
 or browser_take_screenshot with an element selector for visual checks.
