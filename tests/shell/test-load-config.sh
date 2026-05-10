@@ -37,7 +37,7 @@ source_config() {
     export HOME="$test_home"
     unset LEAN_FLOW_PROTECTED_BRANCHES LEAN_FLOW_FIXER_MODEL LEAN_FLOW_ORACLE_MODEL
     unset LEAN_FLOW_EXPLORER_MODEL LEAN_FLOW_DREAM_SESSIONS LEAN_FLOW_DREAM_HOURS
-    unset LEAN_FLOW_ENABLE_PLAYWRIGHT LEAN_FLOW_ENABLE_MONITOR LEAN_FLOW_ENABLE_KNOWLEDGE
+    unset LEAN_FLOW_ENABLE_PLAYWRIGHT LEAN_FLOW_ENABLE_KNOWLEDGE
     unset LEAN_FLOW_ENABLE_RTK LEAN_FLOW_BRANCH_PREFIXES
     source "${REPO_ROOT}/plugin/scripts/load-config.sh"
     echo "PROTECTED_BRANCHES=$LEAN_FLOW_PROTECTED_BRANCHES"
@@ -47,7 +47,6 @@ source_config() {
     echo "DREAM_SESSIONS=$LEAN_FLOW_DREAM_SESSIONS"
     echo "DREAM_HOURS=$LEAN_FLOW_DREAM_HOURS"
     echo "ENABLE_PLAYWRIGHT=$LEAN_FLOW_ENABLE_PLAYWRIGHT"
-    echo "ENABLE_MONITOR=$LEAN_FLOW_ENABLE_MONITOR"
     echo "ENABLE_KNOWLEDGE=$LEAN_FLOW_ENABLE_KNOWLEDGE"
     echo "ENABLE_RTK=$LEAN_FLOW_ENABLE_RTK"
     echo "BRANCH_PREFIXES=$LEAN_FLOW_BRANCH_PREFIXES"
@@ -66,7 +65,6 @@ assert_eq "$(echo "$output" | grep '^EXPLORER_MODEL=' | cut -d= -f2)" "haiku" "d
 assert_eq "$(echo "$output" | grep '^DREAM_SESSIONS=' | cut -d= -f2)" "5" "default DREAM_SESSIONS"
 assert_eq "$(echo "$output" | grep '^DREAM_HOURS=' | cut -d= -f2)" "24" "default DREAM_HOURS"
 assert_eq "$(echo "$output" | grep '^ENABLE_PLAYWRIGHT=' | cut -d= -f2)" "true" "default ENABLE_PLAYWRIGHT"
-assert_eq "$(echo "$output" | grep '^ENABLE_MONITOR=' | cut -d= -f2)" "true" "default ENABLE_MONITOR"
 assert_eq "$(echo "$output" | grep '^ENABLE_KNOWLEDGE=' | cut -d= -f2)" "true" "default ENABLE_KNOWLEDGE"
 assert_eq "$(echo "$output" | grep '^ENABLE_RTK=' | cut -d= -f2)" "true" "default ENABLE_RTK"
 assert_contains "$(echo "$output" | grep '^BRANCH_PREFIXES=' | cut -d= -f2)" "feature fix improvement" "default BRANCH_PREFIXES includes expected values"
@@ -92,7 +90,6 @@ rm -rf "$test_home"
 
 assert_eq "$(echo "$output" | grep '^FIXER_MODEL=' | cut -d= -f2)" "opus" "override FIXER_MODEL from config"
 assert_eq "$(echo "$output" | grep '^ORACLE_MODEL=' | cut -d= -f2)" "sonnet" "override ORACLE_MODEL from config"
-assert_eq "$(echo "$output" | grep '^ENABLE_MONITOR=' | cut -d= -f2)" "false" "override ENABLE_MONITOR from config (must be string)"
 assert_eq "$(echo "$output" | grep '^ENABLE_PLAYWRIGHT=' | cut -d= -f2)" "disabled" "override ENABLE_PLAYWRIGHT from config (must be string)"
 assert_eq "$(echo "$output" | grep '^EXPLORER_MODEL=' | cut -d= -f2)" "haiku" "non-overridden EXPLORER_MODEL remains default"
 
@@ -180,7 +177,7 @@ output=$(
   export PATH="$fake_bin:/usr/bin:/bin"
   unset LEAN_FLOW_PROTECTED_BRANCHES LEAN_FLOW_FIXER_MODEL LEAN_FLOW_ORACLE_MODEL
   unset LEAN_FLOW_EXPLORER_MODEL LEAN_FLOW_DREAM_SESSIONS LEAN_FLOW_DREAM_HOURS
-  unset LEAN_FLOW_ENABLE_PLAYWRIGHT LEAN_FLOW_ENABLE_MONITOR LEAN_FLOW_ENABLE_KNOWLEDGE
+  unset LEAN_FLOW_ENABLE_PLAYWRIGHT LEAN_FLOW_ENABLE_KNOWLEDGE
   unset LEAN_FLOW_ENABLE_RTK LEAN_FLOW_BRANCH_PREFIXES
   source "${REPO_ROOT}/plugin/scripts/load-config.sh"
   echo "FIXER_MODEL=$LEAN_FLOW_FIXER_MODEL"
@@ -245,7 +242,6 @@ assert_eq "$(echo "$output" | grep '^EXPLORER_MODEL=' | cut -d= -f2)" "claude-ha
 assert_eq "$(echo "$output" | grep '^DREAM_SESSIONS=' | cut -d= -f2)" "7" "all overrides: dream sessions"
 assert_eq "$(echo "$output" | grep '^DREAM_HOURS=' | cut -d= -f2)" "36" "all overrides: dream hours"
 assert_eq "$(echo "$output" | grep '^ENABLE_PLAYWRIGHT=' | cut -d= -f2)" "no" "all overrides: playwright disabled"
-assert_eq "$(echo "$output" | grep '^ENABLE_MONITOR=' | cut -d= -f2)" "off" "all overrides: monitor disabled"
 assert_eq "$(echo "$output" | grep '^ENABLE_KNOWLEDGE=' | cut -d= -f2)" "disabled" "all overrides: knowledge disabled"
 assert_eq "$(echo "$output" | grep '^ENABLE_RTK=' | cut -d= -f2)" "false" "all overrides: rtk disabled"
 assert_eq "$(echo "$output" | grep '^BRANCH_PREFIXES=' | cut -d= -f2)" "feat fix refactor" "all overrides: branch prefixes"

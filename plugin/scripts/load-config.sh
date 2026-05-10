@@ -11,7 +11,6 @@ LEAN_FLOW_EXPLORER_MODEL="haiku"
 LEAN_FLOW_DREAM_SESSIONS=5
 LEAN_FLOW_DREAM_HOURS=24
 LEAN_FLOW_ENABLE_PLAYWRIGHT=true
-LEAN_FLOW_ENABLE_MONITOR=true
 LEAN_FLOW_ENABLE_KNOWLEDGE=true
 LEAN_FLOW_ENABLE_RTK=true
 LEAN_FLOW_BRANCH_PREFIXES="feature fix improvement security test docs chore hotfix"
@@ -43,9 +42,6 @@ if [ -f "$CONFIG_FILE" ] && command -v jq &>/dev/null; then
   val=$(_val '.enable.playwright')
   [ -n "$val" ] && LEAN_FLOW_ENABLE_PLAYWRIGHT="$val"
 
-  val=$(_val '.enable.monitor')
-  [ -n "$val" ] && LEAN_FLOW_ENABLE_MONITOR="$val"
-
   val=$(_val '.enable.knowledge')
   [ -n "$val" ] && LEAN_FLOW_ENABLE_KNOWLEDGE="$val"
 
@@ -65,7 +61,6 @@ export LEAN_FLOW_EXPLORER_MODEL
 export LEAN_FLOW_DREAM_SESSIONS
 export LEAN_FLOW_DREAM_HOURS
 export LEAN_FLOW_ENABLE_PLAYWRIGHT
-export LEAN_FLOW_ENABLE_MONITOR
 export LEAN_FLOW_ENABLE_KNOWLEDGE
 export LEAN_FLOW_ENABLE_RTK
 export LEAN_FLOW_BRANCH_PREFIXES
