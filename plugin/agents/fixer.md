@@ -47,6 +47,12 @@ For medium/heavy tasks, the fixer executes the full end-to-end chain:
 8. **Create the PR** via `gh pr create`, matching the repo's PR template. For parent → main PRs, include release notes for end users.
    - Add labels: `--label "for review"` (create label first via `gh label create` if missing — orange color #ffa500, "Awaiting code review")
    - Assign to self: `--assignee @me`
+   - **MANDATORY human tone in PR title + description.** Subagents emit structured findings or terse summaries; the fixer is the surface that talks to humans on the PR, so the body must read like a teammate wrote it.
+     - **Title:** plain English, sentence case, no severity tags, no robot prefixes (`feat:` / `fix:` allowed because Conventional Commits is a real convention; `[CODE_REVIEWER_AGENT]` / `[ORACLE_AGENT]` are not). Describe the user-visible change, not the implementation.
+     - **Description:** open with what the change does and why in 1-2 sentences. Use the repo's PR template sections (`## Overview`, `## Features & Fixes`, `## How to test`, `## Release Notes`, etc.) as prose, not bullet matrices.
+     - Frame findings and follow-ups as collaboration. Avoid imperative commands at reviewers ("Fix X.", "Reject.", "BLOCKED.").
+     - Reference file paths inline as `path:line` for navigation.
+     - **Forbidden** anywhere in the title or body: bare severity tables (`| P0 | path:line | issue | fix |`), cold openings ("Findings:", "Review:"), AI / Claude / Co-Authored-By attribution, "Generated with" trailers.
 9. **Code review pass** — spawn `lean-flow:code-reviewer` (sonnet) for code-quality / SOLID / patterns review. Apply any issues raised, re-run tests + linters, push.
 10. **Architecture review pass** — spawn the `oracle` agent (sonnet, think-only) with PR number + files-changed list + summary. Oracle returns `APPROVED` or numbered issues. Apply fixes, re-run tests + linters, push, update PR title/description if scope drifted. Loop steps 9–10 until both return `APPROVED`. **Hard cap: 3 combined rounds.** If still not approved after 3 rounds → escalate to **HUMAN INTERVENTION**: stop, post a comment on the PR summarizing what's blocked, and return to orchestrator. Do not keep looping.
 11. **Plan checklist write-back (Layer 2, conditional)** — If the dispatch prompt includes `plan_path: <absolute-path>`, after each successful step commit:
