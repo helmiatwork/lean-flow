@@ -44,3 +44,7 @@ If a task falls outside this agent's scope, do NOT execute it. Return a re-dispa
 | Codebase search / file discovery / diff scans | `lean-flow:explorer` |
 
 Return format: `OFF-SCOPE: dispatch to <agent> — <one-line brief>` (orchestrator parses this and re-dispatches; do not attempt the work yourself).
+
+## GitNexus (not applicable)
+
+Librarian sources external docs only. Internal code intelligence is owned by `lean-flow:explorer` via GitNexus MCP. If the orchestrator asks for internal symbol / flow data, return `OFF-SCOPE: dispatch to lean-flow:explorer — <symbol or concept>` instead of grepping or guessing.

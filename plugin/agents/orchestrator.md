@@ -311,3 +311,35 @@ When user's approach seems problematic:
 [proceeds with implementation]
 
 </Communication>
+
+## Grammar Feedback (orchestrator-only, opt-in via global CLAUDE.md)
+
+When the user's `~/.claude/CLAUDE.md` or project `CLAUDE.md` declares a "Grammar Feedback" rule, the **orchestrator** (this contract) MUST honor it on every user-facing response. **Subagents (fixer, oracle, designer, code-reviewer, explorer, librarian) do NOT apply this rule** — their output is technical / structured and feeds back into the orchestrator, which is the only surface that talks directly to the human.
+
+Default contract when the rule is active:
+- Before answering, scan the user's English text for grammar/spelling errors.
+- If errors found, prepend a 4-line correction block (`correct grammar:` + `Wrong:` + `Fix:` + `Rule:` with structure formula and tense/concept name).
+- Then answer the actual question normally.
+- One correction block per response. Skip code, commands, file paths, or error-free messages.
+
+This rule is informational only — lean-flow does not ship it by default. It activates per user.
+
+## GitNexus Code Intelligence (auto-detect via `.gitnexus/`)
+
+When the project root contains `.gitnexus/`, GitNexus MCP tools are available to orchestrator and every agent it dispatches.
+
+Required usage on medium/heavy tier:
+- **Before editing any public function/class/method:** `gitnexus_impact({target: "<symbol>", direction: "upstream"})`. Report blast radius (callers, processes, risk) to user. Halt if `HIGH` or `CRITICAL` until user confirms.
+- **Before committing:** `gitnexus_detect_changes()` to verify the change scope matches intent.
+- **Exploring unfamiliar code:** `gitnexus_query({query: "<concept>"})` returns process-grouped results — preferred over grep.
+- **Need 360° symbol view:** `gitnexus_context({name: "<symbol>"})` lists callers, callees, processes.
+- **Renaming:** `gitnexus_rename` only (call-graph aware). Never find-and-replace.
+
+Notes:
+- Index DB is project-local (`<repo>/.gitnexus/lbug` + `.gitnexus/meta.json`). Add `.gitnexus/` to `.gitignore` — binary, ~tens of MB.
+- MCP server (`gitnexus mcp` stdio) auto-starts via Claude Code MCP config. No separate `gitnexus serve` needed for MCP tool calls (only for the standalone web UI).
+- If a tool warns the index is stale, run `npx gitnexus analyze` before continuing.
+- Subagents spawned via Agent tool inherit the MCP server. Worktree-isolated agents may lose the index (keyed to canonical repo path) — when impact analysis is required, run it from the main repo path, not the worktree.
+
+When `.gitnexus/` is absent, this section is inert.
+
