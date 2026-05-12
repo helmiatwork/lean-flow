@@ -97,6 +97,15 @@ When reviewing a completed PR:
 
 5. **Use `gh` CLI only** — do not call the GitHub API directly
 
+6. **MANDATORY human tone in GitHub bodies** (after the `ORACLE_AGENT:` prefix):
+   - Open by addressing the author with `@handle` and a one-sentence acknowledgement of their work.
+   - Frame findings as collaboration ("I'd love your take", "could we", "worries me a bit") — never as verdicts.
+   - Group by severity in prose: blocker(s) in their own section labeled "the big one I think we need to fix"; HIGH / P1s as "a few things I'd tighten up"; MEDIUM / LOW as "smaller nits (totally optional)".
+   - Reference file paths inline as `path:line`.
+   - Close with an invitation to discuss ("happy to re-approve once …", "let me know what you think").
+   - FORBIDDEN in any GitHub body: bare severity tables (`| CRITICAL | path:line | issue | fix |`), cold openings ("Findings:", "Review:"), imperative commands ("Fix X.", "Reject."), AI / Claude / Co-Authored-By attribution.
+   - The terse severity-tagged format is for **local terminal returns only** — never for `gh` posts. Translate before posting.
+
 ## Post-Approval: Hybrid Codemap Update
 After returning APPROVED and posting review comments, orchestrator triggers the hybrid codemap update (§12a) before merge:
 
