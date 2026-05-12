@@ -67,14 +67,17 @@ flowchart TD
         DESIGNER_DISPATCH --> DESIGNER_IMPL["🎨 designer: frontend-design<br/>+ tdd + verification<br/>commits to step branch"]
         DESIGNER_IMPL --> DESIGNER_WAIT["⏳ Designer done<br/>waiting for fixer"]
         TESTFIRST{"TDD?"}
-        TESTFIRST -->|"yes"| TDDTEST["RED → GREEN → REFACTOR"] --> IMPLEMENT
-        TESTFIRST -->|"no"| IMPLEMENT
+        TESTFIRST -->|"yes"| TDDTEST["RED → GREEN → REFACTOR"]
+        TESTFIRST -->|"no"| GITNEXUS_IMPACT
+        TDDTEST --> GITNEXUS_IMPACT
+        GITNEXUS_IMPACT["🔭 gitnexus_impact<br/>upstream blast radius<br/>(if .gitnexus/ exists)<br/>HALT on HIGH/CRITICAL"] --> IMPLEMENT
         IMPLEMENT["🔧 fixer impl + tests + self-verify"] --> TEST["Run tests"]
         TEST -->|"pass"| COVERAGE_GATE{"📊 Coverage ≥ 90%?"}
         TEST -->|"fail × 3"| ORACLE_ESC["🔮 oracle (think-only)<br/>systematic-debugging"]
         ORACLE_ESC --> IMPLEMENT
         COVERAGE_GATE -->|"< 90%"| IMPLEMENT
-        COVERAGE_GATE -->|"≥ 90%"| FIXER_CARTO["🔧 fixer commits<br/>orchestrator dispatches<br/>explorer: lean-flow:cartography<br/>(changed folders only)"]
+        COVERAGE_GATE -->|"≥ 90%"| GITNEXUS_DETECT["🔭 gitnexus_detect_changes<br/>verify scope = intent<br/>(if .gitnexus/ exists)"]
+        GITNEXUS_DETECT --> FIXER_CARTO["🔧 fixer commits<br/>orchestrator dispatches<br/>explorer: lean-flow:cartography<br/>(changed folders only)"]
         DESIGNER_WAIT --> FIXER_CARTO
       end
       FIXER_CARTO --> STEPPR["PR step → parent<br/>auto-merge, no oracle"]
@@ -82,7 +85,8 @@ flowchart TD
       %% Parent → main final PR
       subgraph parent_branch ["🌿 parent branch (off main)"]
         DISPATCH_FINAL --> POSTSTEPS["✅ Post-step gate<br/>verifier + nyquist + finishing"]
-        POSTSTEPS --> MAINPR["🔧 fixer opens PR<br/>parent → main<br/>+ release notes"]
+        POSTSTEPS --> GITNEXUS_FINAL["🔭 gitnexus_detect_changes<br/>+ gitnexus_impact on all<br/>public-symbol diffs<br/>(if .gitnexus/ exists)"]
+        GITNEXUS_FINAL --> MAINPR["🔧 fixer opens PR<br/>parent → main<br/>+ release notes"]
         MAINPR --> CODEREVIEW["📋 lean-flow:code-reviewer<br/>(sonnet)"]
         CODEREVIEW -->|"issues"| ISSUE_ROUTE["🔀 fixer routes issues<br/>backend → fixer<br/>frontend → designer<br/>cross-cutting → both parallel"]
         ISSUE_ROUTE --> FIXFINAL["🔧 + 🎨 apply fixes<br/>+ re-verify<br/>+ push"]
@@ -154,6 +158,9 @@ flowchart TD
     style COVERAGE_GATE fill:#F39C12,color:#fff
     style ORACLE_ESC fill:#9B59B6,color:#fff
     style FIXER_CARTO fill:#E67E22,color:#fff
+    style GITNEXUS_IMPACT fill:#0E6655,color:#fff
+    style GITNEXUS_DETECT fill:#0E6655,color:#fff
+    style GITNEXUS_FINAL fill:#0E6655,color:#fff
     style STEPPR fill:#2ECC71,color:#fff
     style POSTSTEPS fill:#27AE60,color:#fff
     style MAINPR fill:#2ECC71,color:#fff
@@ -176,6 +183,7 @@ flowchart TD
 > - **🎨 Designer node** — parallel to fixer on step branches when frontend work is present. Designer commits to step branch, fixer opens the PR. No separate designer PR.
 > - **🔀 Issue routing** — fixer classifies review feedback: backend → fixer, frontend → designer, cross-cutting → both parallel. Re-verify and re-request review until both APPROVED.
 > - **Explorer cartography** — after each fixer/designer commit, orchestrator dispatches explorer to update `codemap.md` for changed folders (scoped, not full repo).
+> - **🔭 GitNexus nodes (teal)** — auto-active when `.gitnexus/` exists in the repo root. `gitnexus_impact` runs before every public-symbol edit (HALT on HIGH/CRITICAL); `gitnexus_detect_changes` runs before commit and again before the final PR. Inert (skipped) when `.gitnexus/` is absent. See §1d below.
 
 ## Skill → Agent Mapping
 
@@ -194,6 +202,7 @@ flowchart TD
 - Oracle validates CLAUDE.md / agents/*.md / workflows/*.md during rule-file PRs
 - Explorer cartography is mandatory per-commit (scoped to changed folders), not optional
 - Fixer routes review feedback per IssueRoutingRules (orchestrator.md) — backend to fixer, frontend to designer, cross-cutting to both parallel
+- **GitNexus MCP tools (auto-detect via `.gitnexus/`)** are available to orchestrator + every agent. Mandatory calls: `gitnexus_impact` before any public-symbol edit, `gitnexus_detect_changes` before commit, `gitnexus_rename` for symbol renames (never find-and-replace), `gitnexus_query`/`gitnexus_context` for exploration over grep. See §1d.
 
 ## Branch Naming Convention
 
@@ -269,6 +278,33 @@ For medium/heavy tasks, haiku generates a STAR breakdown:
 The orchestrator shows this to the user and asks for confirmation **before doing any work**. The user replies `yes` to proceed or describes what's different. This eliminates misunderstandings on costly multi-file tasks without adding friction to simple ones.
 
 Short prompts (<50 chars) and follow-up messages (`yes`, `ok`, `proceed`, etc.) are automatically skipped.
+
+### 1d. GitNexus Code Intelligence (auto-detect via `.gitnexus/`)
+
+When the project root contains `.gitnexus/`, the repo is indexed by GitNexus and the MCP tools are available to orchestrator and every agent it dispatches. **These calls are mandatory — not optional enrichment.**
+
+**Always do:**
+- **Before editing any public function/class/method** (medium/heavy tier): `gitnexus_impact({target: "<symbol>", direction: "upstream"})`. Report blast radius (callers, processes, risk) to user. **HALT on HIGH or CRITICAL until user confirms.**
+- **Before committing:** `gitnexus_detect_changes()` to verify the change scope matches intent (no accidental drift, no unintended public-API edits).
+- **Renaming a symbol:** `gitnexus_rename` (call-graph aware). Never find-and-replace.
+- **Exploring unfamiliar code:** `gitnexus_query({query: "<concept>"})` — process-grouped results, preferred over grep.
+- **Need 360° symbol view:** `gitnexus_context({name: "<symbol>"})` — lists callers, callees, processes the symbol participates in.
+
+**Never:**
+- Edit a public function/class without running `gitnexus_impact` first on medium/heavy.
+- Ignore HIGH or CRITICAL risk warnings — escalate to user before proceeding.
+- Rename symbols with find-and-replace.
+- Commit without `gitnexus_detect_changes()` on medium/heavy.
+
+**Index health:**
+- Database lives at `<repo>/.gitnexus/lbug` + `.gitnexus/meta.json` (project-local). Add `.gitnexus/` to `.gitignore` — binary, large.
+- If a tool warns the index is **stale** (commit drift), run `npx gitnexus analyze` in terminal before continuing.
+- MCP server (`gitnexus mcp` stdio) auto-starts via Claude Code MCP config. No separate `gitnexus serve` needed for MCP tool calls (only for the standalone web UI).
+
+**IMPACT-REPORT enforcement (orchestrator.md §6):**
+Every dispatch prompt to `lean-flow:fixer` / `lean-flow:designer` MUST append an enforcement block requiring the agent to emit an `IMPACT-REPORT` line per symbol it intends to edit. Missing IMPACT-REPORT lines for symbols visible in `gitnexus_detect_changes()` output → orchestrator rejects the step and re-dispatches.
+
+**Inert when `.gitnexus/` is absent** — all gitnexus nodes in the mermaid diagram are skipped automatically. The flow runs unchanged for repos without GitNexus indexing.
 
 ### 1c. Brownfield Orientation (complex tasks on existing codebases)
 Before brainstorming on complex tasks in existing codebases:
@@ -397,6 +433,7 @@ Fixer invokes **`lean-flow:verification-before-completion`** before reporting ba
 **If touching DB/API:** migrations reversible, indexes, no breaking changes, pagination, input validated
 **If async/jobs:** idempotent, retry-safe, race conditions handled, dead-letter/failure handling
 **If risky/new:** feature flags, safe env defaults, dependencies justified, logs for critical flows
+**If `.gitnexus/` exists:** `gitnexus_detect_changes()` ran and scope matches intent; every public symbol edited has an `IMPACT-REPORT` line citing `gitnexus_impact` results; no HIGH/CRITICAL risk was bypassed without user confirmation.
 
 ### 8c. Code Review
 Use **`lean-flow:code-reviewer`** (dedicated sonnet agent) for code review — separate from oracle's architecture role.
@@ -422,6 +459,7 @@ Oracle verifies architecture and system-level concerns before returning APPROVED
 - Third-party limits/rate limits considered
 - Matches business intent, edge cases align with real user behavior
 - Error handling aligns with UX expectations
+- **If `.gitnexus/` exists:** every public symbol changed has a matching IMPACT-REPORT line in the PR body; no HIGH/CRITICAL upstream impact was merged without explicit user sign-off; `gitnexus_detect_changes()` output is consistent with the PR diff (no hidden symbol changes)
 
 **Post-approval — hybrid codemap update (§12a):**
 - **Tier 2 (always):** run `cartographer.py changes` → explorer fills affected `codemap.md` → fixer writes → `cartographer.py update`
@@ -440,11 +478,12 @@ Oracle verifies architecture and system-level concerns before returning APPROVED
 Before the security audit, run goal verification:
 - **`lean-flow:verifier`** — Checks each deliverable is exists + substantive + wired + data-flowing. Catches stubs and disconnected implementations.
 - **`lean-flow:nyquist-auditor`** — Fills test coverage gaps. Generates behavioral tests for uncovered requirements. Read-only on implementation files.
+- **If `.gitnexus/` exists:** run `gitnexus_detect_changes()` on the full parent diff. For every public symbol surfaced, run `gitnexus_impact({target, direction: "upstream"})` and attach the blast-radius report to the PR body. This becomes the input the security audit reasons from.
 
 Then the security audit proceeds:
-- **Explorer** (haiku) reads the full parent branch diff vs main → produces structured summary
+- **Explorer** (haiku) reads the full parent branch diff vs main → produces structured summary (augmented with the gitnexus IMPACT-REPORT when available)
 - **Oracle** (sonnet, think-only) audits from explorer's summary — security issues, N+1, diff risk
-- **Special attention:** database migrations (table locks, backward compat, reversibility)
+- **Special attention:** database migrations (table locks, backward compat, reversibility), and HIGH/CRITICAL upstream callers flagged by gitnexus
 - If issues found: **Fixer** implements fix on parent → **Explorer** re-reads → **Oracle** reviews
 - Re-audit until clean (max 3 rounds, then escalate to human)
 

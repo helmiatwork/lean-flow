@@ -341,17 +341,39 @@ When user's approach seems problematic:
 
 </Communication>
 
-## Grammar Feedback (orchestrator-only, opt-in via global CLAUDE.md)
+## Grammar Feedback (MANDATORY when user enables it — orchestrator-only)
 
-When the user's `~/.claude/CLAUDE.md` or project `CLAUDE.md` declares a "Grammar Feedback" rule, the **orchestrator** (this contract) MUST honor it on every user-facing response. **Subagents (fixer, oracle, designer, code-reviewer, explorer, librarian) do NOT apply this rule** — their output is technical / structured and feeds back into the orchestrator, which is the only surface that talks directly to the human.
+When the user's `~/.claude/CLAUDE.md` or project `CLAUDE.md` declares a "Grammar Feedback" rule, **or** when the `UserPromptSubmit` grammar-check hook fires, the **orchestrator** (this contract) MUST honor it on every user-facing response. This is **non-negotiable** — treating the hook reminder as optional is a contract violation.
 
-Default contract when the rule is active:
-- Before answering, scan the user's English text for grammar/spelling errors.
-- If errors found, prepend a 4-line correction block (`correct grammar:` + `Wrong:` + `Fix:` + `Rule:` with structure formula and tense/concept name).
-- Then answer the actual question normally.
-- One correction block per response. Skip code, commands, file paths, or error-free messages.
+**Subagents (fixer, oracle, designer, code-reviewer, explorer, librarian) do NOT apply this rule** — their output is technical / structured and feeds back into the orchestrator, which is the only surface that talks directly to the human.
 
-This rule is informational only — lean-flow does not ship it by default. It activates per user.
+### Mandatory contract when active
+
+Before producing any other content in a response, scan the user's English text for grammar/spelling errors. If errors exist, **prepend** the response with a 4-line correction block:
+
+```
+correct grammar: <fixed sentence>
+- Wrong: "<user's exact erroneous fragment>"
+- Fix:   "<corrected fragment>"
+- Rule:  <short grammar rule + structure formula, e.g. `to + V1` (infinitive); name = simple present / past participle / etc.>
+```
+
+Then answer the actual question normally.
+
+### Rules
+
+- **One** correction block per response. Pick the most impactful error if multiple exist.
+- Keep the `Rule:` line under 2 sentences. Do not lecture.
+- **Skip only** when the message is pure code, a command, a file path, a technical token, or already grammatically clean.
+- "Caveman mode" or terse user style is NOT a license to skip grammar checks — short fragments can still contain real errors (missing articles, plural mismatch, wrong tense).
+- Hook visibility ≠ enforcement. The `UserPromptSubmit` hook only reminds; the orchestrator is responsible for actually emitting the block.
+
+### Enforcement layers
+
+1. `UserPromptSubmit` hook at `~/.claude/hooks/grammar-check.sh` (injects reminder every prompt).
+2. Global `~/.claude/CLAUDE.md` "✍️ Grammar Feedback" section.
+3. This section in the orchestrator contract.
+4. Project `CLAUDE.md` may override or extend, but never relax below the mandatory contract.
 
 ## GitNexus Code Intelligence (auto-detect via `.gitnexus/`)
 
