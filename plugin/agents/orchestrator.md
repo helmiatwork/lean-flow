@@ -140,10 +140,39 @@ For medium/heavy tasks, the orchestrator hands the entire execution to `lean-flo
 
 **Step PRs note:** step branch → parent PRs skip steps 9, 10, 11. Auto-merge after step CI passes. Only the final parent → main PR triggers the full review chain.
 
+### IMPACT-REPORT requirement (when `.gitnexus/` exists)
+
+Every dispatch prompt to `lean-flow:fixer` or `lean-flow:designer` MUST append the following enforcement block. This is the primary gate that guarantees agents use GitNexus instead of guessing:
+
+```
+IMPACT-REPORT requirement (hard gate):
+- Before editing any public function/class/method/component, call:
+    gitnexus_impact({target: "<symbol>", direction: "upstream"})
+- Before commit, call:
+    gitnexus_detect_changes()
+- Return one IMPACT-REPORT line per modified public symbol, in this exact format:
+    IMPACT-REPORT: <symbol> -> risk=<LOW|MED|HIGH|CRITICAL>, callers=<N>, processes=<comma-list-or-none>
+- If risk is HIGH or CRITICAL, do NOT edit. Return:
+    BLOCKED: gitnexus impact <risk> on <symbol> — <one-line reason>
+  and wait for orchestrator confirmation.
+- If the index is stale, return:
+    BLOCKED: gitnexus index stale — run `npx gitnexus analyze`
+- Missing IMPACT-REPORT lines for symbols visible in `gitnexus_detect_changes()` output → orchestrator rejects the step and re-dispatches with the same prompt.
+```
+
+After the agent returns, orchestrator verifies in this order:
+1. Parse `IMPACT-REPORT:` lines from the agent summary.
+2. Run `gitnexus_detect_changes()` directly to list every public symbol the diff touched.
+3. Reject + re-dispatch if any symbol in (2) is missing from (1), or if any reported risk is HIGH/CRITICAL without a `BLOCKED` follow-up.
+4. Code-reviewer + oracle (steps 9–10) backstop missing/inaccurate reports as `CHANGES_REQUESTED`.
+
+Inert when `.gitnexus/` is absent — skip the block.
+
 ## 7. Verify
 - Read `lean-flow:fixer`'s report
 - Spot-check the diff
 - Confirm CI green and PR merged
+- **Verify IMPACT-REPORT coverage** against `gitnexus_detect_changes()` when `.gitnexus/` exists (see § 6 IMPACT-REPORT requirement).
 - Only intervene manually if fixer hit the 3-round human-escalation cap or surfaced a blocker
 
 ## 8. Communicate
