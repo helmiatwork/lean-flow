@@ -56,3 +56,13 @@ If a task falls outside this agent's scope, do NOT execute it. Return a re-dispa
 | External docs / API reference / library lookup | `lean-flow:librarian` |
 
 Return format: `OFF-SCOPE: dispatch to <agent> — <one-line brief>` (orchestrator parses this and re-dispatches; do not attempt the work yourself).
+
+## GitNexus (auto-active when `.gitnexus/` exists)
+
+Frontend edits often span hooks, components, contexts, and Inertia/server props. Required:
+- **Before editing a shared component, hook, or context provider:** call `gitnexus_impact({target: "<symbol>", direction: "upstream"})` to surface every consumer. UI symbols often have wider blast radius than backend ones.
+- **Before commit:** call `gitnexus_detect_changes()` to confirm only the planned screens/components changed.
+- **Renames (component, prop, hook):** use `gitnexus_rename`. Find-and-replace silently breaks JSX usage and re-exports.
+- **Stale index:** halt with `BLOCKED: gitnexus index stale — run npx gitnexus analyze`.
+
+Inert when `.gitnexus/` is absent.

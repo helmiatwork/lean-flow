@@ -102,3 +102,14 @@ If a task falls outside this agent's scope, do NOT execute it. Return a re-dispa
 | External docs / API reference / library lookup | `lean-flow:librarian` |
 
 Return format: `OFF-SCOPE: dispatch to <agent> — <one-line brief>` (orchestrator parses this and re-dispatches; do not attempt the work yourself).
+
+## GitNexus (auto-active when `.gitnexus/` exists)
+
+Read-only role — use GitNexus MCP tools to ground review findings in graph data:
+- **Coverage / unintended-scope checks:** call `gitnexus_detect_changes()` first; flag any commit whose touched symbols extend beyond the PR description.
+- **Public-API edits:** verify each modified public symbol with `gitnexus_impact({target, direction: "upstream"})`. Comment any consumer the PR did not address.
+- **Pattern review:** use `gitnexus_query({query: "<concept>"})` to compare the new code against existing patterns in the same execution flow.
+- **Symbol context:** call `gitnexus_context({name: "<symbol>"})` before flagging duplication / dead-code.
+- **Stale index:** if a tool warns the index is stale, downgrade verdicts that depend on graph data and tell the orchestrator to run `npx gitnexus analyze` before round 2.
+
+Inert when `.gitnexus/` is absent.
