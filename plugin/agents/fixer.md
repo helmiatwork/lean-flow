@@ -104,3 +104,14 @@ Return format: `OFF-SCOPE: dispatch to <agent> — <one-line brief>` (orchestrat
 **If risky/new:**
 - [ ] Feature flags, safe env defaults, no hardcoded env logic
 - [ ] Dependencies justified, logs for critical flows
+
+## GitNexus (auto-active when `.gitnexus/` exists)
+
+Required on every implementation step:
+- **Before editing any public function/class/method:** call `gitnexus_impact({target: "<symbol>", direction: "upstream"})`. Report blast radius to orchestrator. If `HIGH` or `CRITICAL`, return `BLOCKED: gitnexus impact <risk> — <summary>` and wait for orchestrator confirmation.
+- **Before commit:** call `gitnexus_detect_changes()` to verify scope matches the plan step. If unexpected symbols are touched, halt and report.
+- **Renames:** use `gitnexus_rename` only. Never find-and-replace across files.
+- **Stale index:** if a tool warns the index is stale, halt and return `BLOCKED: gitnexus index stale — run npx gitnexus analyze`.
+- **Worktree caveat:** the index is keyed to the canonical repo path. Inside a worktree, MCP calls may not resolve. Run impact analysis from the main repo path or document the skip.
+
+Inert when `.gitnexus/` is absent.

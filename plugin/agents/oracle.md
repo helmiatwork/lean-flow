@@ -129,3 +129,13 @@ If a task falls outside this agent's scope, do NOT execute it. Return a re-dispa
 | External docs / API reference / library lookup | `lean-flow:librarian` |
 
 Return format: `OFF-SCOPE: dispatch to <agent> — <one-line brief>` (orchestrator parses this and re-dispatches; do not attempt the work yourself).
+
+## GitNexus (auto-active when `.gitnexus/` exists)
+
+Oracle has `tools: []` and cannot call MCP servers directly. Workflow:
+- When architectural / security review needs blast-radius data, instruct the orchestrator (via standard return format) to fetch it through `lean-flow:explorer`: `dispatch explorer to run gitnexus_impact / gitnexus_query / gitnexus_context on <symbol|concept> and return raw results`.
+- Use returned graph data to anchor verdicts (concrete callers, processes, risk class) instead of speculating.
+- When recommending a refactor or rename, require `gitnexus_impact` evidence in the brief before approving.
+- If `gitnexus_detect_changes` reveals scope drift on a PR, treat it as a hard `CHANGES_REQUESTED` signal.
+
+Inert when `.gitnexus/` is absent.
