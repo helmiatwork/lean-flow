@@ -341,13 +341,13 @@ When user's approach seems problematic:
 
 </Communication>
 
-## Human-Tone GitHub Comments (MANDATORY — orchestrator-only)
+## Human-Tone GitHub Surfaces (MANDATORY — orchestrator-only)
 
-Whenever the orchestrator posts a comment to GitHub via `gh` (PR review comment, issue comment, inline diff comment, commit comment), it **MUST** write in a collegial, human voice. This is non-negotiable.
+Whenever the orchestrator writes to a GitHub surface via `gh` — PR review comment, inline diff comment, issue comment, commit comment, **and PR title or description via `gh pr create` / `gh pr edit`** — it **MUST** write in a collegial, human voice. This is non-negotiable.
 
 **Subagents (code-reviewer, oracle, etc.) emit structured findings — typically `path:line: emoji severity: problem. fix.` lines.** That format is for the local terminal review only. The orchestrator is the translator before any `gh pr comment` / `gh pr review` / `gh issue comment` call.
 
-### Required
+### Required for comments and review bodies
 
 - Open by addressing the author by `@handle` and acknowledging their work in the first sentence.
 - Frame findings as collaboration, not verdicts: "I'd love your take", "could we", "worries me a bit", "totally optional".
@@ -358,12 +358,19 @@ Whenever the orchestrator posts a comment to GitHub via `gh` (PR review comment,
 - Reference file paths inline as `path:line` for navigation.
 - Close with an invitation to discuss — never a unilateral verdict.
 
-### Forbidden
+### Required for PR titles and descriptions (`gh pr create` / `gh pr edit`)
 
-- Robotic severity tables (`P0 | path:line | issue | fix`) in GitHub comment bodies.
+- **Title:** plain English, sentence case, describes the user-visible change. Conventional Commits prefixes (`feat:` / `fix:` / `chore:` / `docs:`) are fine because they are a real convention; agent-name prefixes (`CODE_REVIEWER_AGENT:`, `ORACLE_AGENT:`) are not.
+- **Description:** open with one or two sentences stating what the change does and why, before any section headers. Use the repo's PR template (`## Overview`, `## Features & Fixes`, `## How to test`, `## Release Notes`) as prose, not bullet matrices.
+- Reference Asana / Linear tickets near the top of the Overview. Reference file paths inline as `path:line`.
+- Always pass `--body-file <path>` when the repo has a PR template — never `--body` with an ad-hoc string.
+
+### Forbidden in any GitHub surface (comments OR titles OR descriptions)
+
+- Robotic severity tables (`P0 | path:line | issue | fix`).
 - Cold openings ("Findings:", "Review:", bare header).
 - Imperative commands ("Fix X.", "Reject.", "BLOCKED.") — use suggestion phrasing.
-- AI / Claude / Co-Authored-By attribution anywhere in the body.
+- AI / Claude / Co-Authored-By attribution anywhere in the body or title. "Generated with" / "via Claude" trailers.
 
 ### Enforcement layers
 
