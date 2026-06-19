@@ -23,3 +23,23 @@ test('install copies hooks + writes settings + backup; uninstall reverts', () =>
   assert.equal((s3.hooks.SessionStart ?? []).filter(
     g => g.hooks[0].command.includes('leanflow-fix.sh')).length, 0)
 })
+
+test('install with target=opencode writes opencode settings', () => {
+  const HOME = mkdtempSync(join(tmpdir(), 'lf-oc-'))
+  install({ home: HOME, skipDeps: true, target: 'opencode' })
+  assert.ok(existsSync(join(HOME, '.config/opencode/hooks/leanflow-fix.sh')))
+  assert.ok(existsSync(join(HOME, '.config/opencode/opencode.json')))
+})
+
+test('install runs executor for missing deps when not skipping', async () => {
+  const HOME = mkdtempSync(join(tmpdir(), 'lf-dep-'))
+  const ran = []
+  install({
+    home: HOME, target: 'claude', yes: true,
+    deps: { redis: { brew: 'redis', service: true } },
+    present: () => false,
+    manager: 'brew',
+    run: (bin, args) => ran.push([bin, ...args])
+  })
+  assert.ok(ran.some(c => c[0] === 'brew' && c[1] === 'install'))
+})
