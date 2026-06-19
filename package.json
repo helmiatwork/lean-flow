@@ -2,7 +2,7 @@
   "name": "lean-flow",
   "version": "3.0.0",
   "type": "module",
-  "bin": { "lean-flow": "./bin/cli.js" },
+  "bin": { "lean-flow": "./bin/cli.js", "lean-flow-proxy": "./bin/proxy.js" },
   "files": ["bin", "src", "core", "hooks", "NOTICE"],
   "engines": { "node": ">=18" },
   "dependencies": { "@iarna/toml": "^2.2.5" },
