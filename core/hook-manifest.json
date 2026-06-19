@@ -1,0 +1,4 @@
+[
+  { "event": "UserPromptSubmit", "script": "leanflow-grammar-check.sh", "runner": "bash" },
+  { "event": "SessionStart", "script": "leanflow-fix.sh", "runner": "bash" }
+]
