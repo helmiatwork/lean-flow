@@ -1,0 +1,9 @@
+[redis]
+brew = "redis"
+apt = "redis-server"
+service = true
+role = "pattern-memory backing store"
+
+[node]
+runtime = ">=18"
+role = "js hooks + proxy"
