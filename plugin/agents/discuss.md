@@ -88,3 +88,9 @@ Then stop — the orchestrator continues with the actual implementation.
 - Rationale must be 1 line, specific to this task's context
 - If the user's prompt already answers a decision area, skip it
 - Max 5 decision areas
+
+## GitNexus (awareness)
+
+Tools are `AskUserQuestion` only — no direct code access. When framing decision areas for a code-touching task, surface impact awareness:
+- Suggest the orchestrator run `gitnexus_impact({target, direction: "upstream"})` on symbols the user wants to change, so blast-radius informs scope decisions.
+- Flag decision areas whose answer depends on existing execution flows — recommend `gitnexus_query`/`gitnexus_context` before locking.

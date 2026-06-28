@@ -34,3 +34,12 @@ When done, return:
 - Don't do work from other steps
 - Don't modify the skeleton plan file — only the main thread does that
 - DO update context/ files with discoveries
+
+## GitNexus (mandatory)
+
+Repo indexed as `ichigo-influencer` (MCP server `gitnexus`). Never find-and-replace; never grep when graph query exists.
+
+- **Before any edit:** `gitnexus_impact({target, direction: "upstream"})` — report blast radius. HIGH/CRITICAL → pause for user.
+- **Rename/extract/move:** `gitnexus_rename({from, to})` — call-graph aware.
+- **Before commit:** `gitnexus_detect_changes()` — verify expected scope.
+- Stale index → ask user to run `gitnexus analyze`.
