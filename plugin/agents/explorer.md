@@ -67,14 +67,12 @@ If a task falls outside this agent's scope, do NOT execute it. Return a re-dispa
 
 Return format: `OFF-SCOPE: dispatch to <agent> — <one-line brief>` (orchestrator parses this and re-dispatches; do not attempt the work yourself).
 
-## GitNexus (preferred entrypoint when `.gitnexus/` exists)
+## GitNexus (mandatory)
 
-Explorer is the primary surface for GitNexus reads. When the orchestrator asks for code intelligence, prefer MCP tools over grep:
-- **Concept / feature search:** `gitnexus_query({query: "<concept>"})` — process-grouped, ranked. Use first; fall back to grep only when the index returns nothing.
-- **Symbol 360°:** `gitnexus_context({name: "<symbol>"})` — callers, callees, processes participated.
-- **Blast radius:** `gitnexus_impact({target: "<symbol>", direction: "upstream"|"downstream"})` on request.
-- **Scope verification:** `gitnexus_detect_changes()` when summarising recent commits.
-- **Stale index:** report `STALE: gitnexus index behind HEAD — run npx gitnexus analyze` and return current results with a freshness caveat.
-- **Always quote source:** include tool name + key fields in the response so oracle / code-reviewer can audit.
+Repo indexed as `ichigo-influencer` (MCP server `gitnexus`). Prefer graph over grep.
 
-Inert when `.gitnexus/` is absent.
+- `gitnexus_query({query: "<concept>"})` — ranked execution flows for "how does X work?"
+- `gitnexus_context({name: "<symbol>"})` — callers, callees, processes
+- Resources: `gitnexus://repo/ichigo-influencer/{context,processes,clusters,process/<name>}`
+- Stale-index warning → flag to orchestrator/user; recommend `gitnexus analyze`.
+- Still use Glob/Grep for non-symbol search (filenames, strings, configs).

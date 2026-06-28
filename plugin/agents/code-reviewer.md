@@ -111,6 +111,45 @@ If a task falls outside this agent's scope, do NOT execute it. Return a re-dispa
 
 Return format: `OFF-SCOPE: dispatch to <agent> — <one-line brief>` (orchestrator parses this and re-dispatches; do not attempt the work yourself).
 
+## Code Smell Catalog (Hardening Addendum)
+
+Flag any of these in changed code. Each finding cites `path:line` + smell name.
+
+### Method-level
+- **Long method** — > 50 lines or > 1 screen. Split or extract.
+- **Long parameter list** — > 4 positional args. Convert to keyword args or a value object.
+- **Cyclomatic complexity > 10** — too many branches. Decompose or use polymorphism.
+- **Boolean flag parameter** — `def foo(force: false)` that splits the method in two paths. Extract two methods.
+- **Feature envy** — method reaches into another object's state more than its own. Move method.
+
+### Class-level
+- **Large class** — > 500 lines or > 20 public methods. Apply SRP.
+- **God object** — touches every domain (User that does payment, notification, auth). Decompose.
+- **Data clump** — same 3+ fields travel together across methods. Extract value object.
+- **Inappropriate intimacy** — class accesses another class's private internals via `send`. Refactor or expose intent.
+
+### Code-base level
+- **Duplicate code** — same logic in 2+ places. Extract a service / module / partial.
+- **Dead code** — unreferenced private methods, commented-out blocks, unreachable branches.
+- **Speculative generality** — abstract base class with one concrete subclass; flags-driven branches for hypothetical futures.
+- **Shotgun surgery** — one logical change requires edits to 5+ files. Wrong seam.
+
+### SOLID Audit (every PR touching `app/services/`, `app/models/`, `app/controllers/`)
+- **S**ingle Responsibility — one reason to change per class. Multi-purpose class → split.
+- **O**pen/Closed — adding a new business unit / service type should NOT require editing existing classes; use polymorphism / strategy.
+- **L**iskov Substitution — subclasses must accept the same inputs and not throw `NotImplementedError` for inherited methods.
+- **I**nterface Segregation — no fat modules forcing classes to implement unused methods.
+- **D**ependency Inversion — depend on abstractions (modules, duck-typed interfaces), not concrete classes; inject collaborators via constructor / keyword args.
+
+### Issue Prioritization
+Map smells to severity:
+- **Critical** — Correctness bug, security regression, broken contract. Must fix.
+- **Major** — Maintainability hit, will compound (god object growing, SRP violated in a hot file). Should fix.
+- **Minor** — Style, naming, small duplication. Nice to fix.
+- **Suggestion** — Optional refactor opportunity. Non-blocking.
+
+Use the same labels in the return verdict block (`open_findings: [Critical: ..., Major: ...]`).
+
 ## GitNexus (auto-active when `.gitnexus/` exists)
 
 Read-only role — use GitNexus MCP tools to ground review findings in graph data:

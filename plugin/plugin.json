@@ -1,0 +1,37 @@
+{
+  "name": "lean-flow",
+  "version": "3.0.0",
+  "displayName": "Lean Flow — Orchestrator + Fixer + Design",
+  "description": "Production-ready orchestration system for Claude Code: STAR classifier, structured planning, dispatching, code-reviewer + oracle review chain, TDD, systematic debugging, cartography.",
+  "author": "helmiatwork",
+  "license": "Apache-2.0",
+  "homepage": "https://github.com/helmiatwork/lean-flow",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/helmiatwork/lean-flow.git"
+  },
+  "keywords": [
+    "orchestrator",
+    "lean-flow",
+    "claude-code",
+    "planning",
+    "code-review",
+    "tdd",
+    "debugging"
+  ],
+  "layout": {
+    "agents": "plugin/agents",
+    "commands": "plugin/commands",
+    "hooks": "plugin/hooks",
+    "skills": "plugin/skills",
+    "workflows": "plugin/workflows",
+    "scripts": "plugin/scripts",
+    "mcp-servers": "plugin/mcp-servers"
+  },
+  "hooks": "plugin/hooks/hooks.json",
+  "entrypoints": {
+    "mcp_servers": {
+      "knowledge": "node ${CLAUDE_PLUGIN_ROOT}/plugin/mcp-servers/knowledge/index.mjs"
+    }
+  }
+}

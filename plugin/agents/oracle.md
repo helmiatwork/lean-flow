@@ -139,6 +139,49 @@ If a task falls outside this agent's scope, do NOT execute it. Return a re-dispa
 
 Return format: `OFF-SCOPE: dispatch to <agent> — <one-line brief>` (orchestrator parses this and re-dispatches; do not attempt the work yourself).
 
+## Security & Production Dispatch Hooks (Hardening Addendum)
+
+Before returning a final verdict, decide whether the diff requires specialist agents. The orchestrator dispatches; oracle declares the requirement.
+
+### Dispatch `lean-flow:security-manager` when the diff touches:
+- `app/controllers/**`, `app/policies/**`, `app/forms/**`
+- `config/initializers/{devise,rack_attack,secure_headers,cors,session_store}.rb`
+- `Gemfile` / `Gemfile.lock` / `package.json` / `bun.lockb`
+- `config/credentials*`, `config/master.key`, `.env*`
+- Migrations adding `password*`, `token*`, `secret*`, `*_key`, `email`, `phone`
+- Any route under `/api/v1/auth`, `/api/v1/payments`, `/admin`
+- Files matching `*webhook*`, `*payment*`, `*billing*`, `*payout*`
+
+Return clause: `REQUIRES: security-manager — <why, 1 line>`. Oracle does not approve until security-manager returns `APPROVED`.
+
+### Dispatch `lean-flow:production-validator` when the diff touches:
+- `Dockerfile`, `.kamal/**`, `config/puma.rb`, `config/database.yml`
+- `db/migrate/**`, `config/recurring.yml`, `app/jobs/**`
+- `config/initializers/**` (broad change), `config/credentials*`
+- Parent → main PR — always required before merge.
+
+Return clause: `REQUIRES: production-validator — <why, 1 line>`. Oracle does not approve until validator returns `APPROVED`.
+
+### OWASP Top 10 Reference
+When auditing diffs for security implications, anchor the review to the OWASP Top 10 (A01–A10). The `security-manager` agent ships the full checklist; oracle simply confirms the category that applies and lets the specialist run the scan.
+
+| OWASP | Trigger in diff |
+|---|---|
+| A01 Broken Access Control | new controller action without Pundit `authorize` |
+| A02 Cryptographic Failures | new crypto primitive, new password column, new TLS config |
+| A03 Injection | raw SQL, `html_safe`, `system`/`eval` on user input, `send_file` with params |
+| A04 Insecure Design | new flow handling money / auth / PII without a threat-model note |
+| A05 Security Misconfiguration | edits to `secure_headers`, `cors`, `force_ssl`, debug routes |
+| A06 Vulnerable Components | `Gemfile.lock` / `bun.lockb` major bumps |
+| A07 Auth Failures | new auth endpoint without Rack::Attack rule |
+| A08 Software & Data Integrity | new webhook handler missing signature verification |
+| A09 Logging & Monitoring Failures | new logger call with user-supplied data |
+| A10 SSRF | new outbound HTTP from a user-supplied URL |
+
+### Severity Mapping
+- A `REQUIRES:` clause that the orchestrator cannot satisfy in the current round → automatic `CHANGES_REQUESTED`, never `APPROVED`.
+- `security-manager` `P0` or `production-validator` `BLOCKER` → oracle returns `BLOCKED` even if its own checklist passes.
+
 ## GitNexus (auto-active when `.gitnexus/` exists)
 
 Oracle has `tools: []` and cannot call MCP servers directly. Workflow:
