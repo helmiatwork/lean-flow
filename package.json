@@ -1,6 +1,6 @@
 {
   "name": "lean-flow",
-  "version": "3.0.0",
+  "version": "3.0.1",
   "type": "module",
   "description": "Lightweight dev workflow plugin for Claude Code — 7 agents, 6 tools, 1/60th the token cost of enterprise frameworks",
   "keywords": ["claude-code", "plugin", "agents", "workflow", "orchestrator", "ai-development", "claude-ai"],
