@@ -1,9 +1,11 @@
 #!/usr/bin/env node
-import { readFileSync, writeFileSync, mkdirSync, cpSync, existsSync, copyFileSync, statSync, readdirSync } from 'node:fs'
+import { readFileSync, writeFileSync, mkdirSync, cpSync, existsSync, copyFileSync, readdirSync } from 'node:fs'
 import { homedir } from 'node:os'
-import { join, dirname, relative } from 'node:path'
+import { join, dirname } from 'node:path'
 import { fileURLToPath } from 'node:url'
 import { createHash } from 'node:crypto'
+import { parse, stringify } from '@iarna/toml'
+import { mergeRtkExcludeCommands } from './rtk-config.js'
 
 const PKG_ROOT = join(dirname(fileURLToPath(import.meta.url)), '..')
 const PKG_VERSION = JSON.parse(readFileSync(join(PKG_ROOT, 'package.json'), 'utf8')).version
@@ -15,6 +17,7 @@ const flags = {
   help: argv.includes('--help') || argv.includes('-h'),
   version: argv.includes('--version') || argv.includes('-v'),
   marketplace: argv.includes('--marketplace'),
+  installCompanions: argv.includes('--install-companions'),
 }
 
 if (flags.help) {
@@ -29,6 +32,7 @@ USAGE:
 OPTIONS:
   --dry-run                           Show what would be copied without making changes
   --marketplace                       Also register the marketplace entry
+  --install-companions                Install/wire companion tools (rtk, omni, caveman, ponytail)
   --help, -h                          Show this help
   --version, -v                       Show version
 
@@ -56,10 +60,7 @@ if (cmd === 'init' || !cmd) {
 async function initPlugin() {
   const home = homedir()
   const claudeDir = join(home, '.claude')
-  const targetsDir = join(claudeDir, 'agents')
-
   mkdirSync(claudeDir, { recursive: true })
-  mkdirSync(targetsDir, { recursive: true })
 
   const sourcePlugin = join(PKG_ROOT, 'plugin')
   const sourceDirs = [
@@ -84,7 +85,6 @@ async function initPlugin() {
       continue
     }
 
-    // Backup if exists and differs
     if (existsSync(destPath)) {
       const srcHash = dirHash(srcPath)
       const destHash = dirHash(destPath)
@@ -123,7 +123,6 @@ async function initPlugin() {
   if (flags.marketplace) {
     console.log('\nRegistering marketplace entry...')
     try {
-      // Try to register via claude CLI if available
       const { execFile } = await import('node:child_process')
       try {
         await new Promise((resolve, reject) => {
@@ -145,10 +144,129 @@ async function initPlugin() {
     }
   }
 
+  // Companions detection and installation
+  const companionStatus = await detectCompanions(home)
+
+  if (flags.installCompanions) {
+    await installCompanions(companionStatus, home, flags.dryRun)
+  } else {
+    printCompanionRecommendations(companionStatus)
+  }
+
   console.log(`\nNext steps:`)
   console.log(`  1. Restart your Claude Code session`)
   console.log(`  2. The plugin will auto-initialize on first load`)
   console.log(`  3. Run /project-doctor in Claude to audit your project`)
+}
+
+async function detectCompanions(home) {
+  const { execFile } = await import('node:child_process')
+  const companions = { rtk: false, omni: false, claude: false }
+
+  // Check which binaries are available
+  return new Promise((resolve) => {
+    let checked = 0
+    const checkBinary = (name) => {
+      execFile('which', [name], (error) => {
+        companions[name] = !error
+        checked++
+        if (checked === 3) resolve(companions)
+      })
+    }
+
+    checkBinary('rtk')
+    checkBinary('omni')
+    checkBinary('claude')
+  })
+}
+
+function printCompanionRecommendations(companionStatus) {
+  console.log('\nCompanion tools (optional):')
+
+  if (companionStatus.rtk) {
+    console.log('  ✓ rtk found')
+  } else {
+    console.log('  ○ rtk not found — install: brew install rtk')
+  }
+
+  if (companionStatus.omni) {
+    console.log('  ✓ omni found')
+  } else {
+    console.log('  ○ omni not found — install: brew install fajarhide/tap/omni')
+  }
+
+  if (companionStatus.claude) {
+    console.log('  ○ caveman & ponytail available via marketplace add:')
+    console.log('     claude plugin marketplace add JuliusBrussee/caveman')
+    console.log('     claude plugin marketplace add DietrichGebert/ponytail')
+  } else {
+    console.log('  ○ caveman & ponytail require Claude Code CLI')
+  }
+
+  console.log('  Use "npx lean-flow init --install-companions" to auto-wire them.')
+}
+
+async function installCompanions(companionStatus, home, dryRun) {
+  console.log('\nInstalling companions...')
+
+  const { execFile } = await import('node:child_process')
+
+  // Wire RTK config for rspec passthrough
+  if (companionStatus.rtk) {
+    try {
+      await wireRtkConfig(home, dryRun)
+      console.log('  ✓ rtk config wired')
+    } catch (e) {
+      console.log('  ! rtk config skip (may not be configured)')
+    }
+  }
+
+  // Register Claude plugins
+  if (companionStatus.claude) {
+    const plugins = [
+      { name: 'caveman', repo: 'JuliusBrussee/caveman' },
+      { name: 'ponytail', repo: 'DietrichGebert/ponytail' },
+    ]
+
+    for (const { name, repo } of plugins) {
+      try {
+        if (!dryRun) {
+          await new Promise((resolve, reject) => {
+            execFile('claude', ['plugin', 'marketplace', 'add', repo],
+              { stdio: 'ignore' },
+              (error) => {
+                if (error) reject(error)
+                else resolve()
+              }
+            )
+          })
+        }
+        console.log(`  ✓ ${name} registered`)
+      } catch (e) {
+        console.log(`  ! ${name} registration failed (may already be installed)`)
+      }
+    }
+  }
+}
+
+async function wireRtkConfig(home, dryRun) {
+  const rtkConfigDir = join(home, 'Library', 'Application Support', 'rtk')
+  const rtkConfigPath = join(rtkConfigDir, 'config.toml')
+
+  mkdirSync(rtkConfigDir, { recursive: true })
+
+  let config = {}
+  if (existsSync(rtkConfigPath)) {
+    const content = readFileSync(rtkConfigPath, 'utf8')
+    config = parse(content) || {}
+  }
+
+  // ponytail: idempotent merge, no-clobber — see bin/rtk-config.js
+  mergeRtkExcludeCommands(config)
+
+  if (!dryRun) {
+    writeFileSync(rtkConfigPath, stringify(config))
+  }
 }
 
 function dirHash(dirPath) {
