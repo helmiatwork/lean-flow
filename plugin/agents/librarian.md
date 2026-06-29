@@ -45,6 +45,10 @@ If a task falls outside this agent's scope, do NOT execute it. Return a re-dispa
 
 Return format: `OFF-SCOPE: dispatch to <agent> — <one-line brief>` (orchestrator parses this and re-dispatches; do not attempt the work yourself).
 
-## GitNexus (not applicable)
+## GitNexus (mandatory)
 
-Librarian sources external docs only. Internal code intelligence is owned by `lean-flow:explorer` via GitNexus MCP. If the orchestrator asks for internal symbol / flow data, return `OFF-SCOPE: dispatch to lean-flow:explorer — <symbol or concept>` instead of grepping or guessing.
+Repo indexed as `ichigo-influencer` (MCP server `gitnexus`). When research question is "how does our codebase use X?" — query graph first, web second.
+
+- `gitnexus_query({query: "<library/concept>"})` — find where library is used in execution flows
+- `gitnexus_context({name: "<symbol>"})` — see local integration points before quoting external docs
+- Web/Context7 = external API behavior; GitNexus = internal usage. Combine both for "how do we currently use library X, and what does its docs say?"

@@ -111,6 +111,48 @@ Return format: `OFF-SCOPE: dispatch to <agent> — <one-line brief>` (orchestrat
 - [ ] Feature flags, safe env defaults, no hardcoded env logic
 - [ ] Dependencies justified, logs for critical flows
 
+## Test Quality Gates (Hardening Addendum)
+
+When writing tests in step 2–4 of the execution contract, enforce ALL of these:
+
+### Test Pyramid
+- **Many** unit tests (fast, isolated, no IO).
+- **Moderate** integration / request tests (real DB, real ActiveRecord, no external HTTP — VCR or WebMock).
+- **Few** end-to-end / system tests (Capybara + Cuprite for admin Inertia flows).
+- A change that adds 1 system spec without unit specs is **incomplete** — push back.
+
+### Coverage Thresholds (hard)
+- Line coverage on changed code ≥ **90%**.
+- Branch coverage on changed code ≥ **75%**.
+- Functions / methods touched ≥ **80%**.
+- A `# :nocov:` block requires a comment justifying the exclusion.
+
+### FIRST Principles
+Every test must be:
+- **F**ast — unit tests < 100 ms each; full suite well under 5 min.
+- **I**solated — no order dependence; each test boots its own state via factories.
+- **R**epeatable — passes 10× in a row with no flakes; freeze time with `Timecop` / `ActiveSupport::Testing::TimeHelpers`.
+- **S**elf-validating — pass/fail is a single assertion outcome, no human eyeballing of logs.
+- **T**imely — written in the same commit as the code, never bolted on later.
+
+### Edge-Case Taxonomy (cover for every public method)
+- Boundary: 0, 1, max, max+1, negative.
+- Empty / null: `nil`, `""`, `[]`, `{}`, missing keys.
+- Error: invalid type, validation failure, exception path, timeout.
+- Concurrency: two callers racing on the same record (transactions, `with_lock`, optimistic locking).
+- I18n: strings render in both `:en` and `:id` locales for user-facing copy.
+- Auth: signed-out, wrong-role, cross-tenant access denied (`business_unit_id` mismatch).
+
+### TDD Style (choose per task)
+- **Detroit / Classicist** (default) — state-based assertions; minimal mocks; fast unit tests.
+- **London / Mockist** — mock-driven outside-in when behavior coupling matters (services that orchestrate other services, jobs that chain notifications). Define collaborator contracts via mocks, verify interaction sequence, drive design from the outside in.
+
+### Test Hygiene
+- No `sleep` in tests — wait on a state predicate.
+- No shared mutable state between examples (`let!` block scope only).
+- VCR cassettes committed and filtered for secrets (`filter_sensitive_data`).
+- Factory traits documented; no global `Faker` randomness without `Faker::Config.random = Random.new(seed)`.
+
 ## GitNexus (auto-active when `.gitnexus/` exists)
 
 Required on every implementation step:
