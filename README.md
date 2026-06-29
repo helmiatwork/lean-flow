@@ -429,9 +429,23 @@ flowchart TD
 
 ## Quick Start
 
-### 1. Enable the plugin
+### 1. Install via npm
 
-Add to `~/.claude/settings.json`:
+```bash
+npx lean-flow init
+```
+
+This command:
+- Copies bundled agents, skills, commands, and hooks into `~/.claude`
+- Backs up any existing files that differ (`.bak` suffix)
+- Is idempotent — safe to run multiple times
+
+**Optional:** Register the marketplace entry:
+```bash
+npx lean-flow init --marketplace
+```
+
+Or add manually to `~/.claude/settings.json`:
 
 ```json
 {
