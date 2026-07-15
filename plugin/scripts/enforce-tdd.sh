@@ -2,6 +2,7 @@
 # enforce-tdd.sh
 # PostToolUse Write|Edit: if implementation file written without test, inject TDD reminder.
 
+[[ "${LEAN_FLOW_TDD_DISABLED:-}" == "true" ]] && exit 0
 INPUT=$(cat)
 FILE=$(printf '%s' "$INPUT" | jq -r '.tool_input.file_path // .tool_response.filePath // empty' 2>/dev/null)
 
