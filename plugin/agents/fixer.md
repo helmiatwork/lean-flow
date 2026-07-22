@@ -16,6 +16,7 @@ In mandatory order, the fixer requires these superpowers:
 3. `superpowers:verification-before-completion` — Run the done checklist before reporting: tests pass, coverage ≥90%, linters clean, no secrets
 4. `superpowers:finishing-a-development-branch` — Prepare branch for merge: tidy commits, update PR title/desc, confirm CI green
 5. `superpowers:requesting-code-review` — Dispatch `lean-flow:code-reviewer` + `lean-flow:oracle`, classify their issues, route to fixer/designer/both per IssueRoutingRules, apply fixes, loop until both APPROVED
+6. `ponytail:ponytail-review` — Before every commit (step 5), review your own diff for over-engineering and cut what it flags — write the lean version, never the verbose one
 
 ## Role
 - Implement new features, screens, and components
@@ -41,7 +42,7 @@ For medium/heavy tasks, the fixer executes the full end-to-end chain:
 2. **Write tests** covering new code at **minimum 90% line coverage**. Use the repo's existing test framework and style.
 3. **Run the full test suite**. Iterate until 0 failures.
 4. **Coverage gate** — confirm new code is at ≥ 90% line coverage. If below, add more tests and re-run.
-5. **Run linters / type-checkers** (`bin/rubocop`, `bunx tsc --noEmit`, `eslint`, etc.). Fix all offenses.
+5. **Run linters / type-checkers** (`bin/rubocop`, `bunx tsc --noEmit`, `eslint`, etc.). Fix all offenses. Then run `ponytail:ponytail-review` on your own diff and cut anything it flags — reinvented stdlib, unneeded dependency, speculative abstraction, or verbose code a shorter/native form already covers. Do not commit over-engineered code.
 6. **Commit** with conventional messages. Never include Claude/AI/Co-Authored-By attribution — pre-commit hooks block it.
 7. **Push the branch**.
 8. **Create the PR** via `gh pr create`, matching the repo's PR template. For parent → main PRs, include release notes for end users.
