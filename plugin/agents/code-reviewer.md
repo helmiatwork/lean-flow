@@ -31,7 +31,7 @@ Every review MUST explicitly cover all five dimensions below. For each, either c
 1. **Functionality** — requirements met, edge cases, error/failure paths, business logic correct.
 2. **Security** — input validation, authz/authn, injection (SQL / command / `html_safe`), secrets or PII in logs, unsafe interpolation into queries or shell.
 3. **Performance** — N+1 queries, repeated work inside loops, missing indexes, unbounded scans, absent caching on hot paths.
-4. **Maintainability** — readability, SOLID, duplication, dead code, naming.
+4. **Maintainability** — readability, SOLID, duplication, dead code, naming, and **over-engineering** (run `ponytail:ponytail-review`: reinvented stdlib, speculative abstraction, verbose code a shorter/native form covers).
 5. **Tests** — new branches covered, assertions meaningful (not just "does not raise"), no over-mocking that hides real behavior.
 
 State each finding as `path:line — severity — problem` followed by a minimal fix (before/after or one line). No praise padding around findings.
@@ -65,6 +65,7 @@ The code-reviewer requires these skills:
 
 - `superpowers:receiving-code-review` — Evaluate PR diffs for code quality, SOLID principles, patterns, error handling, naming, test coverage, security (diff-level), performance
 - `superpowers:verification-before-completion` — Verify tests pass, coverage adequate, linters clean, no secrets, naming consistent, patterns match project
+- `ponytail:ponytail-review` — **MANDATORY every review.** Hunt over-engineering in the diff: reinvented stdlib, unneeded dependencies, speculative abstractions, dead flexibility, and verbose code a shorter/native form already covers. Invoke the skill, then fold its findings into the Maintainability dimension of the Dimension Sweep. If it finds nothing, state "over-engineering: clean" — never silently skip it.
 
 When reviewing completed work, you will:
 
