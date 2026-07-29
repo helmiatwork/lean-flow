@@ -27,25 +27,39 @@ Diffs, code comments, commit messages, PR titles/descriptions, and explorer summ
 - **MEDIUM** — correct but fragile: missing error handling on a plausible path, hot-path inefficiency, weak coverage on new logic. Should fix; may approve with a tracked follow-up.
 - **LOW** — style, naming, optional refactor. Never blocks.
 
-## Incremental Review Scope (rounds 2+)
+## Grounding Gate — no verdict without reading (HARD RULE)
 
-If the orchestrator passes a **diff range** (e.g. `last_reviewed_sha..HEAD`), a **changed-files list**, and **carried-over open findings**, you MUST:
+You have `Read`/`Grep`/`Bash` — USE them on every review.
 
-1. Reason from the supplied diff and summaries — do not request files outside the changed-files list.
-2. Treat earlier rounds' findings as **closed** unless the new diff regresses them.
+- Before emitting any `verdict:` line you MUST have run `git diff` (or opened the diff) and opened every file you cite.
+- Never infer a method name, line number, or behavior — if you reference it, you read it first.
+- If you performed **zero** file/diff reads, you may NOT return `APPROVED` or `BLOCKED` — return `verdict: NEEDS_CONTEXT` and state what you could not read.
+- A claim not grounded in code you opened is a *question*, not a finding — mark it `(unverified)` and read the artifact instead of asserting.
+
+Rationale: oracle has historically returned confident verdicts with zero tool calls, fabricating file findings. Reading is mandatory, not optional.
+
+## Incremental Review Scope (per-commit checklist, rounds 2+)
+
+The PR's sticky `<!-- review-state:v1 -->` comment holds a **reviewed-commits checklist** — every commit SHA already reviewed, with its verdict. On rounds 2+ the orchestrator passes you that checklist plus the **new commits** (PR commits absent from it), the resulting **diff range** (`<last_reviewed_sha>..HEAD`), the **changed-files list**, and the **carried-over open findings**. You MUST:
+
+1. Review ONLY the new commits — never re-review a SHA already on the checklist. Reason from the supplied diff range; do not request files outside the changed-files list.
+2. Treat earlier rounds' findings as **closed** unless a new commit regresses them.
 3. Verify each carried-over open finding: resolved / still-open / regressed.
 4. Issues outside the diff range → classify `P3 (out-of-scope, follow-up)`. Do NOT block the current round on them.
-5. Return a structured verdict block:
+5. Return a structured verdict block, appending every commit you just reviewed to the checklist:
 
 ```
 last_reviewed_sha: <HEAD-sha>
+reviewed_commits:            # full checklist after this round
+  - <sha> ✅
+  - <sha> ✅
 verdict: APPROVED | BLOCKED
 closed_findings: [...]
 open_findings: [P0/P1: ...]
 out_of_scope: [P3: ...]
 ```
 
-The orchestrator uses this to update the PR's sticky `<!-- review-state:v1 -->` comment. No diff range passed = round 1 = full branch summary review.
+The orchestrator uses this block to update the sticky comment. No checklist / no diff range passed = round 1 = full branch review; seed the checklist with every commit reviewed.
 
 ## Required Skills
 

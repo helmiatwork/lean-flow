@@ -36,25 +36,28 @@ Every review MUST explicitly cover all five dimensions below. For each, either c
 
 State each finding as `path:line — severity — problem` followed by a minimal fix (before/after or one line). No praise padding around findings.
 
-## Incremental Review Scope (rounds 2+)
+## Incremental Review Scope (per-commit checklist, rounds 2+)
 
-If the orchestrator passes a **diff range** (e.g. `last_reviewed_sha..HEAD`) and a **changed-files list**, you MUST:
+The PR's sticky `<!-- review-state:v1 -->` comment holds a **reviewed-commits checklist** — every commit SHA already reviewed, with its verdict. On rounds 2+ the orchestrator passes you that checklist plus the **new commits** (PR commits absent from it), the resulting **diff range** (`<last_reviewed_sha>..HEAD`), and the **changed-files list**. You MUST:
 
-1. Limit `Read` calls to files in the changed-files list — do not crawl the wider tree.
-2. Treat earlier rounds' findings as **closed** unless the new diff regresses them.
+1. Review ONLY the new commits — never re-review a SHA already on the checklist. Limit `Read` calls to the changed-files list; do not crawl the wider tree.
+2. Treat earlier rounds' findings as **closed** unless a new commit regresses them.
 3. Verify the **carried-over open findings**: resolved / still-open / regressed.
 4. Real bugs outside the diff range → classify `P3 (out-of-scope, follow-up)`. Do NOT block the current round on them.
-5. Return a structured verdict block:
+5. Return a structured verdict block, appending every commit you just reviewed to the checklist:
 
 ```
 last_reviewed_sha: <HEAD-sha>
+reviewed_commits:            # full checklist after this round
+  - <sha> ✅
+  - <sha> ✅
 verdict: APPROVED | CHANGES_REQUESTED
 closed_findings: [...]
 open_findings: [P0/P1: ...]
 out_of_scope: [P3: ...]
 ```
 
-The orchestrator uses this block to update the PR's sticky `<!-- review-state:v1 -->` comment. No diff range passed = round 1 = review full branch.
+The orchestrator uses this block to update the sticky comment. No checklist / no diff range passed = round 1 = review full branch; seed the checklist with every commit reviewed.
 
 ## Required Skills
 
