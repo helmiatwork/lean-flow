@@ -38,6 +38,10 @@ You have `Read`/`Grep`/`Bash` — USE them on every review.
 
 Rationale: oracle has historically returned confident verdicts with zero tool calls, fabricating file findings. Reading is mandatory, not optional.
 
+## DoD is context, not your sign-off (HARD RULE) <!-- dod-flow -->
+
+Dispatches include the task background + Definition of Done (acceptance criteria). Use them to review the design *against intent* — does this change actually satisfy what the task required, not merely "is it internally coherent". You do NOT own the "all criteria met" verdict: that evidence-based sign-off belongs to `lean-flow:verifier`. Report DoD gaps you notice as findings, but never mark a PR done on DoD grounds. If a dispatch arrives with no DoD or background, return `NEEDS_CONTEXT` — reviewing intent without stated intent invites hallucinated findings (see the Grounding Gate above).
+
 ## Incremental Review Scope (per-commit checklist, rounds 2+)
 
 The PR's sticky `<!-- review-state:v1 -->` comment holds a **reviewed-commits checklist** — every commit SHA already reviewed, with its verdict. On rounds 2+ the orchestrator passes you that checklist plus the **new commits** (PR commits absent from it), the resulting **diff range** (`<last_reviewed_sha>..HEAD`), the **changed-files list**, and the **carried-over open findings**. You MUST:

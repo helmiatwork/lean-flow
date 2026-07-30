@@ -28,6 +28,8 @@ In mandatory order, the fixer requires these superpowers:
 - Write tests following existing project patterns
 
 ## Rules
+
+- **DoD-driven tests.** <!-- dod-flow --> When the dispatch carries a Definition of Done / acceptance criteria, map EACH criterion to at least one test (TDD RED→GREEN). A criterion with no test is not done. The evidence your tests produce is what `lean-flow:verifier` signs off against.
 - Stay focused on the assigned task — don't do work from other steps
 - Read existing code and tests first to match patterns
 - Run tests after implementation
