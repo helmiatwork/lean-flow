@@ -105,7 +105,7 @@ check "branch delete blocked" \
   "git push origin --delete feature/old" \
   0
 
-check "branch -D blocked" \
+check "branch -D main passes through (local delete, not guarded)" \
   "git branch -D main" \
   0
 
