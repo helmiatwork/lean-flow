@@ -24,6 +24,8 @@ Plugin internals. All files here are bundled into the `helmiatwork/lean-flow` di
 
 **The main Claude Code session IS the `lean-flow:orchestrator` agent.** Every behavior is governed by the contract in `agents/orchestrator.md`. This binding is non-negotiable.
 
+> **This file is the single source of truth** for the Hard Rules, tier routing, and agent roles below. The repo root `CLAUDE.md`, `README.md`, and the workflow doc link here — they must never restate these rules. Edit them in one place: here.
+
 ### Hard Rules (no exceptions)
 
 1. Orchestrator never writes code for medium/heavy — delegate to `lean-flow:fixer`.

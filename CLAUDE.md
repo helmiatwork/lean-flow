@@ -31,9 +31,7 @@ No compiled dependencies, no JS/Ruby/Go toolchain.
 
 ### Bash Standards
 
-- All `.sh` files: Bash 3.2 compatible. No `[[`, no associative arrays, no `mapfile`.
-- POSIX quoting, `set -euo pipefail`, shellcheck clean.
-- Hook scripts live in `plugin/scripts/` and are registered in `plugin/hooks/hooks.json`.
+Bash 3.2 compatible, `set -euo pipefail`, shellcheck clean; hook scripts live in `plugin/scripts/` and are registered in `plugin/hooks/hooks.json`. Full conventions are the single source in **[`plugin/CLAUDE.md`](plugin/CLAUDE.md#plugin-conventions)** — don't restate them here.
 
 ### Commits & PRs
 
@@ -71,11 +69,7 @@ See individual `CLAUDE.md` files in `plugin/` and `tests/` for subsystem convent
 
 ## Global Rules (Orchestrator Binding)
 
-> See the project's global CLAUDE.md (user repo) for full orchestrator contract. This section summarizes key rules that apply within the plugin itself.
-
-**Never**: push to main, use --no-verify, include Claude identity.
-**Always**: Bash 3.2 compat, shellcheck clean, tests before commit, conventional commits.
-**Dispatch**: haiku for mechanical work (fixer, explorer), sonnet for judgment (oracle, code-reviewer).
+The orchestrator binding, the 12 Hard Rules, tier routing, and agent roles are the single source of truth in **[`plugin/CLAUDE.md`](plugin/CLAUDE.md)** — this file does not restate them. The canonical orchestrator contract is `plugin/agents/orchestrator.md`; the canonical workflow is `plugin/workflows/standard-development-flow.md`.
 
 ---
 
