@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # Behavioral test suite for bash-guard.sh
-# Tests all 6 checks: no-verify, no-gpg-sign, protected-push, secret-files, branch-delete, pr-comments
+# Tests all 7 checks: no-verify, no-gpg-sign, protected-push, secret-files, branch-delete, pr-comments, merge-gate
 # NOTE: Run directly, not via Bash tool (which has its own pre-hook)
 
 set -euo pipefail
@@ -34,7 +34,7 @@ check() {
   fi
 }
 
-echo "Testing bash-guard.sh (6 checks)"
+echo "Testing bash-guard.sh (7 checks)"
 echo "=================================="
 
 # ===== BLOCKED CHECKS (exit 2) =====
@@ -119,31 +119,50 @@ check "pr review blocked" \
 
 # ===== MERGE GATE (stubbed gh) =====
 echo ""
-echo "MERGE GATE (should ASK on protected base):"
+echo "MERGE GATE:"
 
-GATE_TMP=$(mktemp -d)
-cat > "$GATE_TMP/gh" <<'STUB'
-#!/usr/bin/env bash
-# stub: `gh pr view ... baseRefName` always resolves to main
-echo main
-STUB
-chmod +x "$GATE_TMP/gh"
+# stub: any PR resolves to main (protected)
+GATE_MAIN=$(mktemp -d)
+printf '#!/usr/bin/env bash\necho main\n' > "$GATE_MAIN/gh"; chmod +x "$GATE_MAIN/gh"
 
-GATE_OUT=$(echo -n '{"tool_input":{"command":"gh pr merge 5 --squash"}}' | PATH="$GATE_TMP:$PATH" bash "$SCRIPT" 2>/dev/null || true)
-if echo "$GATE_OUT" | grep -q '"permissionDecision":"ask"'; then
-  echo -e "${GREEN}✓${NC} merge to protected base asks for confirmation"; PASS=$((PASS+1))
-else
-  echo -e "${RED}✗${NC} merge to protected base asks for confirmation"; FAIL=$((FAIL+1))
-fi
+# stub: PR 5 resolves to main, anything else to a non-protected branch
+# (used to prove the number extraction picks the real PR, not a numeric --repo)
+GATE_SMART=$(mktemp -d)
+printf '#!/usr/bin/env bash\nfor a in "$@"; do [ "$a" = "5" ] && { echo main; exit 0; }; done\necho feature/x\n' > "$GATE_SMART/gh"; chmod +x "$GATE_SMART/gh"
 
-GATE_OFF=$(echo -n '{"tool_input":{"command":"gh pr merge 5 --squash"}}' | LEAN_FLOW_MERGE_GATE_DISABLED=true PATH="$GATE_TMP:$PATH" bash "$SCRIPT" 2>/dev/null || true)
-if echo "$GATE_OFF" | grep -q '"permissionDecision":"ask"'; then
-  echo -e "${RED}✗${NC} disable flag skips gate"; FAIL=$((FAIL+1))
-else
-  echo -e "${GREEN}✓${NC} disable flag skips gate"; PASS=$((PASS+1))
-fi
+# stub: any PR resolves to a non-protected branch
+GATE_FEAT=$(mktemp -d)
+printf '#!/usr/bin/env bash\necho feature/x\n' > "$GATE_FEAT/gh"; chmod +x "$GATE_FEAT/gh"
 
-rm -rf "$GATE_TMP"
+# stub: gh fails (offline / not authed / not a PR)
+GATE_ERR=$(mktemp -d)
+printf '#!/usr/bin/env bash\nexit 1\n' > "$GATE_ERR/gh"; chmod +x "$GATE_ERR/gh"
+
+gate_run() { echo -n "{\"tool_input\":{\"command\":\"$2\"}}" | PATH="$1:$PATH" bash "$SCRIPT" 2>/dev/null || true; }
+asks() { echo "$1" | grep -q '"permissionDecision":"ask"'; }
+ok() { echo -e "${GREEN}✓${NC} $1"; PASS=$((PASS+1)); }
+no() { echo -e "${RED}✗${NC} $1"; FAIL=$((FAIL+1)); }
+
+OUT=$(gate_run "$GATE_MAIN" "gh pr merge 5 --squash")
+asks "$OUT" && ok "protected base (with PR number) asks" || no "protected base (with PR number) asks"
+
+OUT=$(gate_run "$GATE_MAIN" "gh pr merge --squash")
+asks "$OUT" && ok "protected base (no PR number) asks" || no "protected base (no PR number) asks"
+
+OUT=$(gate_run "$GATE_SMART" "gh pr merge --repo org123/repo456 5 --squash")
+asks "$OUT" && ok "numeric --repo does not hijack PR-number extraction" || no "numeric --repo does not hijack PR-number extraction"
+
+OUT=$(gate_run "$GATE_FEAT" "gh pr merge 5 --squash")
+asks "$OUT" && no "non-protected base must NOT ask" || ok "non-protected base does not ask"
+
+OUT=$(gate_run "$GATE_ERR" "gh pr merge 5 --squash")
+asks "$OUT" && no "gh error must fail open" || ok "gh error fails open (no ask)"
+
+OUT=$(echo -n '{"tool_input":{"command":"gh pr merge 5 --squash"}}' | LEAN_FLOW_MERGE_GATE_DISABLED=true PATH="$GATE_MAIN:$PATH" bash "$SCRIPT" 2>/dev/null || true)
+asks "$OUT" && no "disable flag must skip gate" || ok "disable flag skips gate"
+echo "$OUT" | grep -q '"command"' && ok "disable flag passes input through" || no "disable flag passes input through"
+
+rm -rf "$GATE_MAIN" "$GATE_SMART" "$GATE_FEAT" "$GATE_ERR"
 
 # ===== SUMMARY =====
 echo ""

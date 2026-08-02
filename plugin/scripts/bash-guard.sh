@@ -83,7 +83,11 @@ fi
 # checkpoint instead of a silently-skippable prose rule. Fail-open if gh/base unknown.
 if [[ "${LEAN_FLOW_MERGE_GATE_DISABLED:-}" != "true" ]]; then
   if echo "$CMD" | grep -qE 'gh\s+pr\s+merge'; then
-    _pr=$(echo "$CMD" | grep -oE 'pr\s+merge[^|;&]*' | grep -oE '[0-9]+' | head -1)
+    # tail -1: the PR number is the LAST digit run on the merge command, so a
+    # numeric --repo (org123/repo456) can't hijack extraction. ponytail: good
+    # enough — a stray trailing number in an inline --body would still mislead,
+    # but that mis-resolves to a wrong PR and fails open, never a false block.
+    _pr=$(echo "$CMD" | grep -oE 'pr\s+merge[^|;&]*' | grep -oE '[0-9]+' | tail -1)
     if [[ -n "$_pr" ]]; then
       _base=$(gh pr view "$_pr" --json baseRefName -q .baseRefName 2>/dev/null)
     else
