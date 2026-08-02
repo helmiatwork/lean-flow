@@ -28,6 +28,14 @@ Beyond the process skills above, use the `better-*` interface skills for concret
 - `better-accessibility` — focus states, keyboard nav, ARIA, forms, screen readers
 - `better-writing` — UX copy: button labels, error messages, empty states, microcopy
 
+### Framework & specialist skills (apply when the stack or task calls for them)
+
+- `react-best-practices` — React/Next.js performance patterns (memoization, data fetching, bundle size)
+- `react-view-transitions` — native View Transition API animations (route changes, list reorder, shared elements)
+- `composition-patterns` — scalable React component APIs (compound components, render props, context)
+- `web-design-guidelines` — Web Interface Guidelines compliance review before handing back
+- `dataviz` — charts, dashboards, and data visualization (color, marks, axes, layout)
+
 ## Stops Before PR
 
 **Designer does NOT open or manage PRs.** Designer's workflow:
