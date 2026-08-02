@@ -117,6 +117,34 @@ check "pr review blocked" \
   "gh pr review 1 --comment -b x" \
   0
 
+# ===== MERGE GATE (stubbed gh) =====
+echo ""
+echo "MERGE GATE (should ASK on protected base):"
+
+GATE_TMP=$(mktemp -d)
+cat > "$GATE_TMP/gh" <<'STUB'
+#!/usr/bin/env bash
+# stub: `gh pr view ... baseRefName` always resolves to main
+echo main
+STUB
+chmod +x "$GATE_TMP/gh"
+
+GATE_OUT=$(echo -n '{"tool_input":{"command":"gh pr merge 5 --squash"}}' | PATH="$GATE_TMP:$PATH" bash "$SCRIPT" 2>/dev/null || true)
+if echo "$GATE_OUT" | grep -q '"permissionDecision":"ask"'; then
+  echo -e "${GREEN}✓${NC} merge to protected base asks for confirmation"; PASS=$((PASS+1))
+else
+  echo -e "${RED}✗${NC} merge to protected base asks for confirmation"; FAIL=$((FAIL+1))
+fi
+
+GATE_OFF=$(echo -n '{"tool_input":{"command":"gh pr merge 5 --squash"}}' | LEAN_FLOW_MERGE_GATE_DISABLED=true PATH="$GATE_TMP:$PATH" bash "$SCRIPT" 2>/dev/null || true)
+if echo "$GATE_OFF" | grep -q '"permissionDecision":"ask"'; then
+  echo -e "${RED}✗${NC} disable flag skips gate"; FAIL=$((FAIL+1))
+else
+  echo -e "${GREEN}✓${NC} disable flag skips gate"; PASS=$((PASS+1))
+fi
+
+rm -rf "$GATE_TMP"
+
 # ===== SUMMARY =====
 echo ""
 echo "=================================="
