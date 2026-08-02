@@ -227,6 +227,8 @@ Background memory consolidation using Haiku. Runs every 5 sessions / 24 hours. C
 
 ## Workflow
 
+> **Simplified overview.** The full, canonical flow — with orchestrator/execution lanes and every gate — is the source of truth in [`plugin/workflows/standard-development-flow.md`](plugin/workflows/standard-development-flow.md). GitHub can't embed a diagram across files, so this is a deliberately lighter copy; keep detailed changes in the source doc.
+
 ```mermaid
 flowchart TD
     USER(["👤 User prompt"]) --> AUTORECALL
