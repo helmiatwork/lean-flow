@@ -317,7 +317,8 @@ flowchart TD
 
     TEST["Run tests"]
     TEST -->|"Fail x3"| ORACLE_SCAN["🔍 Explorer\nreads error context"] --> ORACLE_ESC["🔮 Oracle\n(think-only)\nDiagnosis"]
-    ORACLE_ESC --> FIX
+    ORACLE_ESC --> FIX["🔧 Fixer\napplies diagnosis"]
+    FIX --> IMPLEMENT
     TEST -->|"Pass"| STEPPR
 
     STEPPR["PR step → parent\n(auto-merge, no oracle)"] --> MERGE_STEP["Merge to parent"]
