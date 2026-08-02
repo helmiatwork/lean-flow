@@ -81,6 +81,7 @@ Steps append `/step-N`: `feature/onboarding/step-1`
 
 ### 🔒 Safety Hooks
 - **Block** direct push to `main` / `master` / `staging`
+- **Ask** before merging any PR to `main` / `master` / `staging` — the review gate (Rule #14) is keyed to the destination, not the task tier, so a "simple" change still stops for confirmation
 - **Block** `--no-verify` and `--no-gpg-sign` flags on git commands
 - **Block** staging secret files (`.env`, credentials) — warns on `git add .`
 - **Block** Claude identity in commits and PRs (Co-Authored-By, attribution)
