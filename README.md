@@ -229,13 +229,21 @@ Background memory consolidation using Haiku. Runs every 5 sessions / 24 hours. C
 
 ```mermaid
 flowchart TD
-    USER(["👤 User prompt"]) --> TRIAGE
+    USER(["👤 User prompt"]) --> AUTORECALL
 
-    TRIAGE{"🎯 Orchestrator\ntriages complexity"}
-    TRIAGE -->|"Simple"| DIRECTFIX
-    TRIAGE -->|"Complex"| MEMORY
-    TRIAGE -->|"Greenfield 🌱"| GREENFIELD
-    TRIAGE -->|"Hotfix 🔥"| HOTFIX
+    AUTORECALL["⚡ Auto pattern recall\nUserPromptSubmit hook\nFTS5 → patterns.db"] --> STAR
+
+    STAR{"⭐ STAR classify\nsimple / medium / heavy\n+ greenfield / hotfix"}
+    STAR -->|"Simple"| DIRECTFIX
+    STAR -->|"Medium / Complex"| STARSHOW
+    STAR -->|"Greenfield 🌱"| GREENFIELD
+    STAR -->|"Hotfix 🔥"| HOTFIX
+
+    %% === STAR CONFIRM (medium / heavy only) ===
+    STARSHOW["📋 STAR breakdown\nS·T·A·R shown to user\n(medium / heavy)"] --> STARCONFIRM
+    STARCONFIRM{"User confirms?"}
+    STARCONFIRM -->|"Adjust"| STARSHOW
+    STARCONFIRM -->|"Yes"| MEMORY
 
     %% === GREENFIELD PATH ===
     GREENFIELD["🌱 Brainstorm\nproduct concept"] --> GENDOCS
@@ -346,7 +354,10 @@ flowchart TD
     LEARN["🧠 pattern_store\nSave patterns"] --> MERGE_MAIN(["✅ Merge to main"])
 
     style USER fill:#34495E,color:#fff
-    style TRIAGE fill:#8E44AD,color:#fff
+    style AUTORECALL fill:#16A085,color:#fff
+    style STAR fill:#8E44AD,color:#fff
+    style STARSHOW fill:#4A90D9,color:#fff
+    style STARCONFIRM fill:#F39C12,color:#fff
     style MEMORY fill:#2980B9,color:#fff
     style FOUND fill:#F39C12,color:#fff
     style ADAPT fill:#2980B9,color:#fff
