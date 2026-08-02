@@ -37,8 +37,9 @@ Bash 3.2 compatible, `set -euo pipefail`, shellcheck clean; hook scripts live in
 
 - **Format**: `<type>: <what changed>` — lowercase, ≤72 chars, no period.
 - **Types**: `feat`, `fix`, `test`, `docs`, `chore`, `refactor`, `perf`, `security`.
-- **Never**: push to main directly, use --no-verify, include Claude/AI attribution.
 - **PR templates**: Step → parent (no release notes), parent → main (include release notes).
+
+The prohibitions (no direct push to main, no `--no-verify`, no Claude/AI attribution) are Hard Rules in [`plugin/CLAUDE.md`](plugin/CLAUDE.md) — the single source; not restated here.
 
 ### Branching
 

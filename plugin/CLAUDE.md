@@ -4,7 +4,7 @@ Plugin internals. All files here are bundled into the `helmiatwork/lean-flow` di
 
 ## Plugin Conventions
 
-- **Bash 3.2 macOS-compatible** for all `.sh` files. No `[[`, no associative arrays, no `mapfile`.
+- **Bash 3.2 macOS-compatible** for all `.sh` files. No `[[`, no associative arrays, no `mapfile`. POSIX quoting, `set -euo pipefail`, shellcheck clean.
 - **Hooks bodies live in `scripts/`**, NOT in `hooks/`. The `hooks/hooks.json` registers commands; the actual scripts are under `scripts/`.
 - **Agent contracts in `agents/<name>.md`** — name without `lean-flow:` prefix on disk; the prefix is for invocation.
 - **Skill files** in `skills/` are auto-discovered; only invoke skills that appear in the system reminder list.
