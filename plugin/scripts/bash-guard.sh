@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # Unified Bash PreToolUse guard — combines all git/gh blockers.
 # Opt-out individual checks via env vars: LEAN_FLOW_<CHECK>_DISABLED=true
-# Includes: no-verify, no-gpg-sign, protected-branch, secret-files, Claude identity, PR comments.
+# Includes: no-verify, no-gpg-sign, protected-branch, secret-files, Claude identity, PR comments, merge-gate.
 
 [[ "${LEAN_FLOW_BASH_GUARD_DISABLED:-}" == "true" ]] && exit 0
 
@@ -74,6 +74,26 @@ if [[ "${LEAN_FLOW_PR_COMMENTS_CHECK_DISABLED:-}" != "true" ]]; then
   if echo "$CMD" | grep -qE 'gh (pr review|pr comment|api .*/comments|api .*/reviews)'; then
     echo '{"decision":"block","reason":"BLOCKED: Never create PR comments or reviews. Push code changes directly to the branch instead."}'
     exit 0
+  fi
+fi
+
+# --- ASK: merge to a protected branch without confirmed review (Hard Rule #14) ---
+# Review-before-merge is keyed to the DESTINATION (any merge to main/master/staging),
+# not the task tier — a "simple" change still crosses the gate. Forces a conscious
+# checkpoint instead of a silently-skippable prose rule. Fail-open if gh/base unknown.
+if [[ "${LEAN_FLOW_MERGE_GATE_DISABLED:-}" != "true" ]]; then
+  if echo "$CMD" | grep -qE 'gh\s+pr\s+merge'; then
+    _pr=$(echo "$CMD" | grep -oE 'pr\s+merge[^|;&]*' | grep -oE '[0-9]+' | head -1)
+    if [[ -n "$_pr" ]]; then
+      _base=$(gh pr view "$_pr" --json baseRefName -q .baseRefName 2>/dev/null)
+    else
+      _base=$(gh pr view --json baseRefName -q .baseRefName 2>/dev/null)
+    fi
+    _protected=$(echo "${LEAN_FLOW_PROTECTED_BRANCHES:-main master staging}" | tr ' ' '|')
+    if echo "$_base" | grep -qE "^(${_protected})$"; then
+      echo '{"hookSpecificOutput":{"hookEventName":"PreToolUse","permissionDecision":"ask","permissionDecisionReason":"Merging to a protected branch. Hard Rule #14: both lean-flow:oracle AND lean-flow:code-reviewer must return APPROVED (including Oracle DoD verdict) before merge — regardless of tier. Confirm both reviews passed, or set LEAN_FLOW_MERGE_GATE_DISABLED=true to skip."}}'
+      exit 0
+    fi
   fi
 fi
 
