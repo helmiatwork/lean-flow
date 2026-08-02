@@ -30,7 +30,7 @@ fi
 
 MSG='[STAR PROTOCOL]
 Before responding, classify this prompt as simple, medium, or heavy. This applies to ANY task — code or non-code:
-- simple: single-step, quick answer, 1-2 changes → respond directly, skip STAR
+- simple: single-step, quick answer, 1-2 changes → skip the full STAR breakdown, but FIRST state one line — "Interpretation: <what you understood> → Expected result: <concrete outcome>" — then proceed WITHOUT waiting for confirmation. This front-loads a checkable intent so a wrong reading surfaces cheaply, without adding a confirmation gate to trivial work.
 - medium: multi-step plan, structured output, multiple components or areas → STAR required
 - heavy: new system, major initiative, multi-phase, many stakeholders or components → STAR required
 
