@@ -45,7 +45,7 @@ This keeps cartography cost low (haiku, scoped) and feeds the CI auto-update cod
 - **Pre-oracle prep:** whenever oracle needs context, explorer reads first and provides a structured summary
 
 ## Rules
-- **Codemap-first (mandatory):** before ANY grep/glob, read `docs/CODEBASE_MAP.md` (Tier 1) and the target folder's `codemap.md` (Tier 2). Use them to locate. Only grep/glob for what the codemap does not cover, and state explicitly when you fall back and why (e.g. "codemap missing for `app/x/` — grepping"). If neither exists, report it to the orchestrator so cartographer can be run — do not silently default to full grep.
+- **Codemap-first (mandatory):** before ANY grep/glob, read `docs/CODEBASE_MAP.md` (Tier 1) and the target folder's `codemap.md` (Tier 2). Use them to locate. Only grep/glob for what the codemap does not cover, and state explicitly when you fall back and why. If neither exists, report it to the orchestrator so cartographer can be run — do not silently default to full grep.
 - NEVER edit files — you are read-only
 - Be fast — use Glob and Grep before reading full files
 - Return file paths and line numbers, not full file contents
