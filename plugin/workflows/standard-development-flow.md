@@ -2,6 +2,8 @@
 
 ## Mermaid Diagram
 
+> **Source of truth.** This is the canonical workflow diagram. `README.md` carries a simplified overview that links here (GitHub markdown can't embed one diagram across files) — make detailed flow changes in this file, not the README copy.
+
 ```mermaid
 flowchart TD
     SESSION_START(["🟢 Session start<br/>SessionStart hook"]) --> ROLE_DECLARE
@@ -191,7 +193,7 @@ flowchart TD
 |---|---|---|---|
 | **orchestrator** | `superpowers:using-superpowers` → `superpowers:writing-plans` → `superpowers:dispatching-parallel-agents` | opus | Main session — never spawned. Coordinates tier routing, planning, dispatch. |
 | **fixer** | `superpowers:executing-plans` → `superpowers:test-driven-development` → `superpowers:verification-before-completion` → `superpowers:finishing-a-development-branch` → `superpowers:requesting-code-review` | haiku | Medium/heavy tasks. Owns full impl → test → lint → commit → PR → review loop → merge. Routes review feedback to fixer/designer/both. |
-| **designer** | `frontend-design:frontend-design` → `superpowers:executing-plans` → `superpowers:test-driven-development` → `superpowers:verification-before-completion` | sonnet | Step has frontend work. Implements UI/components, writes tests, commits to step branch. **Stops before PR** — fixer opens PR and manages review. |
+| **designer** | `frontend-design:frontend-design` → `superpowers:executing-plans` → `superpowers:test-driven-development` → `superpowers:verification-before-completion`, plus the design-quality cluster: `better-interface` (entry point) → `better-ui` / `better-typography` / `better-colors` / `better-layout` / `better-accessibility` / `better-writing` | sonnet | Step has frontend work. Implements UI/components, writes tests, commits to step branch. Invokes `better-interface` first on any non-trivial screen. **Stops before PR** — fixer opens PR and manages review. |
 | **oracle** | `superpowers:receiving-code-review` + `claude-md-management:claude-md-improver` (when diff touches CLAUDE.md / agents/*.md / workflows/*.md) | sonnet | PR review after code-reviewer. Think-only (tools:[]). Architecture + security audit. Final approval gate before merge. |
 | **code-reviewer** | `superpowers:receiving-code-review` + `superpowers:verification-before-completion` | sonnet | Step or parent PR review. Code-quality, SOLID, patterns, coverage. Returns APPROVED or numbered issues. |
 | **explorer** | `lean-flow:cartography` (post-commit per-folder) + on-demand: `lean-flow:map-codebase`, `lean-flow:phase-researcher`, `lean-flow:assumptions-analyzer` | haiku | After every fixer/designer commit, orchestrator dispatches explorer for cartography on changed folders only. Also on-demand for discovery/research. |
