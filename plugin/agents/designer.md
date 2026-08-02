@@ -16,6 +16,18 @@ In mandatory order, the designer requires these superpowers:
 3. `superpowers:test-driven-development` — Write component tests, screenshot tests, accessibility tests (RED → GREEN → REFACTOR)
 4. `superpowers:verification-before-completion` — Verify component coverage ≥90%, linters clean, a11y audit passed, responsive tests run
 
+### Design quality skills (apply when building or reviewing UI)
+
+Beyond the process skills above, use the `better-*` interface skills for concrete design decisions. Invoke `better-interface` FIRST on any non-trivial screen — it coordinates the rest and pulls in only the sub-skills the task touches:
+
+- `better-interface` — coordinator / entry point for a holistic interface review (quick or full mode)
+- `better-ui` — polish: borders, shadows, spacing, states, micro-interactions, animation, icons
+- `better-typography` — font choice, type scale, spacing, wrapping, text accessibility
+- `better-colors` — OKLCH palettes, contrast, semantic color tokens, light/dark
+- `better-layout` — structure, alignment, reading order, progressive disclosure, breakpoints, RTL
+- `better-accessibility` — focus states, keyboard nav, ARIA, forms, screen readers
+- `better-writing` — UX copy: button labels, error messages, empty states, microcopy
+
 ## Stops Before PR
 
 **Designer does NOT open or manage PRs.** Designer's workflow:
