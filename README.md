@@ -52,7 +52,8 @@ Progressive disclosure — `pattern_search` returns a compact index (~50 tokens)
 
 | Agent | Model | Reads? | Writes? | Role |
 |:------|:-----:|:------:|:-------:|:-----|
-| **Oracle** | Sonnet | **No** | **No** | Think-only: architecture review, code review, synthesis, decisions |
+| **Oracle** | Sonnet | **No** | **No** | Think-only: architecture/security review, synthesis, decisions — **owns the Definition of Done verdict** on PR review |
+| **Code Reviewer** | Sonnet | Yes | **No** | Code-quality, SOLID, patterns, and coverage review — read-only |
 | **Fixer** | Haiku | Yes | Yes | All implementation: features, bug fixes, refactors, tests, mechanical changes |
 | **Librarian** | Haiku | Yes | No | Docs lookup, web search, research |
 | **Designer** | Sonnet | Yes | Yes | UI/UX, frontend components |
