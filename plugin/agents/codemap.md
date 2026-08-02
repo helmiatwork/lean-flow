@@ -3,23 +3,34 @@
 # codemap.md — `plugin/agents/`
 
 ## Responsibility
-This directory contains **specialized AI agent definitions** for the content production and analysis pipeline. Each `.md` file defines a single-purpose agent (clip finder, script writer, QC gate, etc.) with its model choice, tools, workflow, and output contract. Agents are invoked by an orchestrator to handle specific stages of short-form video creation — from sourcing moments to publishing.
+Defines nine specialized AI agents that form the lean-flow plugin's execution backbone. Each agent is a Claude model variant with specific tools, constraints, and domain expertise. The orchestrator (main session) dispatches these agents for classified tasks: exploration, research, architecture review, code review, implementation, design, discussion, planning execution, and PR management.
 
 ## Design
-- **Agent-per-stage pattern:** Each agent owns one focused task (e.g., `auto-clip-finder` finds viral moments; `auto-script-writer` writes hooks and beat sheets; `auto-qc-gate` validates before posting). No agent does two things.
-- **Model selection by task:** Lighter agents use Sonnet (cost/speed); heavier strategic work uses Opus (e.g., `auto-content-analyze-senior` for deep viral breakdowns). `code-reviewer`, `designer`, `fixer`, `explorer` are auxiliary for the coding system.
-- **Contract-first:** Each agent file opens with a YAML header (name, model, tools, description) followed by role definition and exact input/output shape. Downstream callers know precisely what to send and what to expect.
-- **Tools are explicit:** Most agents declare a fixed tool set (`Read`, `Bash`, `Grep`, `Glob`; some add `WebSearch`, `yt-dlp`, `ffmpeg`, `whisper`). No hidden capabilities.
-- **Language-agnostic:** Many agents note "input may be informal Indonesian/English — do NOT grammar-check" and reply in user's language, but keep JSON keys stable.
+Each agent is a standalone markdown file defining:
+- **Metadata** (`name`, `description`, `model`, `tools`, optional `color`) — parsed by orchestrator to select model and tool set
+- **Role & Superpowers** — explicit capabilities (e.g., `superpowers:executing-plans`, `superpowers:test-driven-development`)
+- **Workflow contract** — exact behavior (e.g., fixer's end-to-end chain: implement → test → lint → PR → review loop → merge)
+- **Off-scope routing** — table mapping task types to correct agent; agent returns `OFF-SCOPE: dispatch to <agent> — <brief>` if work falls outside
+- **Hard constraints** — prohibitions (`oracle` has `tools: []`; `designer` never initiates PR; `fixer` skips code-reviewer on step branches)
+
+Agents range from **read-only** (explorer, librarian, oracle) to **full execution** (fixer, designer). Oracle is think-only; fixer is end-to-end.
 
 ## Flow
-1. **User gives a task** (e.g., "find clip-worthy moments in this video") → **orchestrator routes to the right agent**.
-2. **Agent ingests** (fetch metadata, download/sample, extract frames/audio) → **applies domain logic** (clip scoring, script structuring, QC rules) → **outputs a deliverable** (clip ranges with timecodes, beat sheets, PASS/FAIL verdict).
-3. **Handoff pattern:** Strategic agents like `content-analyze-senior` read factual layers from cheaper agents (`content-analyze`) to avoid re-downloading/re-reading frames — cost/accuracy optimization.
-4. **Multi-stage pipelines:** e.g., `auto-clip-finder` → `auto-script-writer` → `auto-editor` (builds EDL) → `auto-qc-gate` → `content-producer` (outputs human checklist).
+**Orchestrator dispatch cycle:**
+1. Classify user task (simple/medium/heavy via STAR)
+2. If medium/heavy: orchestrator writes structured plan with exact code + paths
+3. Dispatch appropriate agent(s) in parallel: `explorer` for discovery, `librarian` for docs, `fixer` for implementation, `designer` for UI, `discuss` for scoping ambiguity
+4. **Fixer coordination**: fixer runs full chain (impl → test → lint → commit → PR → code-reviewer dispatch → oracle dispatch → apply feedback → merge)
+5. **Code review chain**: fixer dispatches `code-reviewer` (sonnet, diff-level quality), then `oracle` (sonnet, architecture + final verdict)
+6. **Explorer integration**: after fixer/designer commits, orchestrator dispatches explorer to fill `codemap.md` templates in changed folders
+7. Orchestrator receives verdicts, updates PR state, verifies completion
+
+**Hard cap:** 3 combined review rounds (code-reviewer + oracle). Round 4+ → human escalation.
 
 ## Integration
-- **Upstream:** Receives user prompts + optional file paths (videos, scripts, JSON handoffs from prior agents).
-- **Downstream:** Outputs are consumed by humans (run sheets, scripts, captions) or fed into the next agent stage (e.g., `auto-editor` consumes `auto-clip-finder` clip ranges + `auto-script-writer` VO script).
-- **Auxiliary agents** (`fixer`, `designer`, `code-reviewer`, `explorer`, `discuss`) support the broader **lean-flow** code-automation system; they are included in this directory but operate on *software development*, not content production. They are framework agents for the plugin infrastructure.
-- **Common dependencies:** `yt-dlp`, `ffmpeg`, `ffprobe`, `whisper` for media; `python3` for JSON parsing; `Read`/`Bash`/`Grep`/`Glob` for file
+- **Orchestrator** (`orchestrator.md`): main session, classifies → plans → dispatches agents, never writes code for medium/heavy
+- **Fixer** (`fixer.md`): end-to-end implementer; owns full PR chain; dispatches code-reviewer + oracle; integrates explorer for codemap updates
+- **Code-Reviewer** (`code-reviewer.md`): diff-level quality (SOLID, patterns, coverage, naming); incremental review; sticky PR comment with verdict block
+- **Oracle** (`oracle.md`): architecture + security + final PR approval; think-only (no file tools); receives explorer summaries; issues `APPROVED` or `CHANGES_REQUESTED`
+- **Explorer** (`explorer.md`): read-only codebase scanner; finds files fast; fills codemap.md templates; provides diff summaries to oracle
+- **Librarian** (`librarian.md`): read-only research; fetches
