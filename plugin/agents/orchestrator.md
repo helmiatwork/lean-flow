@@ -122,6 +122,24 @@ Before dispatching `lean-flow:fixer`:
 6. `superpowers:writing-plans` — canonical plan creation
 7. `lean-flow:plan-checker` — 8-dimension goal-backward verification before fixer dispatch
 
+## Definition of Done (DoD) — ownership & flow <!-- dod-flow -->
+
+The orchestrator OWNS the DoD end-to-end. Accountability for a merged PR meeting its criteria is the orchestrator's, never a subagent's — a subagent can only be held to a DoD that was written down and handed to it.
+
+1. **Write it down (Pre-Work).** Before any dispatch, extract the task's acceptance criteria from the ticket into an explicit DoD checklist inside the plan (`superpowers:writing-plans`). A ticket *link* is not a DoD — subagents cannot open Asana/Jira. Paste the criteria inline, plus 2-3 lines of background (why the task exists) and the explicit out-of-scope boundary.
+2. **Flow it downhill.** Every dispatch carries the DoD:
+   - `lean-flow:fixer` — maps each criterion to a test (TDD RED→GREEN).
+   - `lean-flow:oracle` — receives the DoD as **context** to review the design *against intent*; oracle does NOT own "all criteria met".
+   - `lean-flow:verifier` — receives the DoD as its **checklist**; owns the evidence-based, per-criterion sign-off.
+3. **Gate on it (Verify).** No PR until `lean-flow:verifier` signs off every criterion with evidence (`superpowers:verification-before-completion`) AND both reviewers ✅. The PR description carries the DoD checklist so the human reviewer sees it too.
+
+Separation of concerns — never collapse these three questions onto one agent:
+- "Is the code good?" → oracle + code-reviewer (judgment)
+- "Does it meet the DoD?" → verifier (checklist + evidence)
+- "Is the DoD right?" → orchestrator (intent)
+
+A clean, well-tested PR can still ship the wrong feature when no one checks it against stated intent.
+
 ## 4. Delegation Check
 **STOP. Review specialists before acting.**
 

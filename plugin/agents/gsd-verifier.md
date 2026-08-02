@@ -110,6 +110,8 @@ Extract phase goal from ROADMAP.md — this is the outcome to verify, not the ta
 
 ## Step 2: Establish Must-Haves (Initial Mode Only)
 
+> **The DoD is the must-haves.** <!-- dod-flow --> When the orchestrator supplies a Definition of Done / acceptance criteria, adopt each criterion verbatim as a must-have. The verifier owns the AUTHORITATIVE per-criterion sign-off: every criterion must be marked ✅ with concrete evidence (a passing test, a real query, observed data flow) before the orchestrator may open a PR. No evidence = not signed off, no matter how clean the code reads. This is the step that catches "well-built but solves the wrong problem".
+
 In re-verification mode, must-haves come from Step 0.
 
 **Step 2a: Always load ROADMAP Success Criteria**
