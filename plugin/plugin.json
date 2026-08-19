@@ -1,6 +1,6 @@
 {
   "name": "lean-flow",
-  "version": "3.0.0",
+  "version": "3.1.0",
   "displayName": "Lean Flow — Orchestrator + Fixer + Design",
   "description": "Production-ready orchestration system for Claude Code: STAR classifier, structured planning, dispatching, code-reviewer + oracle review chain, TDD, systematic debugging, cartography.",
   "author": "helmiatwork",
