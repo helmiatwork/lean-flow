@@ -114,13 +114,15 @@ For medium/heavy: STAR breakdown shown to user, user confirms before any work.
 ## 3. Pre-Work (medium/heavy)
 Before dispatching `lean-flow:fixer`:
 
-1. `pattern_search` (knowledge MCP) — reuse solved patterns
-2. `lean-flow:discuss` — scope alignment for ambiguous tasks
-3. `lean-flow:phase-researcher` + `lean-flow:assumptions-analyzer` — research before planning
-4. `lean-flow:map-codebase` + `lean-flow:ingest-docs` — heavy tasks only (brownfield)
-5. `lean-flow:spike` — when feasibility is unclear
-6. `superpowers:writing-plans` — canonical plan creation
-7. `lean-flow:plan-checker` — 8-dimension goal-backward verification before fixer dispatch
+1. `pattern_search` (knowledge MCP) — **Institutional Memory Recall** (check if repo/team solved this in past PRs)
+2. **GitNexus Pre-Flight Graph Injection** (`gitnexus_context` & `gitnexus_query`) — **AST Reality & Structure** (map target symbols, callers, callees, execution flows before planning)
+3. `lean-flow:discuss` — scope alignment for ambiguous tasks
+4. `lean-flow:phase-researcher` + `lean-flow:assumptions-analyzer` — research before planning
+5. `lean-flow:map-codebase` + `lean-flow:ingest-docs` — heavy tasks only (brownfield)
+6. `lean-flow:spike` — when feasibility is unclear
+7. `superpowers:writing-plans` — canonical plan creation with explicit DoD checklist
+8. `gitnexus_impact({target: "<symbol>", direction: "upstream"})` — compute blast radius before delegating edits
+9. `lean-flow:plan-checker` — 8-dimension goal-backward verification before fixer dispatch
 
 ## Definition of Done (DoD) — ownership & flow <!-- dod-flow -->
 
