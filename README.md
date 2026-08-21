@@ -31,35 +31,54 @@ lean-flow extracts the **7 actually useful features** and implements them with n
 
 ---
 
-## Features
+## 🏛️ The 3 Pillars of lean-flow
 
-### 🧠 Pattern Memory
-SQLite database with FTS5 full-text search. Save solved patterns, retrieve them before re-solving.
+```
+┌───────────────────────────────┬───────────────────────────────┬───────────────────────────────┐
+│     1. TOKEN EFFICIENCY       │     2. CODE INTELLIGENCE      │     3. QUALITY & SAFETY       │
+│  RTK + Omni + Caveman + Pn   │  GitNexus (AST) + Knowledge   │    TDD + DoD + Pre-Commit     │
+│    (60–90% token savings)     │  (0-hallucination code graph) │   (1-pass review & zero churn)│
+└───────────────────────────────┴───────────────────────────────┴───────────────────────────────┘
+```
 
-Progressive disclosure — `pattern_search` returns a compact index (~50 tokens), `pattern_get` fetches full solution only when needed (~10x token savings vs returning everything upfront).
+### 1. 🧠 Institutional Memory & Pattern Store (`patterns.db`)
+SQLite database with **FTS5 full-text search**. Automatically recalls solved patterns before solving new tasks, and stores verified solutions post-PR.
+
+- **Fast & Progressive**: `pattern_search` returns a compact index (~50 tokens), `pattern_get` fetches full solution only when needed (~10x token savings vs dumping raw files).
+- **Recency-Weighted Ranking**: Modern solutions (2025–2026) are mathematically prioritized over legacy code (`score: 0.95` vs `0.70`).
+- **Punctuation & Slang Resilient**: FTS5 disjunctive search matches even with conversational or incomplete queries.
 
 | Tool | Purpose |
 |:-----|:--------|
-| `pattern_search` | Find patterns by keyword — returns compact index (id, key, category, preview) |
+| `pattern_search` | Find patterns by keyword — returns compact index (ID, key, category, preview) |
 | `pattern_get` | Fetch full solution + context for a pattern by ID |
-| `pattern_store` | Save problem + solution pairs after success |
+| `pattern_store` | Save problem + solution pairs after successful verification |
 | `pattern_list` | List all patterns for a project |
 | `pattern_delete` | Remove stale or incorrect patterns |
 | `pattern_stats` | Show usage statistics across all projects |
 | `project_context` | Store/retrieve project summary & conventions |
 
-### 🤖 Parallel Agents
+### 2. 🔭 GitNexus Code Intelligence (AST Reality)
+Deterministic code graph built on **Tree-sitter compiler AST parser**. Replaces slow, inaccurate regex grepping with exact caller/callee trees and blast radius detection.
+
+- **Pre-Flight Graph Injection**: Maps exact symbol definitions, methods, incoming callers, and outgoing dependencies in ~300 tokens before planning.
+- **Blast Radius Analysis (`gitnexus_impact`)**: Computes upstream risk level (`LOW`, `MEDIUM`, `HIGH`, `CRITICAL`) before any edit is made.
+- **Pre-Commit Integrity Gate (`gitnexus_detect_changes`)**: Refreshes AST with `npx gitnexus analyze` locally and verifies that only intended symbols/execution flows were affected.
+- **Zero Repo Bloat**: `.gitnexus/` binary index stays inside `.gitignore` and is never committed to Git.
+
+### 3. 🤖 Specialized Subagent Cast
 
 | Agent | Model | Reads? | Writes? | Role |
 |:------|:-----:|:------:|:-------:|:-----|
-| **Oracle** | Sonnet | **No** | **No** | Think-only: architecture/security review, synthesis, decisions — **owns the Definition of Done verdict** on PR review |
-| **Code Reviewer** | Sonnet | Yes | **No** | Code-quality, SOLID, patterns, and coverage review — read-only |
+| **Oracle** | Sonnet | **No** | **No** | Think-only: architecture/security review, synthesis, decisions — **owns the Definition of Done (DoD) verdict** on PR review |
+| **Code Reviewer** | Sonnet | Yes | **No** | Code-quality, SOLID principles, edge cases, pattern compliance, and coverage review — read-only |
 | **Fixer** | Haiku | Yes | Yes | All implementation: features, bug fixes, refactors, tests, mechanical changes |
-| **Librarian** | Haiku | Yes | No | Docs lookup, web search, research |
-| **Designer** | Sonnet | Yes | Yes | UI/UX, frontend components |
-| **Explorer** | Haiku | Yes | No | File discovery, codebase navigation, codebase map scanning, pre-oracle diff reading |
+| **Librarian** | Haiku | Yes | No | Docs lookup, web search, API reference via Context7 MCP / WebFetch |
+| **Designer** | Sonnet | Yes | Yes | UI/UX, frontend components, accessibility, responsive design |
+| **Explorer** | Haiku | Yes | No | Fast file discovery, codebase structure, codebase map scanning, pre-oracle diff reading |
 
-> **Oracle is think-only.** It never reads files or writes code. Explorer reads files/diffs → orchestrator passes summaries → Oracle thinks and decides. This keeps expensive sonnet tokens minimal.
+> **Oracle is think-only.** It never reads files or writes code directly. Explorer reads files/diffs → orchestrator passes summaries → Oracle thinks and decides. This keeps expensive Sonnet tokens minimal.
+
 
 ### 🌿 Branch Naming Convention
 
@@ -225,223 +244,38 @@ Background memory consolidation using Haiku. Runs every 5 sessions / 24 hours. C
 
 ---
 
-## Workflow
+## 🚀 The Golden Engineering Lifecycle
 
-> **Simplified overview.** The full, canonical flow — with orchestrator/execution lanes and every gate — is the source of truth in [`plugin/workflows/standard-development-flow.md`](plugin/workflows/standard-development-flow.md). GitHub can't embed a diagram across files, so this is a deliberately lighter copy; keep detailed changes in the source doc.
-
-```mermaid
-flowchart TD
-    USER(["👤 User prompt"]) --> AUTORECALL
-
-    AUTORECALL["⚡ Auto pattern recall\nUserPromptSubmit hook\nFTS5 → patterns.db"] --> STAR
-
-    STAR{"⭐ STAR classify\nsimple / medium / heavy\n+ greenfield / hotfix"}
-    STAR -->|"Simple"| DIRECTFIX
-    STAR -->|"Medium / Complex"| STARSHOW
-    STAR -->|"Greenfield 🌱"| GREENFIELD
-    STAR -->|"Hotfix 🔥"| HOTFIX
-
-    %% === STAR CONFIRM (medium / heavy only) ===
-    STARSHOW["📋 STAR breakdown\nS·T·A·R shown to user\n(medium / heavy)"] --> STARCONFIRM
-    STARCONFIRM{"User confirms?"}
-    STARCONFIRM -->|"Adjust"| STARSHOW
-    STARCONFIRM -->|"Yes"| MEMORY
-
-    %% === GREENFIELD PATH ===
-    GREENFIELD["🌱 Brainstorm\nproduct concept"] --> GENDOCS
-    GENDOCS["📄 Generate docs\n(parallel sonnet agents)\nPRD, HLA, TRD, DB, API"] --> PLANMODE
-
-    %% === SIMPLE PATH ===
-    DIRECTFIX["🔧 Fixer\nImplement fix"] --> DIRECTTEST["Run tests"]
-    DIRECTTEST -->|"Pass"| DIRECTPR["PR → main\n(with release notes)"]
-    DIRECTTEST -->|"Fail"| DIRECTFIX
-    DIRECTPR --> DONE(["✅ Done"])
-
-    %% === HOTFIX PATH ===
-    HOTFIX["🔥 hotfix/ branch\nfrom main"] --> HOTFIXFIXER["🔧 Fixer\nMinimal fix"]
-    HOTFIXFIXER --> HOTFIXTEST["Run tests"]
-    HOTFIXTEST -->|"Fail"| HOTFIXFIXER
-    HOTFIXTEST -->|"Pass"| HOTFIXPR["PR hotfix → main\n🔮 Oracle inline review\n+ release notes"]
-    HOTFIXPR --> HOTFIXMERGE(["✅ Merge + cherry-pick\nto in-flight branches"])
-
-    %% === COMPLEX PATH ===
-    MEMORY["🧠 pattern_search\nKnowledge MCP"] --> FOUND
-
-    FOUND{"Match?"}
-    FOUND -->|"Yes"| ADAPT["Apply pattern\n🔧 Fixer implements"]
-    FOUND -->|"No"| BRAINSTORM
-
-    BRAINSTORM["💡 Brainstorming skill\nExplore requirements"] --> PLANMODE
-
-    PLANMODE["📋 EnterPlanMode"] --> QUALITY
-
-    QUALITY["✍️ writing-plans skill\nQuality guidance\n(file paths, code, TDD)"] --> WRITE
-
-    WRITE["Write plan to\n~/.claude/plans/"] --> REVIEW
-
-    REVIEW{"Approved?"}
-    REVIEW -->|"No"| WRITE
-    REVIEW -->|"Yes"| EXITPLAN
-
-    EXITPLAN["📋 ExitPlanMode\nplan-plus restructures\ninto skeleton + steps"] --> VIEWER
-
-    VIEWER["📺 Plan viewer\nlocalhost:3456"] --> BRANCH
-
-    ADAPT --> BRANCH
-
-    BRANCH["🌿 Create parent branch"] --> STEP
-
-    STEP{"Next step?"}
-    STEP -->|"Yes"| RESEARCH
-    STEP -->|"All done"| PLANCOMPLETE["✅ All steps complete!\nProceed to audit"]
-    PLANCOMPLETE --> AUDITSCAN
-    STEP -->|"Plan invalid"| REPLAN
-
-    REPLAN["📋 Revise remaining\nsteps in plan-plus"] --> STEP
-
-    RESEARCH{"Needs research?"}
-    RESEARCH -->|"Unfamiliar code"| EXPLORER["🔍 Explorer\n(haiku)"]
-    RESEARCH -->|"Need docs"| LIBRARIAN["📚 Librarian\n(haiku)"]
-    RESEARCH -->|"No"| STEPBR
-
-    EXPLORER --> STEPBR
-    LIBRARIAN --> STEPBR
-
-    STEPBR["🌿 Step branch\nprefix/name/step-N"] --> TESTFIRST
-
-    TESTFIRST{"TDD?"}
-    TESTFIRST -->|"Yes"| TDDTEST["🔧 Fixer writes\nfailing tests"] --> IMPLEMENT
-    TESTFIRST -->|"No"| IMPLEMENT
-
-    IMPLEMENT["🔧 Fixer\n(haiku)\nImplement + tests"] --> FIXCHECK
-
-    FIXCHECK["✅ Fixer checklist\n(self-verify)"] --> TEST
-
-    TEST["Run tests"]
-    TEST -->|"Fail x3"| ORACLE_SCAN["🔍 Explorer\nreads error context"] --> ORACLE_ESC["🔮 Oracle\n(think-only)\nDiagnosis"]
-    ORACLE_ESC --> FIX["🔧 Fixer\napplies diagnosis"]
-    FIX --> IMPLEMENT
-    TEST -->|"Pass"| STEPPR
-
-    STEPPR["PR step → parent\n(auto-merge, no oracle)"] --> MERGE_STEP["Merge to parent"]
-    MERGE_STEP --> CHECKBOX["☑️ Mark step [x]\nin skeleton"]
-    CHECKBOX --> STEP
-
-    AUDITSCAN["🔍 Explorer\n(haiku)\nRead full parent diff\n→ structured summary"] --> AUDIT
-
-    AUDIT["🔮 Oracle\n(think-only)\nSecurity audit\nfrom explorer summary"] --> CLEAN
-
-    CLEAN{"Issues?"}
-    CLEAN -->|"Found"| FIXAUDIT["🔧 Fixer implements\n🔍 Explorer re-reads\n🔮 Oracle reviews"]
-    CLEAN -->|"Clean"| MAINPR
-
-    FIXAUDIT --> AUDITSCAN
-
-    MAINPR["PR parent → main\n+ release notes"] --> FINALSCAN
-
-    FINALSCAN["🔍 Explorer\n(haiku)\nScan PR diff\n→ summary"] --> FINAL
-
-    FINAL["🔮 Oracle\n(think-only)\nReview checklist\nfrom explorer summary"]
-    FINAL -->|"Issues"| FIXFINAL["🔧 Fixer\nfix on parent"]
-    FINAL -->|"Approved"| CMAPSCAN
-
-    FIXFINAL --> FINALSCAN
-
-    CMAPSCAN["🔍 Explorer\n(haiku)\nScan touched dirs\n→ structure summary"] --> CODEMAP
-
-    CODEMAP{"🔮 Oracle\n(think-only)\nCodemap decision"}
-    CODEMAP -->|"Missing/outdated"| CMAPSYNTH["🔮 Oracle synthesizes\ncodebase map from summary\n→ 🔧 Fixer writes file"]
-    CODEMAP -->|"Up to date"| LEARN
-    CMAPSYNTH --> LEARN
-
-    LEARN["🧠 pattern_store\nSave patterns"] --> MERGE_MAIN(["✅ Merge to main"])
-
-    style USER fill:#34495E,color:#fff
-    style AUTORECALL fill:#16A085,color:#fff
-    style STAR fill:#8E44AD,color:#fff
-    style STARSHOW fill:#4A90D9,color:#fff
-    style STARCONFIRM fill:#F39C12,color:#fff
-    style MEMORY fill:#2980B9,color:#fff
-    style FOUND fill:#F39C12,color:#fff
-    style ADAPT fill:#2980B9,color:#fff
-    style BRAINSTORM fill:#E91E63,color:#fff
-    style DIRECTFIX fill:#E67E22,color:#fff
-    style DIRECTTEST fill:#7B68EE,color:#fff
-    style DIRECTPR fill:#2ECC71,color:#fff
-    style REVIEW fill:#F39C12,color:#fff
-    style PLANMODE fill:#4A90D9,color:#fff
-    style QUALITY fill:#E91E63,color:#fff
-    style WRITE fill:#4A90D9,color:#fff
-    style EXITPLAN fill:#4A90D9,color:#fff
-    style VIEWER fill:#2980B9,color:#fff
-    style BRANCH fill:#1ABC9C,color:#fff
-    style STEP fill:#8E44AD,color:#fff
-    style REPLAN fill:#4A90D9,color:#fff
-    style STEPBR fill:#1ABC9C,color:#fff
-    style TESTFIRST fill:#F39C12,color:#fff
-    style IMPLEMENT fill:#3498DB,color:#fff
-    style FIXCHECK fill:#2ECC71,color:#fff
-    style FIX fill:#E67E22,color:#fff
-    style FIXAUDIT fill:#E67E22,color:#fff
-    style FIXFINAL fill:#E67E22,color:#fff
-    style TEST fill:#7B68EE,color:#fff
-    style TDDTEST fill:#3498DB,color:#fff
-    style AUDIT fill:#9B59B6,color:#fff
-    style AUDITSCAN fill:#3498DB,color:#fff
-    style FINALSCAN fill:#3498DB,color:#fff
-    style CMAPSCAN fill:#3498DB,color:#fff
-    style CMAPSYNTH fill:#9B59B6,color:#fff
-    style ORACLE_SCAN fill:#3498DB,color:#fff
-    style MAINPR fill:#2ECC71,color:#fff
-    style RESEARCH fill:#F39C12,color:#fff
-    style EXPLORER fill:#3498DB,color:#fff
-    style LIBRARIAN fill:#3498DB,color:#fff
-    style ORACLE_ESC fill:#9B59B6,color:#fff
-    style FINAL fill:#9B59B6,color:#fff
-    style STEPPR fill:#2ECC71,color:#fff
-    style MERGE_STEP fill:#27AE60,color:#fff
-    style CHECKBOX fill:#2980B9,color:#fff
-    style PLANCOMPLETE fill:#27AE60,color:#fff
-    style CODEMAP fill:#F39C12,color:#fff
-    style LEARN fill:#2980B9,color:#fff
-    style MERGE_MAIN fill:#27AE60,color:#fff
-    style DONE fill:#27AE60,color:#fff
-    style CLEAN fill:#F39C12,color:#fff
-    style HOTFIX fill:#E74C3C,color:#fff
-    style HOTFIXFIXER fill:#E67E22,color:#fff
-    style HOTFIXTEST fill:#7B68EE,color:#fff
-    style HOTFIXPR fill:#2ECC71,color:#fff
-    style HOTFIXMERGE fill:#27AE60,color:#fff
-    style GREENFIELD fill:#16A085,color:#fff
-    style GENDOCS fill:#1ABC9C,color:#fff
+```
+1. PATTERN SEARCH  ──►  2. GITNEXUS INJECTION  ──►  3. TDD PLAN & DOD  ──►  4. FIXER EXECUTION  ──►  5. PRE-COMMIT GATE  ──►  6. PATTERN STORE
+  (Recall past PRs)      (Map AST Call Graph)         (Define Acceptance)       (RED → GREEN Tests)     (gitnexus analyze)        (Save Solution)
 ```
 
-<details>
-<summary><strong>Workflow steps explained (18 steps)</strong></summary>
+### The 6 Steps Explained:
 
-1. **Triage** — Simple → fixer + test + PR. Complex → pattern search. Greenfield → doc-first. Hotfix → fast path.
-2. **Pattern Search** — Check knowledge MCP. Match → fixer applies. No match → brainstorm.
-3. **Brainstorming** — Explore requirements and design before planning.
-3a. **Greenfield: Doc-First** — For new projects: brainstorm → generate docs (PRD, HLA, TRD, DB, API) → plan from docs.
-4. **Planning** — plan-plus generates skeleton + step files. User approves.
-5. **Branching** — Parent branch from main. Step branches from parent (skip step branches when solo).
-6. **Execute Steps** — TDD optional. Fixer implements + writes tests. Parallel independent steps.
-6a. **Solo Dev** — Skip step PRs. Commit on parent. Use plan-plus-executor agents per step.
-7. **Re-planning** — If a step reveals plan is wrong, revise remaining steps.
-8. **Agent Routing** — Explorer/Fixer/Librarian (haiku), Oracle/Designer (sonnet). Oracle is think-only (no file access).
-9. **Test + Retry** — 3 failures → explorer reads context → oracle diagnoses. 3 oracle rounds → human intervention.
-10. **Security Audit** — Explorer reads full parent diff → Oracle audits from summary. Fixer fixes, explorer re-reads, oracle reviews. Max 3 rounds.
-11. **Commit & PR Style** — Two templates: step PR (technical) vs main PR (business + release notes).
-12. **Final PR** — Parent → main with release notes. Explorer scans diff → Oracle final review.
-12a. **Codebase Map Maintenance** — After approval, Explorer scans touched dirs → Oracle decides → Oracle synthesizes codebase map update → Fixer writes file.
-13. **Hotfix** 🔥 — Branch from main, skip planning, inline oracle review, fast merge.
-14. **Post-Merge** — Monitor. Rollback via hotfix path if broken.
-15. **Learn** — Save patterns for future sessions.
-16. **Auto-Dream** — Background memory consolidation.
+1. **🧠 Step 1: Institutional Memory Recall (`pattern_search`)**
+   - Agent checks `patterns.db` to see if the team/repo solved a similar problem in past PRs (0.05s).
+   - Recalls established business rules, edge cases, and API quirks.
 
-</details>
+2. **🔭 Step 2: AST Graph Injection (`gitnexus_context` & `gitnexus_query`)**
+   - Traverses compiler AST syntax trees to map exact method signatures, callers, and execution flows.
+   - Replaces 50,000-token raw file dumps with ~300 tokens of structured graph context.
 
----
+3. **📋 Step 3: TDD Plan Creation with DoD (`superpowers:writing-plans`)**
+   - Orchestrator creates an explicit Definition of Done (DoD) checklist.
+   - Runs `gitnexus_impact` to assess upstream blast radius before delegating edits.
+
+4. **🔧 Step 4: Fixer Execution (`lean-flow:fixer`)**
+   - Fixer implements changes using Test-Driven Development (TDD: RED ➔ GREEN ➔ REFACTOR).
+   - Strict coverage gate (≥90% test coverage).
+
+5. **🛡️ Step 5: Pre-Commit & PR Integrity Gate**
+   - Runs `npx gitnexus analyze` locally to refresh AST index.
+   - Runs `gitnexus_detect_changes()` to verify only intended execution flows were touched.
+
+6. **💾 Step 6: Continuous Learning (`pattern_store`)**
+   - After PR verification, orchestrator stores non-trivial solutions into `patterns.db` for future sessions.
+
 
 ## Quick Start
 
