@@ -35,7 +35,8 @@ flowchart TD
     CI -->|No| FIX
     CI -->|Yes| MERGE["✅ Merge\nsquash"]
     
-    MERGE --> DONE["🏁 Done"]
+    MERGE --> STORE["💾 pattern_store (Knowledge)"]
+    STORE --> DONE["🏁 Done"]
     DIRECT --> DONE
     HUMAN --> DONE
     
