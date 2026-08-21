@@ -463,7 +463,7 @@ When the project root contains `.gitnexus/`, GitNexus MCP tools are available to
 
 Required usage on medium/heavy tier:
 - **Before editing any public function/class/method:** `gitnexus_impact({target: "<symbol>", direction: "upstream"})`. Report blast radius (callers, processes, risk) to user. Halt if `HIGH` or `CRITICAL` until user confirms.
-- **Before committing:** `gitnexus_detect_changes()` to verify the change scope matches intent.
+- **Before committing / PR:** Run `npx gitnexus analyze` locally to refresh AST, then `gitnexus_detect_changes()` to verify change scope matches intent.
 - **Exploring unfamiliar code:** `gitnexus_query({query: "<concept>"})` returns process-grouped results — preferred over grep.
 - **Need 360° symbol view:** `gitnexus_context({name: "<symbol>"})` lists callers, callees, processes.
 - **Renaming:** `gitnexus_rename` only (call-graph aware). Never find-and-replace.
