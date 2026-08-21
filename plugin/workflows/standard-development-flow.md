@@ -19,7 +19,7 @@ flowchart TD
       STARCHECK -->|"medium / heavy"| STARSHOW["📋 STAR breakdown<br/>shown to user"]
       STARSHOW --> STARCONFIRM{"User confirms?"}
       STARCONFIRM -->|"adjust"| STARSHOW
-      STARCONFIRM -->|"yes"| MEMORY["🧠 pattern_search<br/>+ map-codebase<br/>+ ingest-docs (heavy)"]
+      STARCONFIRM -->|"yes"| MEMORY["🧠 1. pattern_search (knowledge)<br/>2. gitnexus_context & query (AST graph)<br/>3. map-codebase (heavy)"]
       MEMORY --> FOUND{"Pattern match?"}
       FOUND -->|"yes"| DISPATCH_ADAPT(["📤 Dispatch fixer<br/>(apply pattern)"])
       FOUND -->|"no"| BRAINSTORM["💡 brainstorming<br/>+ phase-researcher<br/>+ assumptions-analyzer<br/>+ spike if blocked"]
