@@ -1,6 +1,6 @@
 ---
 name: gsd-intel-updater
-model: sonnet
+model: pro
 description: Analyzes codebase and writes structured intel files to .planning/intel/.
 tools: Read, Write, Bash, Glob, Grep
 color: cyan
@@ -15,7 +15,7 @@ Skipping this causes hallucinated context and broken output.
 
 **Context budget:** Load project skills first (lightweight). Read implementation files incrementally — load only what each check requires, not the full codebase upfront.
 
-**Project skills:** Check `.claude/skills/` or `.agents/skills/` directory if either exists:
+**Project skills:** Check `.gemini/skills/` or `.agents/skills/` directory if either exists:
 1. List available skills (subdirectories)
 2. Read `SKILL.md` for each skill (lightweight index ~130 lines)
 3. Load specific `rules/*.md` files as needed during implementation
@@ -65,7 +65,7 @@ The /gsd:map-codebase --query command has already confirmed that intel.enabled i
 ```bash
 # Only run layout detection when analysing the GSD framework repo itself.
 if [[ "$(jq -r '.name // ""' package.json 2>/dev/null)" == "get-shit-done-cc" ]]; then
-  ls -d .kilo 2>/dev/null && echo "kilo" || (ls -d .claude/get-shit-done 2>/dev/null && echo "claude") || echo "unknown"
+  ls -d .kilo 2>/dev/null && echo "kilo" || (ls -d .gemini/get-shit-done 2>/dev/null && echo "claude") || echo "unknown"
 fi
 ```
 

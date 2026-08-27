@@ -20,8 +20,8 @@ set -uo pipefail
 
 source "$(dirname "$0")/load-config.sh" 2>/dev/null
 
-SETTINGS="${HOME}/.claude/settings.json"
-CLAUDE_JSON="${HOME}/.claude.json"
+SETTINGS="${HOME}/.gemini/settings.json"
+CLAUDE_JSON="${HOME}/.gemini.json"
 
 # Collect findings as "BUCKET|key|hint" lines
 findings=()
@@ -35,13 +35,13 @@ add_finding() {
 # executing-plans, systematic-debugging, test-driven-development,
 # verification-before-completion). Without it, the planning/TDD path breaks.
 found_superpowers=0
-for d in "${HOME}/.claude/plugins/cache/claude-plugins-official/superpowers/"*/skills/writing-plans; do
+for d in "${HOME}/.gemini/plugins/cache/claude-plugins-official/superpowers/"*/skills/writing-plans; do
   [ -d "$d" ] && { found_superpowers=1; break; }
 done
 if [ "$found_superpowers" -eq 0 ]; then
   add_finding "REQUIRED" "superpowers" \
     "Plugin: superpowers (anthropic). Required for writing-plans, executing-plans, systematic-debugging skills.
-       Install: enable superpowers@claude-plugins-official in ~/.claude/settings.json
+       Install: enable superpowers@claude-plugins-official in ~/.gemini/settings.json
        Or visit: https://github.com/anthropics/claude-code-plugins"
 fi
 
@@ -63,7 +63,7 @@ elif command -v jq &>/dev/null && [ -f "$SETTINGS" ]; then
   # Installed but not wired into hooks
   if ! jq -e '.. | objects | select(.command? // "" | test("omni"))' "$SETTINGS" &>/dev/null; then
     add_finding "RECOMMENDED" "omni-hooks" \
-      "OMNI installed but hooks not registered in ~/.claude/settings.json.
+      "OMNI installed but hooks not registered in ~/.gemini/settings.json.
        Fix: omni init --all"
   fi
 fi
@@ -75,7 +75,7 @@ if [ -f "$CLAUDE_JSON" ] && command -v jq &>/dev/null; then
     add_finding "RECOMMENDED" "gitnexus" \
       "MCP: gitnexus. Codebase knowledge graph for fast structural queries.
        Install: ensure-gitnexus.sh registers it automatically on next SessionStart.
-       Or manually: npx gitnexus mcp (then add to ~/.claude.json mcpServers)"
+       Or manually: npx gitnexus mcp (then add to ~/.gemini.json mcpServers)"
   fi
 fi
 
@@ -88,9 +88,9 @@ if ! command -v rtk &>/dev/null; then
 fi
 
 # Knowledge MCP database — pattern memory
-if [ ! -f "${HOME}/.claude/knowledge/patterns.db" ]; then
+if [ ! -f "${HOME}/.gemini/knowledge/patterns.db" ]; then
   add_finding "RECOMMENDED" "knowledge-mcp" \
-    "Pattern memory DB missing at ~/.claude/knowledge/patterns.db.
+    "Pattern memory DB missing at ~/.gemini/knowledge/patterns.db.
        Fix: ensure-knowledge-mcp.sh creates it on next SessionStart.
        Without it, pattern_search / pattern_store have no backing store."
 fi
@@ -109,16 +109,16 @@ if [ -f "$SETTINGS" ] && command -v jq &>/dev/null; then
     add_finding "DEPRECATED" "plan-plus" \
       "Plugin: plan-plus is enabled but deprecated as of PR #20.
        It has been replaced by superpowers:writing-plans + superpowers:executing-plans.
-       Disable: jq 'del(.enabledPlugins[\"plan-plus@plan-plus\"])' ~/.claude/settings.json"
+       Disable: jq 'del(.enabledPlugins[\"plan-plus@plan-plus\"])' ~/.gemini/settings.json"
   fi
 fi
 
 # plan-plus enforcement hook (old, blocks Task dispatches)
-if [ -f "${HOME}/.claude/hooks/enforce-plan-plus.sh" ]; then
+if [ -f "${HOME}/.gemini/hooks/enforce-plan-plus.sh" ]; then
   add_finding "DEPRECATED" "plan-plus-hook" \
-    "Hook: ~/.claude/hooks/enforce-plan-plus.sh exists.
+    "Hook: ~/.gemini/hooks/enforce-plan-plus.sh exists.
        This is the old PreToolUse Task hook from the plan-plus era. It will block agent dispatches.
-       Remove: mv ~/.claude/hooks/enforce-plan-plus.sh ~/.claude/hooks/.archive/"
+       Remove: mv ~/.gemini/hooks/enforce-plan-plus.sh ~/.gemini/hooks/.archive/"
 fi
 
 # ── Cache + emit ─────────────────────────────────────────────────────

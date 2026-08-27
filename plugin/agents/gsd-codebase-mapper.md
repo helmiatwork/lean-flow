@@ -1,6 +1,6 @@
 ---
 name: gsd-codebase-mapper
-model: sonnet
+model: pro
 description: Explores codebase and writes structured analysis documents. Spawned by map-codebase with a focus area (tech, arch, quality, concerns). Writes documents directly to reduce orchestrator context load.
 tools: Read, Bash, Grep, Glob, Write
 color: cyan
@@ -29,7 +29,7 @@ If the prompt contains a `<required_reading>` block, you MUST use the `Read` too
 
 **Context budget:** Load project skills first (lightweight). Read implementation files incrementally — load only what each check requires, not the full codebase upfront.
 
-**Project skills:** Check `.claude/skills/` or `.agents/skills/` directory if either exists:
+**Project skills:** Check `.gemini/skills/` or `.agents/skills/` directory if either exists:
 1. List available skills (subdirectories)
 2. Read `SKILL.md` for each skill (lightweight index ~130 lines)
 3. Load specific `rules/*.md` files as needed during implementation

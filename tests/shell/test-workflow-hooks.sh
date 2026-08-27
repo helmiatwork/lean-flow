@@ -349,8 +349,8 @@ rm -rf "$test_home"
 echo ""
 echo "Test 4.2: Plan with unchecked steps"
 test_home=$(mktemp -d)
-mkdir -p "$test_home/.claude/plans"
-cat > "$test_home/.claude/plans/my-plan.md" << 'EOF'
+mkdir -p "$test_home/.gemini/plans"
+cat > "$test_home/.gemini/plans/my-plan.md" << 'EOF'
 # my-plan
 
 1. [ ] Step one
@@ -366,8 +366,8 @@ rm -rf "$test_home"
 echo ""
 echo "Test 4.3: Plan with all checked steps"
 test_home=$(mktemp -d)
-mkdir -p "$test_home/.claude/plans"
-cat > "$test_home/.claude/plans/completed-plan.md" << 'EOF'
+mkdir -p "$test_home/.gemini/plans"
+cat > "$test_home/.gemini/plans/completed-plan.md" << 'EOF'
 # completed-plan
 
 1. [x] Step one
@@ -384,8 +384,8 @@ rm -rf "$test_home"
 echo ""
 echo "Test 4.4: Plan with no checkboxes (should skip)"
 test_home=$(mktemp -d)
-mkdir -p "$test_home/.claude/plans"
-cat > "$test_home/.claude/plans/no-checkboxes.md" << 'EOF'
+mkdir -p "$test_home/.gemini/plans"
+cat > "$test_home/.gemini/plans/no-checkboxes.md" << 'EOF'
 # no-checkboxes
 
 This is a plan without any checkbox steps.
@@ -397,16 +397,16 @@ rm -rf "$test_home"
 echo ""
 echo "Test 4.5: Multiple plans (uses most recent with steps)"
 test_home=$(mktemp -d)
-mkdir -p "$test_home/.claude/plans"
+mkdir -p "$test_home/.gemini/plans"
 # Create older plan
-cat > "$test_home/.claude/plans/old-plan.md" << 'EOF'
+cat > "$test_home/.gemini/plans/old-plan.md" << 'EOF'
 # old-plan
 
 1. [ ] Old step
 EOF
 # Create newer plan
 sleep 1
-cat > "$test_home/.claude/plans/new-plan.md" << 'EOF'
+cat > "$test_home/.gemini/plans/new-plan.md" << 'EOF'
 # new-plan
 
 1. [ ] New step one
@@ -420,8 +420,8 @@ rm -rf "$test_home"
 echo ""
 echo "Test 4.6: Plan with mixed checkbox formats (x and X)"
 test_home=$(mktemp -d)
-mkdir -p "$test_home/.claude/plans"
-cat > "$test_home/.claude/plans/mixed-case.md" << 'EOF'
+mkdir -p "$test_home/.gemini/plans"
+cat > "$test_home/.gemini/plans/mixed-case.md" << 'EOF'
 # mixed-case
 
 1. [X] Step with uppercase

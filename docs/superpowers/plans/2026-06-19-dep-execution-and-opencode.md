@@ -242,10 +242,10 @@ import { test } from 'node:test'
 import assert from 'node:assert'
 import { targetPaths } from '../src/targets.js'
 
-test('claude target points at ~/.claude', () => {
+test('claude target points at ~/.gemini', () => {
   const p = targetPaths('claude', '/home/x')
-  assert.equal(p.hooksDir, '/home/x/.claude/hooks')
-  assert.equal(p.settings, '/home/x/.claude/settings.json')
+  assert.equal(p.hooksDir, '/home/x/.gemini/hooks')
+  assert.equal(p.settings, '/home/x/.gemini/settings.json')
 })
 test('opencode target points at ~/.config/opencode', () => {
   const p = targetPaths('opencode', '/home/x')
@@ -270,8 +270,8 @@ import { join } from 'node:path'
 
 const TARGETS = {
   claude: home => ({
-    hooksDir: join(home, '.claude/hooks'),
-    settings: join(home, '.claude/settings.json')
+    hooksDir: join(home, '.gemini/hooks'),
+    settings: join(home, '.gemini/settings.json')
   }),
   opencode: home => ({
     hooksDir: join(home, '.config/opencode/hooks'),
@@ -400,7 +400,7 @@ NOTE: `mergeHooks` gains a 4th arg `hooksDir` so the command path matches the ta
 function commandFor(hook, hooksDir) {
   return `${hook.runner} ${hooksDir}/${hook.script}`
 }
-export function mergeHooks(settings, hooks, home, hooksDir = `${home}/.claude/hooks`) {
+export function mergeHooks(settings, hooks, home, hooksDir = `${home}/.gemini/hooks`) {
   const out = structuredClone(settings)
   out.hooks ??= {}
   for (const h of hooks) {
@@ -412,7 +412,7 @@ export function mergeHooks(settings, hooks, home, hooksDir = `${home}/.claude/ho
   return out
 }
 ```
-`removeHooks` already matches by the `/hooks/` path substring — extend its prefix check to match both `.claude/hooks/` and `.config/opencode/hooks/` by testing for `/hooks/leanflow-`:
+`removeHooks` already matches by the `/hooks/` path substring — extend its prefix check to match both `.gemini/hooks/` and `.config/opencode/hooks/` by testing for `/hooks/leanflow-`:
 ```js
 export function removeHooks(settings, home) {
   const out = structuredClone(settings)
@@ -423,7 +423,7 @@ export function removeHooks(settings, home) {
   return out
 }
 ```
-Update Plan 1's settings tests if their expected command strings change (they used `~/.claude/hooks/`; still valid for default target).
+Update Plan 1's settings tests if their expected command strings change (they used `~/.gemini/hooks/`; still valid for default target).
 
 - [ ] **Step 4: Modify bin/cli.js to parse flags**
 
@@ -481,14 +481,14 @@ git commit -m "feat: wire dependency executor, opencode target, and cli flags"
 
 **Files:**
 - Replace: `hooks/leanflow-grammar-check.sh`, `hooks/leanflow-fix.sh`
-- Reference (read-only): `~/.claude/hooks/grammar-check.sh`, `~/.claude/scripts/lean-flow-fix.sh`
+- Reference (read-only): `~/.gemini/hooks/grammar-check.sh`, `~/.gemini/scripts/lean-flow-fix.sh`
 
 - [ ] **Step 1: Copy the real script bodies**
 
 Run:
 ```bash
-cp ~/.claude/hooks/grammar-check.sh hooks/leanflow-grammar-check.sh
-cp ~/.claude/scripts/lean-flow-fix.sh hooks/leanflow-fix.sh
+cp ~/.gemini/hooks/grammar-check.sh hooks/leanflow-grammar-check.sh
+cp ~/.gemini/scripts/lean-flow-fix.sh hooks/leanflow-fix.sh
 chmod +x hooks/leanflow-*.sh
 ```
 

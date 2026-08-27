@@ -237,7 +237,7 @@ Auto-installs [RTK](https://www.rtk-ai.app) — a Rust CLI proxy that rewrites B
 - Transparent — no prompt changes needed, works via PreToolUse hook
 - Check savings anytime: `rtk gain`
 
-> RTK is auto-installed on first session (via brew or curl fallback). Disable with `"enable": { "rtk": false }` in `~/.claude/lean-flow.json`.
+> RTK is auto-installed on first session (via brew or curl fallback). Disable with `"enable": { "rtk": false }` in `~/.gemini/lean-flow.json`.
 
 ### 💤 Auto-Dream
 Background memory consolidation using Haiku. Runs every 5 sessions / 24 hours. Cleans up stale memories, merges duplicates, prunes outdated entries.
@@ -249,6 +249,196 @@ Background memory consolidation using Haiku. Runs every 5 sessions / 24 hours. C
 ```
 1. PATTERN SEARCH  ──►  2. GITNEXUS INJECTION  ──►  3. TDD PLAN & DOD  ──►  4. FIXER EXECUTION  ──►  5. PRE-COMMIT GATE  ──►  6. PATTERN STORE
   (Recall past PRs)      (Map AST Call Graph)         (Define Acceptance)       (RED → GREEN Tests)     (gitnexus analyze)        (Save Solution)
+```
+
+> **Simplified overview.** The full, canonical flow — with orchestrator/execution lanes and every gate — is the source of truth in [`plugin/workflows/standard-development-flow.md`](plugin/workflows/standard-development-flow.md). GitHub can't embed a diagram across files, so this is a deliberately lighter copy; keep detailed changes in the source doc.
+
+```mermaid
+flowchart TD
+    USER(["👤 User prompt"]) --> AUTORECALL
+
+    AUTORECALL["⚡ Auto pattern recall\nUserPromptSubmit hook\nFTS5 → patterns.db"] --> STAR
+
+    STAR{"⭐ STAR classify\nsimple / medium / heavy\n+ greenfield / hotfix"}
+    STAR -->|"Simple"| DIRECTFIX
+    STAR -->|"Medium / Complex"| STARSHOW
+    STAR -->|"Greenfield 🌱"| GREENFIELD
+    STAR -->|"Hotfix 🔥"| HOTFIX
+
+    %% === STAR CONFIRM (medium / heavy only) ===
+    STARSHOW["📋 STAR breakdown\nS·T·A·R shown to user\n(medium / heavy)"] --> STARCONFIRM
+    STARCONFIRM{"User confirms?"}
+    STARCONFIRM -->|"Adjust"| STARSHOW
+    STARCONFIRM -->|"Yes"| MEMORY
+
+    %% === GREENFIELD PATH ===
+    GREENFIELD["🌱 Brainstorm\nproduct concept"] --> GENDOCS
+    GENDOCS["📄 Generate docs\n(parallel sonnet agents)\nPRD, HLA, TRD, DB, API"] --> PLANMODE
+
+    %% === SIMPLE PATH ===
+    DIRECTFIX["🔧 Fixer\nImplement fix"] --> DIRECTTEST["Run tests"]
+    DIRECTTEST -->|"Pass"| DIRECTPR["PR → main\n(with release notes)"]
+    DIRECTTEST -->|"Fail"| DIRECTFIX
+    DIRECTPR --> DONE(["✅ Done"])
+
+    %% === HOTFIX PATH ===
+    HOTFIX["🔥 hotfix/ branch\nfrom main"] --> HOTFIXFIXER["🔧 Fixer\nMinimal fix"]
+    HOTFIXFIXER --> HOTFIXTEST["Run tests"]
+    HOTFIXTEST -->|"Fail"| HOTFIXFIXER
+    HOTFIXTEST -->|"Pass"| HOTFIXPR["PR hotfix → main\n🔮 Oracle inline review\n+ release notes"]
+    HOTFIXPR --> HOTFIXMERGE(["✅ Merge + cherry-pick\nto in-flight branches"])
+
+    %% === COMPLEX PATH ===
+    MEMORY["🧠 pattern_search\nKnowledge MCP"] --> FOUND
+
+    FOUND{"Match?"}
+    FOUND -->|"Yes"| ADAPT["Apply pattern\n🔧 Fixer implements"]
+    FOUND -->|"No"| BRAINSTORM
+
+    BRAINSTORM["💡 Brainstorming skill\nExplore requirements"] --> PLANMODE
+
+    PLANMODE["📋 EnterPlanMode"] --> QUALITY
+
+    QUALITY["✍️ writing-plans skill\nQuality guidance\n(file paths, code, TDD)"] --> WRITE
+
+    WRITE["Write plan to\n~/.gemini/plans/"] --> REVIEW
+
+    REVIEW{"Approved?"}
+    REVIEW -->|"No"| WRITE
+    REVIEW -->|"Yes"| EXITPLAN
+
+    EXITPLAN["📋 ExitPlanMode\nplan-plus restructures\ninto skeleton + steps"] --> VIEWER
+
+    VIEWER["📺 Plan viewer\nlocalhost:3456"] --> BRANCH
+
+    ADAPT --> BRANCH
+
+    BRANCH["🌿 Create parent branch"] --> STEP
+
+    STEP{"Next step?"}
+    STEP -->|"Yes"| RESEARCH
+    STEP -->|"All done"| PLANCOMPLETE["✅ All steps complete!\nProceed to audit"]
+    PLANCOMPLETE --> AUDITSCAN
+    STEP -->|"Plan invalid"| REPLAN
+
+    REPLAN["📋 Revise remaining\nsteps in plan-plus"] --> STEP
+
+    RESEARCH{"Needs research?"}
+    RESEARCH -->|"Unfamiliar code"| EXPLORER["🔍 Explorer\n(haiku)"]
+    RESEARCH -->|"Need docs"| LIBRARIAN["📚 Librarian\n(haiku)"]
+    RESEARCH -->|"No"| STEPBR
+
+    EXPLORER --> STEPBR
+    LIBRARIAN --> STEPBR
+
+    STEPBR["🌿 Step branch\nprefix/name/step-N"] --> TESTFIRST
+
+    TESTFIRST{"TDD?"}
+    TESTFIRST -->|"Yes"| TDDTEST["🔧 Fixer writes\nfailing tests"] --> IMPLEMENT
+    TESTFIRST -->|"No"| IMPLEMENT
+
+    IMPLEMENT["🔧 Fixer\n(haiku)\nImplement + tests"] --> FIXCHECK
+
+    FIXCHECK["✅ Fixer checklist\n(self-verify)"] --> TEST
+
+    TEST["Run tests"]
+    TEST -->|"Fail x3"| ORACLE_SCAN["🔍 Explorer\nreads error context"] --> ORACLE_ESC["🔮 Oracle\n(think-only)\nDiagnosis"]
+    ORACLE_ESC --> FIX["🔧 Fixer\napplies diagnosis"]
+    FIX --> IMPLEMENT
+    TEST -->|"Pass"| STEPPR
+
+    STEPPR["PR step → parent\n(auto-merge, no oracle)"] --> MERGE_STEP["Merge to parent"]
+    MERGE_STEP --> CHECKBOX["☑️ Mark step [x]\nin skeleton"]
+    CHECKBOX --> STEP
+
+    AUDITSCAN["🔍 Explorer\n(haiku)\nRead full parent diff\n→ structured summary"] --> AUDIT
+
+    AUDIT["🔮 Oracle\n(think-only)\nSecurity audit\nfrom explorer summary"] --> CLEAN
+
+    CLEAN{"Issues?"}
+    CLEAN -->|"Found"| FIXAUDIT["🔧 Fixer implements\n🔍 Explorer re-reads\n🔮 Oracle reviews"]
+    CLEAN -->|"Clean"| MAINPR
+
+    FIXAUDIT --> AUDITSCAN
+
+    MAINPR["PR parent → main\n+ release notes"] --> FINALSCAN
+
+    FINALSCAN["🔍 Explorer\n(haiku)\nScan PR diff\n→ summary"] --> FINAL
+
+    FINAL["🔮 Oracle\n(think-only)\nReview checklist\nfrom explorer summary"]
+    FINAL -->|"Issues"| FIXFINAL["🔧 Fixer\nfix on parent"]
+    FINAL -->|"Approved"| CMAPSCAN
+
+    FIXFINAL --> FINALSCAN
+
+    CMAPSCAN["🔍 Explorer\n(haiku)\nScan touched dirs\n→ structure summary"] --> CODEMAP
+
+    CODEMAP{"🔮 Oracle\n(think-only)\nCodemap decision"}
+    CODEMAP -->|"Missing/outdated"| CMAPSYNTH["🔮 Oracle synthesizes\ncodebase map from summary\n→ 🔧 Fixer writes file"]
+    CODEMAP -->|"Up to date"| LEARN
+    CMAPSYNTH --> LEARN
+
+    LEARN["🧠 pattern_store\nSave patterns"] --> MERGE_MAIN(["✅ Merge to main"])
+
+    style USER fill:#34495E,color:#fff
+    style AUTORECALL fill:#16A085,color:#fff
+    style STAR fill:#8E44AD,color:#fff
+    style STARSHOW fill:#4A90D9,color:#fff
+    style STARCONFIRM fill:#F39C12,color:#fff
+    style MEMORY fill:#2980B9,color:#fff
+    style FOUND fill:#F39C12,color:#fff
+    style ADAPT fill:#2980B9,color:#fff
+    style BRAINSTORM fill:#E91E63,color:#fff
+    style DIRECTFIX fill:#E67E22,color:#fff
+    style DIRECTTEST fill:#7B68EE,color:#fff
+    style DIRECTPR fill:#2ECC71,color:#fff
+    style REVIEW fill:#F39C12,color:#fff
+    style PLANMODE fill:#4A90D9,color:#fff
+    style QUALITY fill:#E91E63,color:#fff
+    style WRITE fill:#4A90D9,color:#fff
+    style EXITPLAN fill:#4A90D9,color:#fff
+    style VIEWER fill:#2980B9,color:#fff
+    style BRANCH fill:#1ABC9C,color:#fff
+    style STEP fill:#8E44AD,color:#fff
+    style REPLAN fill:#4A90D9,color:#fff
+    style STEPBR fill:#1ABC9C,color:#fff
+    style TESTFIRST fill:#F39C12,color:#fff
+    style IMPLEMENT fill:#3498DB,color:#fff
+    style FIXCHECK fill:#2ECC71,color:#fff
+    style FIX fill:#E67E22,color:#fff
+    style FIXAUDIT fill:#E67E22,color:#fff
+    style FIXFINAL fill:#E67E22,color:#fff
+    style TEST fill:#7B68EE,color:#fff
+    style TDDTEST fill:#3498DB,color:#fff
+    style AUDIT fill:#9B59B6,color:#fff
+    style AUDITSCAN fill:#3498DB,color:#fff
+    style FINALSCAN fill:#3498DB,color:#fff
+    style CMAPSCAN fill:#3498DB,color:#fff
+    style CMAPSYNTH fill:#9B59B6,color:#fff
+    style ORACLE_SCAN fill:#3498DB,color:#fff
+    style MAINPR fill:#2ECC71,color:#fff
+    style RESEARCH fill:#F39C12,color:#fff
+    style EXPLORER fill:#3498DB,color:#fff
+    style LIBRARIAN fill:#3498DB,color:#fff
+    style ORACLE_ESC fill:#9B59B6,color:#fff
+    style FINAL fill:#9B59B6,color:#fff
+    style STEPPR fill:#2ECC71,color:#fff
+    style MERGE_STEP fill:#27AE60,color:#fff
+    style CHECKBOX fill:#2980B9,color:#fff
+    style PLANCOMPLETE fill:#27AE60,color:#fff
+    style CODEMAP fill:#F39C12,color:#fff
+    style LEARN fill:#2980B9,color:#fff
+    style MERGE_MAIN fill:#27AE60,color:#fff
+    style DONE fill:#27AE60,color:#fff
+    style CLEAN fill:#F39C12,color:#fff
+    style HOTFIX fill:#E74C3C,color:#fff
+    style HOTFIXFIXER fill:#E67E22,color:#fff
+    style HOTFIXTEST fill:#7B68EE,color:#fff
+    style HOTFIXPR fill:#2ECC71,color:#fff
+    style HOTFIXMERGE fill:#27AE60,color:#fff
+    style GREENFIELD fill:#16A085,color:#fff
+    style GENDOCS fill:#1ABC9C,color:#fff
+>>>>>>> feature/sync-live-plugin-enhancements
 ```
 
 ### The 6 Steps Explained:
@@ -281,7 +471,7 @@ Background memory consolidation using Haiku. Runs every 5 sessions / 24 hours. C
 
 ### 1. Enable the plugin
 
-Add to `~/.claude/settings.json`:
+Add to `~/.gemini/settings.json`:
 
 ```json
 {
@@ -328,10 +518,10 @@ lean-flow automatically enables these companion plugins on first session:
 | **caveman** | [JuliusBrussee/caveman](https://github.com/JuliusBrussee/caveman) | Token-compressed communication mode |
 | **plan-plus** | [RandyHaylor/plan-plus](https://github.com/RandyHaylor/plan-plus) | Structured planning with skeleton + step files |
 
-**To disable caveman auto-enable**, set `LEAN_FLOW_ENABLE_CAVEMAN=false` in your shell environment, or set `enabledPlugins."caveman@caveman" = false` in `~/.claude/settings.json` (lean-flow respects user-set values).
+**To disable caveman auto-enable**, set `LEAN_FLOW_ENABLE_CAVEMAN=false` in your shell environment, or set `enabledPlugins."caveman@caveman" = false` in `~/.gemini/settings.json` (lean-flow respects user-set values).
 
 > **Important:** lean-flow uses **plan-plus** for planning. The flow is:
-> 1. `EnterPlanMode` — opens plan file at `~/.claude/plans/`
+> 1. `EnterPlanMode` — opens plan file at `~/.gemini/plans/`
 > 2. Invoke `writing-plans` skill for quality guidance (how to write good plans)
 > 3. Write the plan to the plan mode file (wrong directory blocked by hook)
 > 4. `ExitPlanMode` — plan-plus restructures into skeleton + steps, plan viewer opens
@@ -353,7 +543,7 @@ The audit checks for:
 - **docs/ARCHITECTURE.md** — system design.
 - **docs/DOMAIN.md** — entity relationships.
 - **per-folder codemap.md** — module-level detail.
-- **Hooks** — `.claude/settings.json`, `.claude/hooks/session-start.sh`.
+- **Hooks** — `.gemini/settings.json`, `.gemini/hooks/session-start.sh`.
 - **ADRs** — `docs/adr/` architecture decisions.
 - **CI/CD** — `.github/workflows/`, coverage gates.
 - **Pre-commit gates** — `lefthook.yml`, `.pre-commit-config.yaml`.
@@ -387,7 +577,7 @@ bash /path/to/lean-flow/plugin/scripts/uninstall.sh
 
 Or if installed as a plugin:
 ```bash
-bash ~/.claude/plugins/cache/lean-flow/*/plugin/scripts/uninstall.sh
+bash ~/.gemini/plugins/cache/lean-flow/*/plugin/scripts/uninstall.sh
 ```
 
 This removes: knowledge MCP, Playwright MCP, SwiftBar monitor, launchd daemon, dream state, and config file. Pattern database deletion requires confirmation.
@@ -396,7 +586,7 @@ This removes: knowledge MCP, Playwright MCP, SwiftBar monitor, launchd daemon, d
 
 ## Configuration
 
-Customize lean-flow by creating `~/.claude/lean-flow.json`:
+Customize lean-flow by creating `~/.gemini/lean-flow.json`:
 
 ```json
 {
@@ -427,8 +617,8 @@ All fields are optional — defaults are used for any missing field.
 ## Team Usage & CI/CD
 
 **Sharing patterns across a team:**
-- Export: `sqlite3 ~/.claude/knowledge/patterns.db ".dump patterns" > patterns.sql`
-- Import: `sqlite3 ~/.claude/knowledge/patterns.db < patterns.sql`
+- Export: `sqlite3 ~/.gemini/knowledge/patterns.db ".dump patterns" > patterns.sql`
+- Import: `sqlite3 ~/.gemini/knowledge/patterns.db < patterns.sql`
 
 **Monorepos:** Use distinct `project` names per service when calling `pattern_store`.
 
@@ -471,7 +661,7 @@ lean-flow/
 │   ├── ensure-cartography.sh    # SessionStart: detect codebase map changes
 │   ├── bash-guard.sh            # PreToolUse Bash: unified guard (protected-push, no-verify, secrets, Claude identity, PR comments, branch-delete)
 │   ├── warn-secret-files.sh     # PreToolUse Write|Edit: warn near secret paths
-│   ├── block-wrong-plan-dir.sh  # PreToolUse Write|Edit: block plans outside ~/.claude/plans/
+│   ├── block-wrong-plan-dir.sh  # PreToolUse Write|Edit: block plans outside ~/.gemini/plans/
 │   ├── auto-compress-output.sh  # PreToolUse Bash: compress high-output commands via Haiku
 │   ├── file-read-gate.sh        # PreToolUse Read: inject recent git activity (~20 tokens, zero AI)
 │   ├── restructure-plan.py      # PostToolUse ExitPlanMode: plan-plus restructuring
@@ -492,7 +682,7 @@ lean-flow/
 │   ├── session-summary.sh       # Stop/PostCompact: write session summary (background)
 │   │
 │   │   # — Utilities —
-│   ├── load-config.sh           # Load ~/.claude/lean-flow.json config
+│   ├── load-config.sh           # Load ~/.gemini/lean-flow.json config
 │   ├── token-budget.sh          # Token budget tracking
 │   ├── plan-server.mjs          # Live plan viewer server (SSE + file watch)
 │   ├── plan-viewer.mjs          # Static HTML generator (fallback)
@@ -504,7 +694,7 @@ lean-flow/
 │   └── claude-monitor/          # SwiftBar plugin + fetcher daemon
 │       ├── claude-usage.30s.sh  # SwiftBar display script (reads cache, renders menu)
 │       ├── claude-usage-fetch.sh # Fetcher daemon (OAuth → usage API + local token stats)
-│       ├── local-tokens.py      # Per-model token aggregator from ~/.claude JSONL files
+│       ├── local-tokens.py      # Per-model token aggregator from ~/.gemini JSONL files
 │       └── install.command      # One-click installer for SwiftBar + launchd daemon
 ├── templates/
 │   ├── PULL_REQUEST_TEMPLATE.md      # Step PR (child → parent)
@@ -540,7 +730,7 @@ lean-flow/
 
 ## Companion Tools (auto-bootstrapped)
 
-On `SessionStart`, lean-flow ensures these tools are installed and wired. Each is **opt-out** via env var (e.g. `LEAN_FLOW_ENABLE_OMNI=false` or `~/.claude/lean-flow.json`).
+On `SessionStart`, lean-flow ensures these tools are installed and wired. Each is **opt-out** via env var (e.g. `LEAN_FLOW_ENABLE_OMNI=false` or `~/.gemini/lean-flow.json`).
 
 | Tool | What it does | Bootstrap | Install method |
 |---|---|---|---|
@@ -571,7 +761,7 @@ bash plugin/scripts/lean-preset.sh powerful    # sonnet + sonnet + opus
 bash plugin/scripts/lean-preset.sh thinking    # opus everywhere
 ```
 
-Custom presets at `~/.claude/lean-flow-presets.json`:
+Custom presets at `~/.gemini/lean-flow-presets.json`:
 
 ```json
 { "myteam": { "haiku": "claude-haiku-4-5-20251001", "sonnet": "claude-sonnet-4-6", "opus": "claude-opus-4-7" } }
@@ -582,7 +772,7 @@ Custom presets at `~/.claude/lean-flow-presets.json`:
 | Hook | Trigger | What it does |
 |---|---|---|
 | `delegate-task-retry.sh` | PostToolUse Task | When a Task call fails (missing subagent_type, unknown agent, validation error), appends inline retry guidance with a corrected example |
-| `todo-hygiene.sh` | Stop + UserPromptSubmit | If you stop with open `[ ]` steps in `~/.claude/plans/`, the next prompt gets a reminder pointing at the unfinished plan |
+| `todo-hygiene.sh` | Stop + UserPromptSubmit | If you stop with open `[ ]` steps in `~/.gemini/plans/`, the next prompt gets a reminder pointing at the unfinished plan |
 | `enforce-tdd.sh` | PostToolUse Write/Edit | Reminds about test-driven development on code creation |
 
 ## Testing

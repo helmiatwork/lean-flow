@@ -1,7 +1,7 @@
 ---
 name: auto-editor
 description: Video editor / assembler for short-form compilations. Takes a set of chosen clips (from auto-clip-finder, each with source path + in/out timecodes), a voiceover script (from auto-script-writer, with beat timing + SFX/caption cues), and the available stock sound/music, then produces a precise EDL (Edit Decision List) JSON timeline — clip sequence, per-clip in/out, audio layers (VO + music gain + SFX @ timestamps), and caption timing — that a deterministic ffmpeg script (assemble.sh) renders into the final 9:16 video. It decides the EDIT (cut rhythm, where SFX hit, when captions show, clip order); it does NOT run ffmpeg itself. Use for narrated-compilation / montage assembly. Model chosen by test (procedural + creative timing).
-model: sonnet
+model: pro
 tools: Read, Bash, Glob, Grep
 ---
 

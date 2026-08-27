@@ -96,7 +96,7 @@ TEST_HOME=$(mktemp -d)
 output=$(HOME="$TEST_HOME" bash "${REPO_ROOT}/plugin/scripts/todo-hygiene.sh" stop 2>&1)
 exit_code=$?
 assert_eq "$exit_code" "0" "stop mode exits 0"
-[ ! -f "$TEST_HOME/.claude/.todo-hygiene-pending" ] \
+[ ! -f "$TEST_HOME/.gemini/.todo-hygiene-pending" ] \
   && { echo "✓ no marker created when no plans"; PASS=$((PASS+1)); } \
   || { echo "✗ unexpected marker"; FAIL=$((FAIL+1)); }
 rm -rf "$TEST_HOME"
@@ -110,14 +110,14 @@ echo "=== todo-hygiene: stop mode survives a fully-complete plan alongside open 
 # plan was silently skipped and no marker was written. Fixture below
 # reproduces that exact ordering.
 TEST_HOME=$(mktemp -d)
-mkdir -p "$TEST_HOME/.claude/plans/aaa-all-done" "$TEST_HOME/.claude/plans/zzz-has-open"
-cat > "$TEST_HOME/.claude/plans/aaa-all-done/skeleton.md" <<'EOF'
+mkdir -p "$TEST_HOME/.gemini/plans/aaa-all-done" "$TEST_HOME/.gemini/plans/zzz-has-open"
+cat > "$TEST_HOME/.gemini/plans/aaa-all-done/skeleton.md" <<'EOF'
 # aaa-all-done
 
 - [x] step 1
 - [x] step 2
 EOF
-cat > "$TEST_HOME/.claude/plans/zzz-has-open/skeleton.md" <<'EOF'
+cat > "$TEST_HOME/.gemini/plans/zzz-has-open/skeleton.md" <<'EOF'
 # zzz-has-open
 
 - [x] step 1
@@ -125,8 +125,8 @@ cat > "$TEST_HOME/.claude/plans/zzz-has-open/skeleton.md" <<'EOF'
 - [ ] step 3
 EOF
 HOME="$TEST_HOME" bash "${REPO_ROOT}/plugin/scripts/todo-hygiene.sh" stop > /dev/null 2>&1
-if [ -f "$TEST_HOME/.claude/.todo-hygiene-pending" ]; then
-  marker=$(cat "$TEST_HOME/.claude/.todo-hygiene-pending")
+if [ -f "$TEST_HOME/.gemini/.todo-hygiene-pending" ]; then
+  marker=$(cat "$TEST_HOME/.gemini/.todo-hygiene-pending")
   echo "✓ marker created despite zero-count plan in scan: $marker"
   PASS=$((PASS+1))
   assert_contains "$marker" "zzz-has-open" "marker references the open-step plan"
@@ -140,8 +140,8 @@ rm -rf "$TEST_HOME"
 echo ""
 echo "=== todo-hygiene: stop mode writes marker when open steps exist ==="
 TEST_HOME=$(mktemp -d)
-mkdir -p "$TEST_HOME/.claude/plans/my-plan"
-cat > "$TEST_HOME/.claude/plans/my-plan/skeleton.md" <<'EOF'
+mkdir -p "$TEST_HOME/.gemini/plans/my-plan"
+cat > "$TEST_HOME/.gemini/plans/my-plan/skeleton.md" <<'EOF'
 # my-plan
 
 - [x] step 1 done
@@ -149,8 +149,8 @@ cat > "$TEST_HOME/.claude/plans/my-plan/skeleton.md" <<'EOF'
 - [ ] step 3 pending
 EOF
 HOME="$TEST_HOME" bash "${REPO_ROOT}/plugin/scripts/todo-hygiene.sh" stop > /dev/null 2>&1
-if [ -f "$TEST_HOME/.claude/.todo-hygiene-pending" ]; then
-  marker=$(cat "$TEST_HOME/.claude/.todo-hygiene-pending")
+if [ -f "$TEST_HOME/.gemini/.todo-hygiene-pending" ]; then
+  marker=$(cat "$TEST_HOME/.gemini/.todo-hygiene-pending")
   echo "✓ marker created: $marker"
   PASS=$((PASS+1))
   assert_contains "$marker" "2|" "marker reflects 2 open steps"
@@ -166,7 +166,7 @@ INPUT='{"prompt":"continue please","session_id":"x"}'
 output=$(echo "$INPUT" | HOME="$TEST_HOME" bash "${REPO_ROOT}/plugin/scripts/todo-hygiene.sh" user-prompt-submit 2>&1)
 assert_contains "$output" "todo-hygiene" "reminder injected"
 assert_contains "$output" "my-plan" "reminder names the plan"
-[ ! -f "$TEST_HOME/.claude/.todo-hygiene-pending" ] \
+[ ! -f "$TEST_HOME/.gemini/.todo-hygiene-pending" ] \
   && { echo "✓ marker cleared after injection"; PASS=$((PASS+1)); } \
   || { echo "✗ marker not cleared"; FAIL=$((FAIL+1)); }
 rm -rf "$TEST_HOME"
@@ -182,8 +182,8 @@ rm -rf "$TEST_HOME"
 echo ""
 echo "=== lean-preset: lists profiles when called with no args ==="
 TEST_HOME=$(mktemp -d)
-mkdir -p "$TEST_HOME/.claude"
-cat > "$TEST_HOME/.claude/settings.json" <<'EOF'
+mkdir -p "$TEST_HOME/.gemini"
+cat > "$TEST_HOME/.gemini/settings.json" <<'EOF'
 {
   "env": { "ANTHROPIC_DEFAULT_HAIKU_MODEL": "claude-haiku-4-5-20251001" },
   "permissions": {}, "hooks": {}, "enabledPlugins": {}
@@ -197,9 +197,9 @@ assert_contains "$output" "cheap" "cheap profile shown"
 echo ""
 echo "=== lean-preset: cheap profile sets all 3 envs to haiku ==="
 HOME="$TEST_HOME" bash "${REPO_ROOT}/plugin/scripts/lean-preset.sh" cheap > /dev/null 2>&1
-haiku=$(jq -r '.env.ANTHROPIC_DEFAULT_HAIKU_MODEL' "$TEST_HOME/.claude/settings.json")
-sonnet=$(jq -r '.env.ANTHROPIC_DEFAULT_SONNET_MODEL' "$TEST_HOME/.claude/settings.json")
-opus=$(jq -r '.env.ANTHROPIC_DEFAULT_OPUS_MODEL' "$TEST_HOME/.claude/settings.json")
+haiku=$(jq -r '.env.ANTHROPIC_DEFAULT_HAIKU_MODEL' "$TEST_HOME/.gemini/settings.json")
+sonnet=$(jq -r '.env.ANTHROPIC_DEFAULT_SONNET_MODEL' "$TEST_HOME/.gemini/settings.json")
+opus=$(jq -r '.env.ANTHROPIC_DEFAULT_OPUS_MODEL' "$TEST_HOME/.gemini/settings.json")
 assert_contains "$haiku" "haiku" "haiku env set to haiku model"
 assert_contains "$sonnet" "haiku" "sonnet env set to haiku model (cheap)"
 assert_contains "$opus" "haiku" "opus env set to haiku model (cheap)"
@@ -207,7 +207,7 @@ assert_contains "$opus" "haiku" "opus env set to haiku model (cheap)"
 echo ""
 echo "=== lean-preset: powerful profile drops haiku ==="
 HOME="$TEST_HOME" bash "${REPO_ROOT}/plugin/scripts/lean-preset.sh" powerful > /dev/null 2>&1
-haiku=$(jq -r '.env.ANTHROPIC_DEFAULT_HAIKU_MODEL' "$TEST_HOME/.claude/settings.json")
+haiku=$(jq -r '.env.ANTHROPIC_DEFAULT_HAIKU_MODEL' "$TEST_HOME/.gemini/settings.json")
 assert_contains "$haiku" "sonnet" "powerful preset replaces haiku with sonnet"
 
 echo ""

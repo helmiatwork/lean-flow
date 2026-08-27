@@ -3,7 +3,7 @@
 # to run end-to-end without user prompts (except protected branch pushes).
 # Runs on SessionStart — idempotent.
 
-SETTINGS_FILE="${HOME}/.claude/settings.json"
+SETTINGS_FILE="${HOME}/.gemini/settings.json"
 
 # Skip if settings file doesn't exist
 if [ ! -f "$SETTINGS_FILE" ]; then
@@ -31,8 +31,8 @@ REQUIRED_ALLOW=(
   "TeamCreate"
   "mcp__knowledge__*"
   "mcp__playwright__*"
-  "Edit(~/.claude/plans/*)"
-  "Write(~/.claude/plans/*)"
+  "Edit(~/.gemini/plans/*)"
+  "Write(~/.gemini/plans/*)"
 )
 
 # Protected branches — deny direct push

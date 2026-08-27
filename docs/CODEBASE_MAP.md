@@ -59,7 +59,7 @@ Hook bodies and utilities (all registered in hooks.json or used by other scripts
 
 - `bash-guard.sh` — PreToolUse Bash: unified guard blocking protected-push, --no-verify, --no-gpg-sign, secret-file staging, Claude identity, PR comments, branch-delete.
 - `warn-secret-files.sh` — PreToolUse Write/Edit: warn near secret paths.
-- `block-wrong-plan-dir.sh` — PreToolUse Write/Edit: block plans outside ~/.claude/plans/.
+- `block-wrong-plan-dir.sh` — PreToolUse Write/Edit: block plans outside ~/.gemini/plans/.
 
 **Automation hooks**:
 
@@ -81,7 +81,7 @@ Hook bodies and utilities (all registered in hooks.json or used by other scripts
 **Utilities**:
 
 - `workflow-hook.sh` — single entry point, routes by event, merges additionalContext.
-- `load-config.sh` — load ~/.claude/lean-flow.json config.
+- `load-config.sh` — load ~/.gemini/lean-flow.json config.
 - `token-budget.sh` — token budget tracking.
 - `restructure-plan.py` — plan-plus restructuring (PostToolUse ExitPlanMode).
 - `cartographer.py` — Tier 2: MD5 change detection per folder.

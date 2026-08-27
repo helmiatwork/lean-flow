@@ -22,7 +22,7 @@ elif echo "$OUTPUT" | grep -qiE '(pass|passed|ok|success|✓)\s|tests?\s+passed|
 
   # Nudge pattern_store if knowledge MCP is available and we haven't nudged this session
   NUDGE_FILE="/tmp/lean-flow-pattern-nudge"
-  if [ ! -f "$NUDGE_FILE" ] && [ -f "${HOME}/.claude/knowledge/patterns.db" ]; then
+  if [ ! -f "$NUDGE_FILE" ] && [ -f "${HOME}/.gemini/knowledge/patterns.db" ]; then
     touch "$NUDGE_FILE"
     REPO=$(basename "$(git rev-parse --show-toplevel 2>/dev/null)" 2>/dev/null || echo "")
     echo "{\"hookSpecificOutput\":{\"hookEventName\":\"PostToolUse\",\"additionalContext\":\"Tests passed. If this solved a non-trivial problem, run pattern_store to save the approach for future sessions.\"}}"

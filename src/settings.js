@@ -2,7 +2,7 @@ function commandFor(hook, hooksDir) {
   return `${hook.runner} ${hooksDir}/${hook.script}`
 }
 
-export function mergeHooks(settings, hooks, home, hooksDir = `${home}/.claude/hooks`) {
+export function mergeHooks(settings, hooks, home, hooksDir = `${home}/.gemini/hooks`) {
   const out = structuredClone(settings)
   out.hooks ??= {}
   for (const h of hooks) {

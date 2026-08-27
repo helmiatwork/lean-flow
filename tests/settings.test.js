@@ -8,7 +8,7 @@ const HOME = '/home/teammate'
 test('mergeHooks rewrites path to target HOME', () => {
   const out = mergeHooks({}, hooks, HOME)
   const cmd = out.hooks.SessionStart[0].hooks[0].command
-  assert.equal(cmd, 'bash /home/teammate/.claude/hooks/leanflow-fix.sh')
+  assert.equal(cmd, 'bash /home/teammate/.gemini/hooks/leanflow-fix.sh')
 })
 
 test('mergeHooks is idempotent — no duplicate on second run', () => {

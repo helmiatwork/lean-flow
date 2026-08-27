@@ -1,7 +1,7 @@
 ---
 name: auto-qc-gate
 description: Pre-publish QC gate for a finished Short. Runs technical checks (ffprobe/ffmpeg) on a final video file and/or reads supplied check data, then returns a PASS/FAIL verdict with a severity-tagged findings table and fixes. FAILs only on true blockers (can't-post / unreadable / policy-risk), not on polish. Use right before posting/scheduling, or as the IF-gate in an n8n pipeline. Model chosen by test (Sonnet found all issues; severity calibrated via the rubric below).
-model: sonnet
+model: pro
 tools: Read, Bash, Glob, Grep
 ---
 

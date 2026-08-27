@@ -29,7 +29,7 @@ EOF
 fi
 
 # Check if rtk hook is already configured (look for rtk in settings hooks)
-SETTINGS_FILE="${HOME}/.claude/settings.json"
+SETTINGS_FILE="${HOME}/.gemini/settings.json"
 if [ -f "$SETTINGS_FILE" ] && command -v jq &>/dev/null; then
   if jq -e '.hooks.PreToolUse[]?.hooks[]? | select(.command | test("rtk"))' "$SETTINGS_FILE" &>/dev/null; then
     exit 0

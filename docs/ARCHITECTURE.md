@@ -212,18 +212,18 @@ Organized by event type:
 |------|-------|------|-----------|
 | `docs/CODEBASE_MAP.md` | Cartographer (Tier 1) | Structural changes only | Rare (major refactors) |
 | `<folder>/codemap.md` | Cartographer (Tier 2) | After each PR merge | After every commit if touched |
-| `~/.claude/plans/` | Orchestrator + Fixer | During planning + execution | Per task |
-| `~/.claude/MEMORY.md` | Orchestrator + background jobs | Session end, periodically | Session end |
+| `~/.gemini/plans/` | Orchestrator + Fixer | During planning + execution | Per task |
+| `~/.gemini/MEMORY.md` | Orchestrator + background jobs | Session end, periodically | Session end |
 | `plugin/agents/*.md` | Designer/Fixer (policy updates) | Policy changes | Rare |
 | `docs/adr/*.md` | Orchestrator + Fixer | Architecture decisions | As needed |
-| `.claude/settings.json` | Fixer (on setup) | First install, config tweaks | Rare |
+| `.gemini/settings.json` | Fixer (on setup) | First install, config tweaks | Rare |
 
 ## Security Boundaries
 
 1. **Protected branches** — main, master, staging (hook blocks push).
 2. **Secrets detection** — block .env, credentials, API keys in commits (hook warns).
 3. **Attribution filtering** — block Claude/AI/Co-Authored-By in commits + PRs (hook rejects).
-4. **Plan directory** — block writes outside ~/.claude/plans/ (hook rejects).
+4. **Plan directory** — block writes outside ~/.gemini/plans/ (hook rejects).
 5. **Oracle read gate** — oracle never reads files directly; only receives summaries from explorer.
 
 ## Performance Considerations

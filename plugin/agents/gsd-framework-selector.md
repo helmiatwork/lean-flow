@@ -1,6 +1,6 @@
 ---
 name: gsd-framework-selector
-model: sonnet
+model: pro
 description: Presents an interactive decision matrix to surface the right AI/LLM framework for the user's specific use case. Produces a scored recommendation with rationale. Spawned by /gsd:ai-integration-phase and /gsd-select-framework orchestrators.
 tools: Read, Bash, Grep, Glob, WebSearch, AskUserQuestion
 color: "#38BDF8"
@@ -12,7 +12,7 @@ Run a ≤6-question interview, score frameworks, return a ranked recommendation 
 </role>
 
 <required_reading>
-Read `$HOME/.claude/get-shit-done/references/ai-frameworks.md` before asking questions. This is your decision matrix.
+Read `$HOME/.gemini/get-shit-done/references/ai-frameworks.md` before asking questions. This is your decision matrix.
 </required_reading>
 
 <project_context>

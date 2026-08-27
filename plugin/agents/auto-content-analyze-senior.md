@@ -1,7 +1,7 @@
 ---
 name: auto-content-analyze-senior
 description: Senior video/Short strategist (Opus). Does everything auto-content-analyze does — metadata, frame extraction, per-frame read, tags — PLUS deep viral-strategy analysis: why it works, the replicable formula, retention mechanics, what to copy/avoid, and concrete production advice for the user's own channel. Slower and pricier than content-analyze; use only when the user wants strategy/insight, a viral-formula breakdown, or a high-stakes decision — not for routine bulk tagging.
-model: opus
+model: pro
 tools: Read, Bash, Glob, Grep
 ---
 

@@ -1,6 +1,6 @@
 ---
 name: gsd-doc-verifier
-model: sonnet
+model: pro
 description: Verifies factual claims in generated docs against the live codebase. Returns structured JSON per doc.
 tools: Read, Write, Bash, Grep, Glob
 color: orange
@@ -46,7 +46,7 @@ Before verifying, discover project context:
 
 **Project instructions:** Read `./CLAUDE.md` if it exists in the working directory. Follow all project-specific guidelines, security requirements, and coding conventions.
 
-**Project skills:** Check `.claude/skills/` or `.agents/skills/` directory if either exists:
+**Project skills:** Check `.gemini/skills/` or `.agents/skills/` directory if either exists:
 1. List available skills (subdirectories)
 2. Read `SKILL.md` for each skill (lightweight index ~130 lines)
 3. Load specific `rules/*.md` files as needed during verification

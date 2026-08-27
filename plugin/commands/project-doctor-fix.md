@@ -91,9 +91,9 @@ For each missing item:
 
 Special-case items:
 - **SessionStart hook (#13)** — TWO-STEP write requires this order:
-  1. Validate `.claude/settings.json` exists and parses as valid JSON. If file does not exist, create it with `{}`. If exists but invalid JSON, ABORT this item with error message "settings.json is not valid JSON; manual fix required" and continue with other items.
-  2. Patch `.claude/settings.json` to add the `hooks.SessionStart` entry. Re-validate the resulting JSON parses. If parse fails, restore from in-memory backup and ABORT this item.
-  3. Only after settings.json is successfully patched: write `.claude/hooks/session-start.sh` and `chmod +x` it.
+  1. Validate `.gemini/settings.json` exists and parses as valid JSON. If file does not exist, create it with `{}`. If exists but invalid JSON, ABORT this item with error message "settings.json is not valid JSON; manual fix required" and continue with other items.
+  2. Patch `.gemini/settings.json` to add the `hooks.SessionStart` entry. Re-validate the resulting JSON parses. If parse fails, restore from in-memory backup and ABORT this item.
+  3. Only after settings.json is successfully patched: write `.gemini/hooks/session-start.sh` and `chmod +x` it.
 
   If step 2 fails, do NOT write the script — leaves repo in clean state.
 - **Pre-commit hook (#17)**: write `lefthook.yml` with default jobs (lint, secret-scan).
@@ -103,13 +103,13 @@ Special-case items:
   ```
   Ask user which folders need own rules; write one CLAUDE.md per chosen folder.
 - **CI gate (#20)**: write `.github/workflows/ci.yml` with default test+lint job (detect language from existing files).
-- **MEMORY.md (#14)**: write `.claude/MEMORY.md` with seed structure (Index + sections).
+- **MEMORY.md (#14)**: write `.gemini/MEMORY.md` with seed structure (Index + sections).
 - **Symbol graph (#15)**: don't auto-generate index files; instead write a `docs/SYMBOL_GRAPH.md` documenting which tool the team picked + how to refresh.
 - **ADR folder (#11)**: create `docs/adr/template.md` (Nygard format) and `docs/adr/0001-baseline.md` summarizing major existing tech decisions detected from CLAUDE.md / Gemfile / package.json. Commit message MUST be: `docs(adr): add baseline ADR seed — review before finalizing`. The summary is auto-generated and quality is unverified.
 - **STAR enforcement (#21)**: check if `CLAUDE.md` (root or global fallback) contains STAR PROTOCOL or Tier Routing sections. If missing, do not auto-generate — instead instruct user to run `/init` or manually add the relevant section to CLAUDE.md. This is a rules item, not auto-fillable content.
 - **Orchestrator binding (#22)**: check if `CLAUDE.md` (root or global fallback) contains explicit orchestrator governance (phrases like "orchestrator never edits" and "orchestrator never pushes"). If missing, do not auto-generate — instruct user to add via `/init` or manual CLAUDE.md edit. This is a rules item.
 - **Companion plugins (#23)**: when missing, guide user to enable superpowers and caveman plugins via `/plugin enable superpowers@claude-plugins-official` and `/plugin enable caveman@caveman` in the Claude Code session. Document this in the fix output; do not attempt to modify settings.json directly.
-- **Pre-commit gates (#24)**: check if `.claude/settings.json` or the lean-flow plugin's `hooks.json` declares the gate hooks. If missing, instruct user that gates are auto-declared by lean-flow plugin on install; if gates are actually absent, recommend running `gh extension install cli/gh-extension-preinstall` and re-initializing hooks. Do not auto-generate.
+- **Pre-commit gates (#24)**: check if `.gemini/settings.json` or the lean-flow plugin's `hooks.json` declares the gate hooks. If missing, instruct user that gates are auto-declared by lean-flow plugin on install; if gates are actually absent, recommend running `gh extension install cli/gh-extension-preinstall` and re-initializing hooks. Do not auto-generate.
 - **Pattern memory (#25)**: check if `CLAUDE.md` (root or global fallback) mentions pattern_search or pattern_store. If missing, instruct user to add a "Knowledge MCP" or "Pattern Memory" section to CLAUDE.md as part of their team/project rules. Do not auto-generate content.
 - **RTK CLI (#26)** and **omni CLI (#27)**: These are advisory items. Do NOT auto-generate. Instead, print install hints if missing:
   - RTK: `cargo install rtk` or https://github.com/yourusername/rtk
