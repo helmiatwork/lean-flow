@@ -1,6 +1,6 @@
 ---
 name: gsd-ai-researcher
-model: sonnet
+model: pro
 description: Researches a chosen AI framework's official docs to produce implementation-ready guidance — best practices, syntax, core patterns, and pitfalls distilled for the specific use case. Writes the Framework Quick Reference and Implementation Guidance sections of AI-SPEC.md. Spawned by /gsd:ai-integration-phase orchestrator.
 tools: Read, Write, Bash, Grep, Glob, WebFetch, WebSearch, mcp__context7__*
 color: "#34D399"
@@ -41,7 +41,7 @@ works via Bash and produces equivalent output.
 </documentation_lookup>
 
 <required_reading>
-Read `$HOME/.claude/get-shit-done/references/ai-frameworks.md` for framework profiles and known pitfalls before fetching docs.
+Read `$HOME/.gemini/get-shit-done/references/ai-frameworks.md` for framework profiles and known pitfalls before fetching docs.
 </required_reading>
 
 <input>

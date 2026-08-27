@@ -2,7 +2,7 @@
 # Knowledge pre-filter — inject relevant patterns when planning starts
 # Fires on EnterPlanMode (PostToolUse) to surface solved patterns before re-solving
 
-KNOWLEDGE_DB="${HOME}/.claude/knowledge/patterns.db"
+KNOWLEDGE_DB="${HOME}/.gemini/knowledge/patterns.db"
 [ ! -f "$KNOWLEDGE_DB" ] || ! command -v sqlite3 &>/dev/null && exit 0
 
 REPO=$(basename "$(git rev-parse --show-toplevel 2>/dev/null)" 2>/dev/null || echo "unknown")

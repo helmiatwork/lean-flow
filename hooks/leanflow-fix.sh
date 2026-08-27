@@ -7,13 +7,13 @@
 #   2. Dangling skill refs in systematic-debugging.md and test-driven-development.md
 #
 # Idempotency:
-#   - Per-version marker at ~/.claude/.lean-flow-fix-applied.<plugin-hash>
+#   - Per-version marker at ~/.gemini/.lean-flow-fix-applied.<plugin-hash>
 #   - sed patches use distinctive sentinels so repeat runs are no-ops
 #
-# Usage: bash ~/.claude/scripts/lean-flow-fix.sh
+# Usage: bash ~/.gemini/scripts/lean-flow-fix.sh
 
 set -u
-LEAN_ROOT="$HOME/.claude/plugins/cache/lean-flow/lean-flow"
+LEAN_ROOT="$HOME/.gemini/plugins/cache/lean-flow/lean-flow"
 
 if [ ! -d "$LEAN_ROOT" ]; then
   echo "[lean-flow-fix] lean-flow not installed at $LEAN_ROOT — nothing to do"
@@ -26,7 +26,7 @@ fixed_any=0
 for VERSION_DIR in "$LEAN_ROOT"/*/; do
   [ -d "$VERSION_DIR/skills" ] || continue
   VERSION_HASH=$(basename "$VERSION_DIR")
-  MARKER="$HOME/.claude/.lean-flow-fix-applied.${VERSION_HASH}"
+  MARKER="$HOME/.gemini/.lean-flow-fix-applied.${VERSION_HASH}"
 
   if [ -f "$MARKER" ]; then
     echo "[lean-flow-fix] already applied for version $VERSION_HASH (skip)"

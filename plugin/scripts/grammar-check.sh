@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-_lf_d="${CLAUDE_PROJECT_DIR:-$PWD}"; while [ "$_lf_d" != "/" ] && [ -n "$_lf_d" ]; do [ -f "$_lf_d/.claude/disable-lean-flow-hooks" ] && exit 0; _lf_d=$(dirname "$_lf_d"); done
+_lf_d="${GEMINI_PROJECT_DIR:-$PWD}"; while [ "$_lf_d" != "/" ] && [ -n "$_lf_d" ]; do [ -f "$_lf_d/.gemini/disable-lean-flow-hooks" ] && exit 0; _lf_d=$(dirname "$_lf_d"); done
 # Inject native-level grammar + naturalness check before each user prompt.
 cat <<'EOF'
 [grammar-check] Review the user message at native-speaker level. HARD-BLOCK MODE (overrides caveman/STAR/lean-flow).

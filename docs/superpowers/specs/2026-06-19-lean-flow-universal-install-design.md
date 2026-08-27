@@ -9,7 +9,7 @@
 lean-flow today is a Claude Code marketplace plugin. Its real value — agents, skills,
 and especially the **hooks** (grammar/English check, STAR classifier, workflow-enforce,
 block-* guards) plus their backing services — lives as hand-wired entries in
-`~/.claude/settings.json` with hardcoded machine-local paths. Putting it on a teammate's
+`~/.gemini/settings.json` with hardcoded machine-local paths. Putting it on a teammate's
 machine means hand-copying scripts, hand-editing settings, and manually installing every
 external dependency (omni binary, node runtime, redis, gsd/caveman plugins).
 
@@ -37,7 +37,7 @@ Claude Code: any editor, via a request proxy.
 | Hook scope | **Whole personal kit** (lean-flow + gsd + caveman + omni + gitnexus) |
 | First target | **Both in parallel** (hooks adapter + proxy), sequenced behind a shared core |
 | Distribution | **npm `bunx` installer** |
-| Uninstall marker | **Path-prefix detection** (entries pointing at `~/.claude/hooks/` lean-flow scripts) |
+| Uninstall marker | **Path-prefix detection** (entries pointing at `~/.gemini/hooks/` lean-flow scripts) |
 | Missing deps | **Auto-bootstrap** (manifest-driven resolver) |
 | 3rd-party scripts | **Bundle everything** + `NOTICE` with licenses/attribution |
 
@@ -58,7 +58,7 @@ lean-flow/
 ```
 
 ### Unit A — npm installer (Claude Code + OpenCode hooks)
-`bunx lean-flow@latest install`. Copies bundled scripts → `~/.claude/hooks/`, **resolves
+`bunx lean-flow@latest install`. Copies bundled scripts → `~/.gemini/hooks/`, **resolves
 binaries on the target** (`command -v node`; never the author's `.nodenv` path),
 **idempotently merges** into `settings.json`.
 
@@ -97,16 +97,16 @@ bunx lean-flow install
   3. compute MISSING dependency set
   4. show ONE plan:  "Will install: redis, omni  (node ✓)"  → [Y/n]   (--yes to skip)
   5. install missing (brew/apt/plugin); start daemon services
-  6. copy hooks/* → ~/.claude/hooks/
+  6. copy hooks/* → ~/.gemini/hooks/
   7. for each manifest entry:
-       resolve binary; cmd = `bash ${TARGET_HOME}/.claude/hooks/<script>`   (rewritten)
+       resolve binary; cmd = `bash ${TARGET_HOME}/.gemini/hooks/<script>`   (rewritten)
        merge into settings.hooks[event] IF absent (dedupe by command)
   8. backup settings.json → settings.json.bak; write
   9. report what is live
 ```
 
 `uninstall` / `update`: **path-prefix detection** — operate only on entries whose command
-points at lean-flow scripts under `~/.claude/hooks/`. The teammate's other hooks are untouched.
+points at lean-flow scripts under `~/.gemini/hooks/`. The teammate's other hooks are untouched.
 
 ## Build order ("both parallel", sequenced safely)
 

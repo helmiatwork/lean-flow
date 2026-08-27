@@ -5,7 +5,7 @@
 # implementation auto-continues idle orchestrators when incomplete todos
 # remain. Claude Code's plugin API does not expose mid-session continuation,
 # so this is the *portable subset*: when Stop fires with incomplete plan
-# steps in ~/.claude/plans/, drop a marker; on next UserPromptSubmit, inject
+# steps in ~/.gemini/plans/, drop a marker; on next UserPromptSubmit, inject
 # a hygiene reminder that points at the unfinished work.
 #
 # Mode is selected by argv[1]: "stop" or "user-prompt-submit".
@@ -13,12 +13,12 @@
 set -uo pipefail
 
 MODE="${1:-stop}"
-MARKER="${HOME}/.claude/.todo-hygiene-pending"
+MARKER="${HOME}/.gemini/.todo-hygiene-pending"
 INPUT=$(cat 2>/dev/null || true)
 
 count_open_steps() {
-  # Walk ~/.claude/plans/<plan>/skeleton.md and count "- [ ]" / "[x]" entries.
-  local plans_dir="${HOME}/.claude/plans"
+  # Walk ~/.gemini/plans/<plan>/skeleton.md and count "- [ ]" / "[x]" entries.
+  local plans_dir="${HOME}/.gemini/plans"
   [ -d "$plans_dir" ] || { echo "0 0"; return; }
 
   local open=0

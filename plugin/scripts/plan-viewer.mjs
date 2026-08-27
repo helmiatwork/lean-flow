@@ -41,15 +41,15 @@ function extractPlanName(markdown) {
 }
 
 /** Extract project/repo name from skeleton markdown.
- *  Looks for `full plan: /path/to/repo/.claude/plans/...`
+ *  Looks for `full plan: /path/to/repo/.gemini/plans/...`
  *  and extracts the repo directory name.
  */
 function extractProjectName(markdown) {
   const match = markdown.match(/full plan:\s*(.+)/m);
   if (!match) return 'unknown';
-  // Extract repo name from path like /Users/x/Documents/repo/grewme/.claude/plans/...
+  // Extract repo name from path like /Users/x/Documents/repo/grewme/.gemini/plans/...
   const fullPath = match[1].trim();
-  const parts = fullPath.split('/.claude/');
+  const parts = fullPath.split('/.gemini/');
   if (parts.length >= 2) {
     return path.basename(parts[0]);
   }
@@ -149,8 +149,8 @@ function esc(str) {
 /**
  * Scan directories for skeleton .md files and resolve plan-plus step dirs.
  * We look in:
- *   1. plansDir (~/.claude/plans)
- *   2. <cwd>/.claude/plans  (project-local)
+ *   1. plansDir (~/.gemini/plans)
+ *   2. <cwd>/.gemini/plans  (project-local)
  */
 const scanDirs = [plansDir];
 const cwdPlans = path.join(process.cwd(), '.claude', 'plans');

@@ -72,8 +72,8 @@ assert_contains "$(echo "$output" | grep '^BRANCH_PREFIXES=' | cut -d= -f2)" "fe
 echo ""
 echo "=== Test 2: Override via config file ==="
 test_home=$(mktemp -d)
-mkdir -p "$test_home/.claude"
-cat > "$test_home/.claude/lean-flow.json" << 'EOF'
+mkdir -p "$test_home/.gemini"
+cat > "$test_home/.gemini/lean-flow.json" << 'EOF'
 {
   "models": {
     "fixer": "opus",
@@ -96,8 +96,8 @@ assert_eq "$(echo "$output" | grep '^EXPLORER_MODEL=' | cut -d= -f2)" "haiku" "n
 echo ""
 echo "=== Test 3: Array protectedBranches ==="
 test_home=$(mktemp -d)
-mkdir -p "$test_home/.claude"
-cat > "$test_home/.claude/lean-flow.json" << 'EOF'
+mkdir -p "$test_home/.gemini"
+cat > "$test_home/.gemini/lean-flow.json" << 'EOF'
 {
   "protectedBranches": ["main", "production", "staging"]
 }
@@ -110,8 +110,8 @@ assert_eq "$(echo "$output" | grep '^PROTECTED_BRANCHES=' | cut -d= -f2)" "main 
 echo ""
 echo "=== Test 4: String protectedBranches ==="
 test_home=$(mktemp -d)
-mkdir -p "$test_home/.claude"
-cat > "$test_home/.claude/lean-flow.json" << 'EOF'
+mkdir -p "$test_home/.gemini"
+cat > "$test_home/.gemini/lean-flow.json" << 'EOF'
 {
   "protectedBranches": "main production release"
 }
@@ -124,8 +124,8 @@ assert_eq "$(echo "$output" | grep '^PROTECTED_BRANCHES=' | cut -d= -f2)" "main 
 echo ""
 echo "=== Test 5: Partial config file (missing keys use defaults) ==="
 test_home=$(mktemp -d)
-mkdir -p "$test_home/.claude"
-cat > "$test_home/.claude/lean-flow.json" << 'EOF'
+mkdir -p "$test_home/.gemini"
+cat > "$test_home/.gemini/lean-flow.json" << 'EOF'
 {
   "models": {
     "fixer": "haiku"
@@ -143,8 +143,8 @@ assert_eq "$(echo "$output" | grep '^PROTECTED_BRANCHES=' | cut -d= -f2)" "main 
 echo ""
 echo "=== Test 6: Array branchPrefixes ==="
 test_home=$(mktemp -d)
-mkdir -p "$test_home/.claude"
-cat > "$test_home/.claude/lean-flow.json" << 'EOF'
+mkdir -p "$test_home/.gemini"
+cat > "$test_home/.gemini/lean-flow.json" << 'EOF'
 {
   "branchPrefixes": ["feature", "bug", "hotfix"]
 }
@@ -157,8 +157,8 @@ assert_eq "$(echo "$output" | grep '^BRANCH_PREFIXES=' | cut -d= -f2)" "feature 
 echo ""
 echo "=== Test 7: jq not available (graceful fallback) ==="
 test_home=$(mktemp -d)
-mkdir -p "$test_home/.claude"
-cat > "$test_home/.claude/lean-flow.json" << 'EOF'
+mkdir -p "$test_home/.gemini"
+cat > "$test_home/.gemini/lean-flow.json" << 'EOF'
 {
   "models": {
     "fixer": "opus"
@@ -192,8 +192,8 @@ assert_eq "$(echo "$output" | grep '^ORACLE_MODEL=' | cut -d= -f2)" "opus" "with
 echo ""
 echo "=== Test 8: Dream settings override ==="
 test_home=$(mktemp -d)
-mkdir -p "$test_home/.claude"
-cat > "$test_home/.claude/lean-flow.json" << 'EOF'
+mkdir -p "$test_home/.gemini"
+cat > "$test_home/.gemini/lean-flow.json" << 'EOF'
 {
   "dream": {
     "sessions": 10,
@@ -210,8 +210,8 @@ assert_eq "$(echo "$output" | grep '^DREAM_HOURS=' | cut -d= -f2)" "48" "overrid
 echo ""
 echo "=== Test 9: All features override ==="
 test_home=$(mktemp -d)
-mkdir -p "$test_home/.claude"
-cat > "$test_home/.claude/lean-flow.json" << 'EOF'
+mkdir -p "$test_home/.gemini"
+cat > "$test_home/.gemini/lean-flow.json" << 'EOF'
 {
   "protectedBranches": ["main"],
   "models": {

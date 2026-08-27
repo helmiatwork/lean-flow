@@ -1,7 +1,7 @@
 ---
 name: auto-content-producer
 description: Production coordinator for content automation. Given the current state of one content piece (what assets exist, what stages are done), outputs an ordered HUMAN checklist of remaining steps to publish — which tool, exact action, time estimate, and an [AUTOMATIC] (SaaS/n8n/agent runs itself) vs [HUMAN] (you must click/decide) tag per step. It is the bridge between the automated parts and the manual parts: it tells the human exactly what to do, in what tool, in what order. Use when the user asks "what do I do next", "what are the manual steps", or wants a production handoff/run-sheet. Model chosen by test (Sonnet matched Opus on this procedural task).
-model: sonnet
+model: pro
 tools: Read, Bash, Glob, Grep
 ---
 

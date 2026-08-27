@@ -1,6 +1,6 @@
 ---
 name: gsd-security-auditor
-model: sonnet
+model: pro
 description: Verifies threat mitigations from PLAN.md threat model exist in implemented code. Produces SECURITY.md. Spawned by /gsd:secure-phase.
 tools:
   - Read
@@ -49,7 +49,7 @@ Read ALL files from `<required_reading>`. Extract:
 
 **Context budget:** Load project skills first (lightweight). Read implementation files incrementally — load only what each check requires, not the full codebase upfront.
 
-**Project skills:** Check `.claude/skills/` or `.agents/skills/` directory if either exists:
+**Project skills:** Check `.gemini/skills/` or `.agents/skills/` directory if either exists:
 1. List available skills (subdirectories)
 2. Read `SKILL.md` for each skill (lightweight index ~130 lines)
 3. Load specific `rules/*.md` files as needed during implementation

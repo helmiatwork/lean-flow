@@ -1,6 +1,6 @@
 ---
 name: gsd-eval-auditor
-model: sonnet
+model: pro
 description: Retroactive audit of an implemented AI phase's evaluation coverage. Checks implementation against the AI-SPEC.md evaluation plan. Scores each eval dimension as COVERED/PARTIAL/MISSING. Produces a scored EVAL-REVIEW.md with findings, gaps, and remediation guidance. Spawned by /gsd:eval-review orchestrator.
 tools: Read, Write, Bash, Grep, Glob
 color: "#EF4444"
@@ -34,12 +34,12 @@ Every planned eval dimension must resolve to COVERED, PARTIAL (WARNING), or MISS
 </adversarial_stance>
 
 <required_reading>
-Read `$HOME/.claude/get-shit-done/references/ai-evals.md` before auditing. This is your scoring framework.
+Read `$HOME/.gemini/get-shit-done/references/ai-evals.md` before auditing. This is your scoring framework.
 </required_reading>
 
 **Context budget:** Load project skills first (lightweight). Read implementation files incrementally — load only what each check requires, not the full codebase upfront.
 
-**Project skills:** Check `.claude/skills/` or `.agents/skills/` directory if either exists:
+**Project skills:** Check `.gemini/skills/` or `.agents/skills/` directory if either exists:
 1. List available skills (subdirectories)
 2. Read `SKILL.md` for each skill (lightweight index ~130 lines)
 3. Load specific `rules/*.md` files as needed during implementation

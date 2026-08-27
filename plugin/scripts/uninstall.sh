@@ -32,7 +32,7 @@ echo "====================="
 echo ""
 
 # 1. Remove knowledge MCP server files
-_remove_dir "Knowledge MCP server files" "${HOME}/.claude/mcp-servers/knowledge"
+_remove_dir "Knowledge MCP server files" "${HOME}/.gemini/mcp-servers/knowledge"
 
 # 2. Deregister MCP servers
 if command -v claude &>/dev/null; then
@@ -82,10 +82,10 @@ _remove_file "Usage fetcher" "${HOME}/.local/bin/claude-usage-fetch.sh"
 _remove_file "Usage fetcher (real)" "${HOME}/.local/bin/claude-usage-fetch-real.sh"
 
 # 6. Remove dream state
-_remove_dir "Dream state" "${HOME}/.claude/dream-state"
+_remove_dir "Dream state" "${HOME}/.gemini/dream-state"
 
 # 7. Remove config
-_remove_file "Config file" "${HOME}/.claude/lean-flow.json"
+_remove_file "Config file" "${HOME}/.gemini/lean-flow.json"
 
 # 8. Print summary so far
 echo "Removed:"
@@ -110,7 +110,7 @@ fi
 echo ""
 
 # 9. Prompt for knowledge DB deletion
-DB_PATH="${HOME}/.claude/knowledge/patterns.db"
+DB_PATH="${HOME}/.gemini/knowledge/patterns.db"
 if [ -f "$DB_PATH" ]; then
   printf "Delete pattern database? This cannot be undone. [y/N] "
   read -r answer </dev/tty
@@ -118,7 +118,7 @@ if [ -f "$DB_PATH" ]; then
     [yY]|[yY][eE][sS])
       rm -f "$DB_PATH"
       # Remove parent dir if empty
-      rmdir "${HOME}/.claude/knowledge" 2>/dev/null || true
+      rmdir "${HOME}/.gemini/knowledge" 2>/dev/null || true
       echo "Pattern database deleted."
       ;;
     *)

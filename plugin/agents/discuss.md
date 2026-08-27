@@ -1,7 +1,7 @@
 ---
 name: discuss
 description: Pre-work scoping agent. Analyzes a task, surfaces 3-5 key decision areas as AI-recommended multiple choice options, and confirms scope before any implementation begins.
-model: sonnet
+model: pro
 tools: ["AskUserQuestion"]
 ---
 

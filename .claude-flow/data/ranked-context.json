@@ -2187,7 +2187,7 @@
     },
     {
       "id": "mem-MEMORY----geps-express-split-order-lo",
-      "content": "- [Skills primary source](feedback_skills_primary_source.md) — ~/.claude/skills/ is PRIMARY, not fallback; read here first before plugin cache\n- [@fixer uses sonnet](feedback_fixer_model.md) — @fixer model is sonnet (not haiku); CLAUDE.md table is wrong — check agent files directly",
+      "content": "- [Skills primary source](feedback_skills_primary_source.md) — ~/.gemini/skills/ is PRIMARY, not fallback; read here first before plugin cache\n- [@fixer uses sonnet](feedback_fixer_model.md) — @fixer model is sonnet (not haiku); CLAUDE.md table is wrong — check agent files directly",
       "summary": "- [GePS Express Split Order Logic](project_geps_express_split_orders.md) — Fulfillment must scope to component for multi-component orders; never change this branching",
       "category": "core",
       "confidence": 0.53,
@@ -2250,7 +2250,7 @@
     },
     {
       "id": "mem-feedback_fixer_model----",
-      "content": "name: @fixer uses sonnet\ndescription: @fixer agent model is sonnet, not haiku — CLAUDE.md table is wrong\ntype: feedback\n---\n\n@fixer uses `model: sonnet` (confirmed in ~/.claude/agents/fixer.md frontmatter). The CLAUDE.md table incorrectly lists it as haiku. Never use haiku for @fixer under any circumstances.\n\n**Why:** User explicitly stated \"never use haiku\" for @fixer.\n**How to apply:** Always dispatch @fixer with sonnet. Never downgrade to haiku even for simple tasks. Check the actual agent fi",
+      "content": "name: @fixer uses sonnet\ndescription: @fixer agent model is sonnet, not haiku — CLAUDE.md table is wrong\ntype: feedback\n---\n\n@fixer uses `model: sonnet` (confirmed in ~/.gemini/agents/fixer.md frontmatter). The CLAUDE.md table incorrectly lists it as haiku. Never use haiku for @fixer under any circumstances.\n\n**Why:** User explicitly stated \"never use haiku\" for @fixer.\n**How to apply:** Always dispatch @fixer with sonnet. Never downgrade to haiku even for simple tasks. Check the actual agent fi",
       "summary": "---",
       "category": "feedback_fixer_model",
       "confidence": 0.53,
@@ -2321,7 +2321,7 @@
     },
     {
       "id": "mem-feedback_skills_primary_source----",
-      "content": "name: Skills primary source\ndescription: ~/.claude/skills/ is the PRIMARY source for all skills, not a fallback — always read from here first\ntype: feedback\n---\n\n`~/.claude/skills/` is the **primary** source of truth for all skills — not a fallback.\n\n**Why:** User explicitly corrected the assumption that the plugin cache is primary and `~/.claude/skills/` is secondary. The user maintains their skills in `~/.claude/skills/` (inside the Claude-setting git repo) and considers it authoritative over ",
+      "content": "name: Skills primary source\ndescription: ~/.gemini/skills/ is the PRIMARY source for all skills, not a fallback — always read from here first\ntype: feedback\n---\n\n`~/.gemini/skills/` is the **primary** source of truth for all skills — not a fallback.\n\n**Why:** User explicitly corrected the assumption that the plugin cache is primary and `~/.gemini/skills/` is secondary. The user maintains their skills in `~/.gemini/skills/` (inside the Claude-setting git repo) and considers it authoritative over ",
       "summary": "---",
       "category": "feedback_skills_primary_source",
       "confidence": 0.5,
@@ -3080,7 +3080,7 @@
     },
     {
       "id": "mem-feedback_mcp_global_only----",
-      "content": "name: feedback_mcp_global_only\ndescription: MCP server configurations must be global only, never added per-repo\ntype: feedback\n---\n\nMCP server configurations must only be set globally, never per-repository.\n\n**Why:** User wants a single source of truth for MCP configs to avoid duplication and drift across repos.\n\n**How to apply:** When adding or modifying MCP server configs, always use the global Claude config (~/.claude/config/mcp.json), never create .mcp.json or similar files in individual rep",
+      "content": "name: feedback_mcp_global_only\ndescription: MCP server configurations must be global only, never added per-repo\ntype: feedback\n---\n\nMCP server configurations must only be set globally, never per-repository.\n\n**Why:** User wants a single source of truth for MCP configs to avoid duplication and drift across repos.\n\n**How to apply:** When adding or modifying MCP server configs, always use the global Claude config (~/.gemini/config/mcp.json), never create .mcp.json or similar files in individual rep",
       "summary": "---",
       "category": "feedback_mcp_global_only",
       "confidence": 0.5,
@@ -4285,7 +4285,7 @@
     },
     {
       "id": "mem-feedback_no_remove_agents----",
-      "content": "name: Don't suggest removing agents\ndescription: Never suggest removing ruflo agents or templates unless explicitly asked\ntype: feedback\n---\n\nNever suggest removing or cleaning up ruflo agents, agent templates, or swarm state unless the user explicitly asks for it.\n\n**Why:** User wants to explore and keep ruflo agents/templates. Unsolicited cleanup suggestions are unwanted.\n\n**How to apply:** Don't offer to delete agents, templates in ~/.claude/agents/, swarm state, or any ruflo resources proact",
+      "content": "name: Don't suggest removing agents\ndescription: Never suggest removing ruflo agents or templates unless explicitly asked\ntype: feedback\n---\n\nNever suggest removing or cleaning up ruflo agents, agent templates, or swarm state unless the user explicitly asks for it.\n\n**Why:** User wants to explore and keep ruflo agents/templates. Unsolicited cleanup suggestions are unwanted.\n\n**How to apply:** Don't offer to delete agents, templates in ~/.gemini/agents/, swarm state, or any ruflo resources proact",
       "summary": "---",
       "category": "feedback_no_remove_agents",
       "confidence": 0.5,

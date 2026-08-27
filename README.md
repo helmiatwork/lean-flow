@@ -218,7 +218,7 @@ Auto-installs [RTK](https://www.rtk-ai.app) — a Rust CLI proxy that rewrites B
 - Transparent — no prompt changes needed, works via PreToolUse hook
 - Check savings anytime: `rtk gain`
 
-> RTK is auto-installed on first session (via brew or curl fallback). Disable with `"enable": { "rtk": false }` in `~/.claude/lean-flow.json`.
+> RTK is auto-installed on first session (via brew or curl fallback). Disable with `"enable": { "rtk": false }` in `~/.gemini/lean-flow.json`.
 
 ### 💤 Auto-Dream
 Background memory consolidation using Haiku. Runs every 5 sessions / 24 hours. Cleans up stale memories, merges duplicates, prunes outdated entries.
@@ -277,7 +277,7 @@ flowchart TD
 
     QUALITY["✍️ writing-plans skill\nQuality guidance\n(file paths, code, TDD)"] --> WRITE
 
-    WRITE["Write plan to\n~/.claude/plans/"] --> REVIEW
+    WRITE["Write plan to\n~/.gemini/plans/"] --> REVIEW
 
     REVIEW{"Approved?"}
     REVIEW -->|"No"| WRITE
@@ -447,7 +447,7 @@ flowchart TD
 
 ### 1. Enable the plugin
 
-Add to `~/.claude/settings.json`:
+Add to `~/.gemini/settings.json`:
 
 ```json
 {
@@ -494,10 +494,10 @@ lean-flow automatically enables these companion plugins on first session:
 | **caveman** | [JuliusBrussee/caveman](https://github.com/JuliusBrussee/caveman) | Token-compressed communication mode |
 | **plan-plus** | [RandyHaylor/plan-plus](https://github.com/RandyHaylor/plan-plus) | Structured planning with skeleton + step files |
 
-**To disable caveman auto-enable**, set `LEAN_FLOW_ENABLE_CAVEMAN=false` in your shell environment, or set `enabledPlugins."caveman@caveman" = false` in `~/.claude/settings.json` (lean-flow respects user-set values).
+**To disable caveman auto-enable**, set `LEAN_FLOW_ENABLE_CAVEMAN=false` in your shell environment, or set `enabledPlugins."caveman@caveman" = false` in `~/.gemini/settings.json` (lean-flow respects user-set values).
 
 > **Important:** lean-flow uses **plan-plus** for planning. The flow is:
-> 1. `EnterPlanMode` — opens plan file at `~/.claude/plans/`
+> 1. `EnterPlanMode` — opens plan file at `~/.gemini/plans/`
 > 2. Invoke `writing-plans` skill for quality guidance (how to write good plans)
 > 3. Write the plan to the plan mode file (wrong directory blocked by hook)
 > 4. `ExitPlanMode` — plan-plus restructures into skeleton + steps, plan viewer opens
@@ -519,7 +519,7 @@ The audit checks for:
 - **docs/ARCHITECTURE.md** — system design.
 - **docs/DOMAIN.md** — entity relationships.
 - **per-folder codemap.md** — module-level detail.
-- **Hooks** — `.claude/settings.json`, `.claude/hooks/session-start.sh`.
+- **Hooks** — `.gemini/settings.json`, `.gemini/hooks/session-start.sh`.
 - **ADRs** — `docs/adr/` architecture decisions.
 - **CI/CD** — `.github/workflows/`, coverage gates.
 - **Pre-commit gates** — `lefthook.yml`, `.pre-commit-config.yaml`.
@@ -553,7 +553,7 @@ bash /path/to/lean-flow/plugin/scripts/uninstall.sh
 
 Or if installed as a plugin:
 ```bash
-bash ~/.claude/plugins/cache/lean-flow/*/plugin/scripts/uninstall.sh
+bash ~/.gemini/plugins/cache/lean-flow/*/plugin/scripts/uninstall.sh
 ```
 
 This removes: knowledge MCP, Playwright MCP, SwiftBar monitor, launchd daemon, dream state, and config file. Pattern database deletion requires confirmation.
@@ -562,7 +562,7 @@ This removes: knowledge MCP, Playwright MCP, SwiftBar monitor, launchd daemon, d
 
 ## Configuration
 
-Customize lean-flow by creating `~/.claude/lean-flow.json`:
+Customize lean-flow by creating `~/.gemini/lean-flow.json`:
 
 ```json
 {
@@ -593,8 +593,8 @@ All fields are optional — defaults are used for any missing field.
 ## Team Usage & CI/CD
 
 **Sharing patterns across a team:**
-- Export: `sqlite3 ~/.claude/knowledge/patterns.db ".dump patterns" > patterns.sql`
-- Import: `sqlite3 ~/.claude/knowledge/patterns.db < patterns.sql`
+- Export: `sqlite3 ~/.gemini/knowledge/patterns.db ".dump patterns" > patterns.sql`
+- Import: `sqlite3 ~/.gemini/knowledge/patterns.db < patterns.sql`
 
 **Monorepos:** Use distinct `project` names per service when calling `pattern_store`.
 
@@ -637,7 +637,7 @@ lean-flow/
 │   ├── ensure-cartography.sh    # SessionStart: detect codebase map changes
 │   ├── bash-guard.sh            # PreToolUse Bash: unified guard (protected-push, no-verify, secrets, Claude identity, PR comments, branch-delete)
 │   ├── warn-secret-files.sh     # PreToolUse Write|Edit: warn near secret paths
-│   ├── block-wrong-plan-dir.sh  # PreToolUse Write|Edit: block plans outside ~/.claude/plans/
+│   ├── block-wrong-plan-dir.sh  # PreToolUse Write|Edit: block plans outside ~/.gemini/plans/
 │   ├── auto-compress-output.sh  # PreToolUse Bash: compress high-output commands via Haiku
 │   ├── file-read-gate.sh        # PreToolUse Read: inject recent git activity (~20 tokens, zero AI)
 │   ├── restructure-plan.py      # PostToolUse ExitPlanMode: plan-plus restructuring
@@ -658,7 +658,7 @@ lean-flow/
 │   ├── session-summary.sh       # Stop/PostCompact: write session summary (background)
 │   │
 │   │   # — Utilities —
-│   ├── load-config.sh           # Load ~/.claude/lean-flow.json config
+│   ├── load-config.sh           # Load ~/.gemini/lean-flow.json config
 │   ├── token-budget.sh          # Token budget tracking
 │   ├── plan-server.mjs          # Live plan viewer server (SSE + file watch)
 │   ├── plan-viewer.mjs          # Static HTML generator (fallback)
@@ -670,7 +670,7 @@ lean-flow/
 │   └── claude-monitor/          # SwiftBar plugin + fetcher daemon
 │       ├── claude-usage.30s.sh  # SwiftBar display script (reads cache, renders menu)
 │       ├── claude-usage-fetch.sh # Fetcher daemon (OAuth → usage API + local token stats)
-│       ├── local-tokens.py      # Per-model token aggregator from ~/.claude JSONL files
+│       ├── local-tokens.py      # Per-model token aggregator from ~/.gemini JSONL files
 │       └── install.command      # One-click installer for SwiftBar + launchd daemon
 ├── templates/
 │   ├── PULL_REQUEST_TEMPLATE.md      # Step PR (child → parent)
@@ -706,7 +706,7 @@ lean-flow/
 
 ## Companion Tools (auto-bootstrapped)
 
-On `SessionStart`, lean-flow ensures these tools are installed and wired. Each is **opt-out** via env var (e.g. `LEAN_FLOW_ENABLE_OMNI=false` or `~/.claude/lean-flow.json`).
+On `SessionStart`, lean-flow ensures these tools are installed and wired. Each is **opt-out** via env var (e.g. `LEAN_FLOW_ENABLE_OMNI=false` or `~/.gemini/lean-flow.json`).
 
 | Tool | What it does | Bootstrap | Install method |
 |---|---|---|---|
@@ -737,7 +737,7 @@ bash plugin/scripts/lean-preset.sh powerful    # sonnet + sonnet + opus
 bash plugin/scripts/lean-preset.sh thinking    # opus everywhere
 ```
 
-Custom presets at `~/.claude/lean-flow-presets.json`:
+Custom presets at `~/.gemini/lean-flow-presets.json`:
 
 ```json
 { "myteam": { "haiku": "claude-haiku-4-5-20251001", "sonnet": "claude-sonnet-4-6", "opus": "claude-opus-4-7" } }
@@ -748,7 +748,7 @@ Custom presets at `~/.claude/lean-flow-presets.json`:
 | Hook | Trigger | What it does |
 |---|---|---|
 | `delegate-task-retry.sh` | PostToolUse Task | When a Task call fails (missing subagent_type, unknown agent, validation error), appends inline retry guidance with a corrected example |
-| `todo-hygiene.sh` | Stop + UserPromptSubmit | If you stop with open `[ ]` steps in `~/.claude/plans/`, the next prompt gets a reminder pointing at the unfinished plan |
+| `todo-hygiene.sh` | Stop + UserPromptSubmit | If you stop with open `[ ]` steps in `~/.gemini/plans/`, the next prompt gets a reminder pointing at the unfinished plan |
 | `enforce-tdd.sh` | PostToolUse Write/Edit | Reminds about test-driven development on code creation |
 
 ## Testing

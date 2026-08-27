@@ -28,7 +28,7 @@ total=$((total + agent_total))
 
 # Memory files
 memory_total=0
-for memdir in ~/.claude/projects/*/memory/; do
+for memdir in ~/.gemini/projects/*/memory/; do
   [ -d "$memdir" ] || continue
   for memfile in "$memdir"*.md; do
     if [ -f "$memfile" ]; then
@@ -41,7 +41,7 @@ total=$((total + memory_total))
 
 # Knowledge patterns (estimate from DB)
 pattern_total=0
-KNOWLEDGE_DB="${HOME}/.claude/knowledge/patterns.db"
+KNOWLEDGE_DB="${HOME}/.gemini/knowledge/patterns.db"
 if [ -f "$KNOWLEDGE_DB" ] && command -v sqlite3 &>/dev/null; then
   pattern_chars=$(sqlite3 "$KNOWLEDGE_DB" "SELECT SUM(LENGTH(problem) + LENGTH(solution)) FROM patterns;" 2>/dev/null || echo "0")
   pattern_total=$(( ${pattern_chars:-0} / 4 ))
@@ -52,7 +52,7 @@ total=$((total + pattern_total))
 claude_total=0
 if git rev-parse --is-inside-work-tree &>/dev/null 2>/dev/null; then
   root=$(git rev-parse --show-toplevel 2>/dev/null)
-  for cf in "$root/CLAUDE.md" "$HOME/CLAUDE.md" "$HOME/.claude/CLAUDE.md"; do
+  for cf in "$root/CLAUDE.md" "$HOME/CLAUDE.md" "$HOME/.gemini/CLAUDE.md"; do
     t=$(count_tokens "$cf")
     claude_total=$((claude_total + t))
   done
@@ -70,7 +70,7 @@ echo ""
 
 if [ "$DETAIL" = "--detail" ]; then
   echo "--- Memory files ---"
-  for memdir in ~/.claude/projects/*/memory/; do
+  for memdir in ~/.gemini/projects/*/memory/; do
     [ -d "$memdir" ] || continue
     project=$(basename "$(dirname "$memdir")")
     for memfile in "$memdir"*.md; do

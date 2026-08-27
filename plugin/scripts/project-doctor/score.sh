@@ -214,12 +214,12 @@ fi
 # 13. SessionStart hook
 HAS_SESSION_HOOK=false
 # Path A: dedicated hook script in standard location
-if [ -f "$ROOT/.claude/hooks/session-start.sh" ] && [ -x "$ROOT/.claude/hooks/session-start.sh" ]; then
+if [ -f "$ROOT/.gemini/hooks/session-start.sh" ] && [ -x "$ROOT/.gemini/hooks/session-start.sh" ]; then
   HAS_SESSION_HOOK=true
 fi
 # Path B: SessionStart declared in settings (regardless of script location)
 if [ "$HAS_SESSION_HOOK" = "false" ]; then
-  for SETTINGS in "$ROOT/.claude/settings.json" "$ROOT/.claude/settings.local.json"; do
+  for SETTINGS in "$ROOT/.gemini/settings.json" "$ROOT/.gemini/settings.local.json"; do
     if [ -f "$SETTINGS" ] && grep -q "\"SessionStart\"" "$SETTINGS" 2>/dev/null; then
       HAS_SESSION_HOOK=true
       break
@@ -227,31 +227,31 @@ if [ "$HAS_SESSION_HOOK" = "false" ]; then
   done
 fi
 if $HAS_SESSION_HOOK; then
-  check 13 "SessionStart hook" ".claude/hooks/session-start.sh" P1 "[OK]"
+  check 13 "SessionStart hook" ".gemini/hooks/session-start.sh" P1 "[OK]"
 else
-  check 13 "SessionStart hook" ".claude/hooks/session-start.sh" P1 "[MISSING]"
+  check 13 "SessionStart hook" ".gemini/hooks/session-start.sh" P1 "[MISSING]"
 fi
 
 # 14. Agent memory file (MEMORY.md)
 HAS_MEMORY=false
 MEMORY_NOTE=""
 # Primary: project-scoped (preferred, git-trackable, reproducible)
-if has_file "$ROOT/.claude/MEMORY.md"; then
+if has_file "$ROOT/.gemini/MEMORY.md"; then
   HAS_MEMORY=true
-elif has_file "$ROOT/.claude/memory/MEMORY.md"; then
+elif has_file "$ROOT/.gemini/memory/MEMORY.md"; then
   HAS_MEMORY=true
 else
   # Fallback: per-user (machine-local; not reproducible across team/CI)
   ENCODED=$(echo "$ROOT" | sed 's|^/||; s|/|-|g')
-  if has_file "$HOME/.claude/projects/${ENCODED}/memory/MEMORY.md"; then
+  if has_file "$HOME/.gemini/projects/${ENCODED}/memory/MEMORY.md"; then
     HAS_MEMORY=true
     MEMORY_NOTE=" (machine-local)"
   fi
 fi
 if $HAS_MEMORY; then
-  check 14 "Agent memory${MEMORY_NOTE}" ".claude/MEMORY.md (preferred)" P1 "[OK]"
+  check 14 "Agent memory${MEMORY_NOTE}" ".gemini/MEMORY.md (preferred)" P1 "[OK]"
 else
-  check 14 "Agent memory" ".claude/MEMORY.md (preferred)" P1 "[MISSING]"
+  check 14 "Agent memory" ".gemini/MEMORY.md (preferred)" P1 "[MISSING]"
 fi
 
 # 15. Symbol/call graph index
@@ -322,15 +322,15 @@ fi
 
 # 19. Hooks declared in settings
 HAS_HOOKS_CONFIG=false
-if [ -f "$ROOT/.claude/settings.json" ] && grep -q '"hooks"' "$ROOT/.claude/settings.json" 2>/dev/null; then
+if [ -f "$ROOT/.gemini/settings.json" ] && grep -q '"hooks"' "$ROOT/.gemini/settings.json" 2>/dev/null; then
   HAS_HOOKS_CONFIG=true
-elif [ -f "$ROOT/.claude/settings.local.json" ] && grep -q '"hooks"' "$ROOT/.claude/settings.local.json" 2>/dev/null; then
+elif [ -f "$ROOT/.gemini/settings.local.json" ] && grep -q '"hooks"' "$ROOT/.gemini/settings.local.json" 2>/dev/null; then
   HAS_HOOKS_CONFIG=true
 fi
 if $HAS_HOOKS_CONFIG; then
-  check 19 "Hooks declared" ".claude/settings.json (hooks)" P2 "[OK]"
+  check 19 "Hooks declared" ".gemini/settings.json (hooks)" P2 "[OK]"
 else
-  check 19 "Hooks declared" ".claude/settings.json (hooks)" P2 "[MISSING]"
+  check 19 "Hooks declared" ".gemini/settings.json (hooks)" P2 "[MISSING]"
 fi
 
 # 20. CI gate
@@ -360,8 +360,8 @@ if [ -f "$ROOT/CLAUDE.md" ]; then
     HAS_STAR=true
   fi
 fi
-if [ "$HAS_STAR" = "false" ] && [ -f "$HOME/.claude/CLAUDE.md" ]; then
-  if grep -qE 'STAR PROTOCOL|Tier Routing' "$HOME/.claude/CLAUDE.md" 2>/dev/null; then
+if [ "$HAS_STAR" = "false" ] && [ -f "$HOME/.gemini/CLAUDE.md" ]; then
+  if grep -qE 'STAR PROTOCOL|Tier Routing' "$HOME/.gemini/CLAUDE.md" 2>/dev/null; then
     HAS_STAR=true
   fi
 fi
@@ -378,8 +378,8 @@ if [ -f "$ROOT/CLAUDE.md" ]; then
     HAS_ORCHESTRATOR=true
   fi
 fi
-if [ "$HAS_ORCHESTRATOR" = "false" ] && [ -f "$HOME/.claude/CLAUDE.md" ]; then
-  if grep -qiE 'orchestrator.{0,60}(never.{0,30}(edit|push|write|code))' "$HOME/.claude/CLAUDE.md" 2>/dev/null; then
+if [ "$HAS_ORCHESTRATOR" = "false" ] && [ -f "$HOME/.gemini/CLAUDE.md" ]; then
+  if grep -qiE 'orchestrator.{0,60}(never.{0,30}(edit|push|write|code))' "$HOME/.gemini/CLAUDE.md" 2>/dev/null; then
     HAS_ORCHESTRATOR=true
   fi
 fi
@@ -393,22 +393,22 @@ fi
 HAS_PLUGINS=false
 HAS_SUPERPOWERS=0
 HAS_CAVEMAN=0
-if [ -f "$HOME/.claude/settings.json" ]; then
-  grep -q '"superpowers@claude-plugins-official"' "$HOME/.claude/settings.json" 2>/dev/null && HAS_SUPERPOWERS=1
-  grep -q '"caveman@caveman"' "$HOME/.claude/settings.json" 2>/dev/null && HAS_CAVEMAN=1
+if [ -f "$HOME/.gemini/settings.json" ]; then
+  grep -q '"superpowers@claude-plugins-official"' "$HOME/.gemini/settings.json" 2>/dev/null && HAS_SUPERPOWERS=1
+  grep -q '"caveman@caveman"' "$HOME/.gemini/settings.json" 2>/dev/null && HAS_CAVEMAN=1
 fi
 [ "$HAS_SUPERPOWERS" = "1" ] && [ "$HAS_CAVEMAN" = "1" ] && HAS_PLUGINS=true
 if $HAS_PLUGINS; then
-  check 23 "Companion plugins" "~/.claude/settings.json" P2 "[OK]"
+  check 23 "Companion plugins" "~/.gemini/settings.json" P2 "[OK]"
 else
-  check 23 "Companion plugins" "~/.claude/settings.json" P2 "[MISSING]"
+  check 23 "Companion plugins" "~/.gemini/settings.json" P2 "[MISSING]"
 fi
 
 # 24. Pre-commit gates declared
 HAS_GATES=false
-# Check project .claude/settings.json
-if [ -f "$ROOT/.claude/settings.json" ]; then
-  if grep -qE 'bash-guard|block-wrong-plan-dir' "$ROOT/.claude/settings.json" 2>/dev/null; then
+# Check project .gemini/settings.json
+if [ -f "$ROOT/.gemini/settings.json" ]; then
+  if grep -qE 'bash-guard|block-wrong-plan-dir' "$ROOT/.gemini/settings.json" 2>/dev/null; then
     HAS_GATES=true
   fi
 fi
@@ -422,9 +422,9 @@ if [ "$HAS_GATES" = "false" ] && [ -n "${CLAUDE_PLUGIN_ROOT:-}" ]; then
   fi
 fi
 if $HAS_GATES; then
-  check 24 "Pre-commit gates" ".claude/settings.json or hooks.json" P1 "[OK]"
+  check 24 "Pre-commit gates" ".gemini/settings.json or hooks.json" P1 "[OK]"
 else
-  check 24 "Pre-commit gates" ".claude/settings.json or hooks.json" P1 "[MISSING]"
+  check 24 "Pre-commit gates" ".gemini/settings.json or hooks.json" P1 "[MISSING]"
 fi
 
 # 25. Pattern memory usage
@@ -434,8 +434,8 @@ if [ -f "$ROOT/CLAUDE.md" ]; then
     HAS_PATTERN_MEM=true
   fi
 fi
-if [ "$HAS_PATTERN_MEM" = "false" ] && [ -f "$HOME/.claude/CLAUDE.md" ]; then
-  if grep -qE 'pattern_search|pattern_store' "$HOME/.claude/CLAUDE.md" 2>/dev/null; then
+if [ "$HAS_PATTERN_MEM" = "false" ] && [ -f "$HOME/.gemini/CLAUDE.md" ]; then
+  if grep -qE 'pattern_search|pattern_store' "$HOME/.gemini/CLAUDE.md" 2>/dev/null; then
     HAS_PATTERN_MEM=true
   fi
 fi

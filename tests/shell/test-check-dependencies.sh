@@ -37,13 +37,13 @@ assert_not_contains() {
 make_happy_home() {
   local home
   home=$(mktemp -d)
-  mkdir -p "$home/.claude/plugins/cache/claude-plugins-official/superpowers/5.0.0/skills/writing-plans"
-  mkdir -p "$home/.claude/knowledge"
-  : > "$home/.claude/knowledge/patterns.db"
-  cat > "$home/.claude/settings.json" <<'EOF'
+  mkdir -p "$home/.gemini/plugins/cache/claude-plugins-official/superpowers/5.0.0/skills/writing-plans"
+  mkdir -p "$home/.gemini/knowledge"
+  : > "$home/.gemini/knowledge/patterns.db"
+  cat > "$home/.gemini/settings.json" <<'EOF'
 { "env": {}, "hooks": { "PreToolUse": [ { "hooks": [ { "command": "/usr/bin/omni --pre" } ] } ] }, "enabledPlugins": {} }
 EOF
-  cat > "$home/.claude.json" <<'EOF'
+  cat > "$home/.gemini.json" <<'EOF'
 { "mcpServers": { "gitnexus": { "command": "npx" } } }
 EOF
   echo "$home"
@@ -88,7 +88,7 @@ echo ""
 echo "=== REQUIRED: missing superpowers triggers [REQUIRED] warning ==="
 TEST_HOME=$(make_happy_home)
 # Remove superpowers
-rm -rf "$TEST_HOME/.claude/plugins/cache/claude-plugins-official"
+rm -rf "$TEST_HOME/.gemini/plugins/cache/claude-plugins-official"
 FAKE_BIN=$(make_fake_bin)
 output=$(PATH="$FAKE_BIN:/usr/bin:/bin" HOME="$TEST_HOME" bash "$SCRIPT" 2>&1)
 assert_contains "$output" "REQUIRED" "[REQUIRED] section emitted"
@@ -128,7 +128,7 @@ echo ""
 echo "=== DEPRECATED: plan-plus enabled triggers [DEPRECATED] warning ==="
 TEST_HOME=$(make_happy_home)
 # Enable plan-plus in settings.json
-cat > "$TEST_HOME/.claude/settings.json" <<'EOF'
+cat > "$TEST_HOME/.gemini/settings.json" <<'EOF'
 {
   "env": {},
   "hooks": { "PreToolUse": [ { "hooks": [ { "command": "/usr/bin/omni --pre" } ] } ] },
@@ -146,7 +146,7 @@ rm -rf "$TEST_HOME" "$FAKE_BIN"
 echo ""
 echo "=== caching: same finding set → second run is silent ==="
 TEST_HOME=$(make_happy_home)
-rm -rf "$TEST_HOME/.claude/plugins/cache/claude-plugins-official"
+rm -rf "$TEST_HOME/.gemini/plugins/cache/claude-plugins-official"
 FAKE_BIN=$(make_fake_bin)
 out1=$(PATH="$FAKE_BIN:/usr/bin:/bin" HOME="$TEST_HOME" bash "$SCRIPT" 2>&1)
 out2=$(PATH="$FAKE_BIN:/usr/bin:/bin" HOME="$TEST_HOME" bash "$SCRIPT" 2>&1)
@@ -163,7 +163,7 @@ rm -rf "$TEST_HOME" "$FAKE_BIN"
 echo ""
 echo "=== caching: different finding set → re-warns ==="
 TEST_HOME=$(make_happy_home)
-rm -rf "$TEST_HOME/.claude/plugins/cache/claude-plugins-official"
+rm -rf "$TEST_HOME/.gemini/plugins/cache/claude-plugins-official"
 FAKE_BIN=$(make_fake_bin)
 # First run: missing superpowers
 out1=$(PATH="$FAKE_BIN:/usr/bin:/bin" HOME="$TEST_HOME" bash "$SCRIPT" 2>&1)
