@@ -35,15 +35,15 @@ assert_contains() {
   fi
 }
 
-# Build a minimal fake settings.json/.claude.json + fake $PATH where needed
+# Build a minimal fake settings.json/.gemini.json + fake $PATH where needed
 make_fake_home() {
   local home
   home=$(mktemp -d)
-  mkdir -p "$home/.claude"
-  cat > "$home/.claude/settings.json" <<'EOF'
+  mkdir -p "$home/.gemini"
+  cat > "$home/.gemini/settings.json" <<'EOF'
 { "env": {}, "permissions": {}, "hooks": {}, "enabledPlugins": {} }
 EOF
-  cat > "$home/.claude.json" <<'EOF'
+  cat > "$home/.gemini.json" <<'EOF'
 { "mcpServers": {} }
 EOF
   echo "$home"
@@ -63,7 +63,7 @@ echo ""
 echo "=== ensure-omni: skip when omni hooks already registered in settings.json ==="
 TEST_HOME=$(make_fake_home)
 # Inject a fake omni hook entry
-cat > "$TEST_HOME/.claude/settings.json" <<'EOF'
+cat > "$TEST_HOME/.gemini/settings.json" <<'EOF'
 {
   "env": {},
   "hooks": { "PreToolUse": [ { "hooks": [ { "type": "command", "command": "/usr/bin/omni --pre-hook" } ] } ] },
@@ -110,7 +110,7 @@ rm -rf "$TEST_HOME"
 echo ""
 echo "=== ensure-gitnexus: skip when MCP already registered ==="
 TEST_HOME=$(make_fake_home)
-cat > "$TEST_HOME/.claude.json" <<'EOF'
+cat > "$TEST_HOME/.gemini.json" <<'EOF'
 { "mcpServers": { "gitnexus": { "command": "npx", "args": ["-y","gitnexus","mcp"] } } }
 EOF
 output=$(HOME="$TEST_HOME" bash "${REPO_ROOT}/plugin/scripts/ensure-gitnexus.sh" 2>&1)
@@ -123,8 +123,8 @@ echo ""
 echo "=== ensure-gitnexus: skip when user has gitnexus hook in settings.json ==="
 TEST_HOME=$(make_fake_home)
 # User has wired GitNexus their own way via settings.json hooks
-cat > "$TEST_HOME/.claude/settings.json" <<'EOF'
-{ "hooks": { "PreToolUse": [ { "hooks": [ { "type": "command", "command": "node ~/.claude/hooks/gitnexus/gitnexus-hook.cjs" } ] } ] } }
+cat > "$TEST_HOME/.gemini/settings.json" <<'EOF'
+{ "hooks": { "PreToolUse": [ { "hooks": [ { "type": "command", "command": "node ~/.gemini/hooks/gitnexus/gitnexus-hook.cjs" } ] } ] } }
 EOF
 output=$(HOME="$TEST_HOME" bash "${REPO_ROOT}/plugin/scripts/ensure-gitnexus.sh" 2>&1)
 exit_code=$?
@@ -133,18 +133,18 @@ assert_eq "$output" "" "user-wired-hook is silent (don't double-register)"
 rm -rf "$TEST_HOME"
 
 echo ""
-echo "=== ensure-gitnexus: registers MCP in fresh ~/.claude.json ==="
+echo "=== ensure-gitnexus: registers MCP in fresh ~/.gemini.json ==="
 TEST_HOME=$(make_fake_home)
 output=$(HOME="$TEST_HOME" bash "${REPO_ROOT}/plugin/scripts/ensure-gitnexus.sh" 2>&1)
 exit_code=$?
 assert_eq "$exit_code" "0" "fresh registration exits 0"
 # Verify the MCP entry was actually written
-if jq -e '.mcpServers["gitnexus"].command == "npx"' "$TEST_HOME/.claude.json" >/dev/null 2>&1; then
+if jq -e '.mcpServers["gitnexus"].command == "npx"' "$TEST_HOME/.gemini.json" >/dev/null 2>&1; then
   registered=yes
 else
   registered=no
 fi
-assert_eq "$registered" "yes" "gitnexus MCP entry written to ~/.claude.json"
+assert_eq "$registered" "yes" "gitnexus MCP entry written to ~/.gemini.json"
 assert_contains "$output" "GitNexus MCP registered" "systemMessage emitted"
 rm -rf "$TEST_HOME"
 

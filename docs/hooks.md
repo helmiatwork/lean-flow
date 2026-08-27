@@ -180,7 +180,7 @@ export LEAN_FLOW_BASH_GUARD_DISABLED=true \
        # ... etc
 ```
 
-Or edit `~/.claude/hooks/` (personal overrides) or `plugin/hooks/hooks.json` (repo-wide).
+Or edit `~/.gemini/hooks/` (personal overrides) or `plugin/hooks/hooks.json` (repo-wide).
 
 ---
 

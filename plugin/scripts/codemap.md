@@ -32,7 +32,7 @@
 **SessionStart/Stop**:
 - `check-dependencies.sh`: runs after bootstrap, audits superpowers plugin, jq, omni, gitnexus, knowledge-mcp; caches findings by hash to avoid spam
 - `auto-dream.sh`: on SessionStop, dual-gates: fires only if ≥N sessions *and* ≥N hours since last consolidation; locks to prevent concurrency; runs `auto-dream-prompt.md` against memory files
-- `auto-observe.sh`: silent post-stop observation capture — parses session log, extracts tool patterns, writes compressed observations to ~/.claude/knowledge/patterns.db
+- `auto-observe.sh`: silent post-stop observation capture — parses session log, extracts tool patterns, writes compressed observations to ~/.gemini/knowledge/patterns.db
 
 **Repository mapping**:
 - `cartographer.py`: manages `.slim/cartography.json` (file hashes, timestamps, codemap tracking)

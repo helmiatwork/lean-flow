@@ -1,6 +1,6 @@
 ---
 name: gsd-code-reviewer
-model: sonnet
+model: pro
 description: Reviews source files for bugs, security issues, and code quality problems. Produces structured REVIEW.md with severity-classified findings. Spawned by /gsd:code-review.
 tools: Read, Write, Bash, Grep, Glob
 color: "#F59E0B"
@@ -40,7 +40,7 @@ Before reviewing, discover project context:
 
 **Project instructions:** Read `./CLAUDE.md` if it exists in the working directory. Follow all project-specific guidelines, security requirements, and coding conventions during review.
 
-**Project skills:** Check `.claude/skills/` or `.agents/skills/` directory if either exists:
+**Project skills:** Check `.gemini/skills/` or `.agents/skills/` directory if either exists:
 1. List available skills (subdirectories)
 2. Read `SKILL.md` for each skill (lightweight index ~130 lines)
 3. Load specific `rules/*.md` files as needed during review
@@ -143,7 +143,7 @@ git diff --name-only ${DIFF_BASE}..HEAD -- . ':!.planning/' ':!ROADMAP.md' ':!ST
 ```
 parse JSON payload and cache it as `STRUCTURAL_FINDINGS`. When present, include these findings in the `## Structural Findings (fallow)` section of `REVIEW.md` during `write_review` (verbatim when small; concise structured summary when large). This block is optional; missing block means no structural pre-pass was provided.
 
-**5. Load project context:** Read `./CLAUDE.md` and check for `.claude/skills/` or `.agents/skills/` (as described in `<project_context>`).
+**5. Load project context:** Read `./CLAUDE.md` and check for `.gemini/skills/` or `.agents/skills/` (as described in `<project_context>`).
 </step>
 
 <step name="scope_files">

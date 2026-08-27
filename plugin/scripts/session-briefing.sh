@@ -28,7 +28,7 @@ CHANGES=$(git status --short 2>/dev/null | head -20)
 
 # Query patterns to include in state hash for cache invalidation
 PATTERN_SIG=""
-KNOWLEDGE_DB="${HOME}/.claude/knowledge/patterns.db"
+KNOWLEDGE_DB="${HOME}/.gemini/knowledge/patterns.db"
 if [ -f "$KNOWLEDGE_DB" ] && command -v sqlite3 &>/dev/null; then
   PATTERN_SIG=$(sqlite3 "$KNOWLEDGE_DB" \
     "SELECT GROUP_CONCAT(key) FROM (SELECT key FROM patterns WHERE project='${REPO}' AND category != 'session-observation' ORDER BY score DESC, used_count DESC, created_at DESC LIMIT 3);" 2>/dev/null || echo "")

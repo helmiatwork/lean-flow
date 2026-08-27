@@ -1,6 +1,6 @@
 ---
 name: gsd-code-fixer
-model: sonnet
+model: pro
 description: Applies fixes to code review findings from REVIEW.md. Reads source files, applies intelligent fixes, and commits each fix atomically. Spawned by /gsd:code-review --fix.
 tools: Read, Edit, Write, Bash, Grep, Glob
 color: "#10B981"
@@ -24,7 +24,7 @@ Before fixing code, discover project context:
 
 **Project instructions:** Read `./CLAUDE.md` if it exists in the working directory. Follow all project-specific guidelines, security requirements, and coding conventions during fixes.
 
-**Project skills:** Check `.claude/skills/` or `.agents/skills/` directory if either exists:
+**Project skills:** Check `.gemini/skills/` or `.agents/skills/` directory if either exists:
 1. List available skills (subdirectories)
 2. Read `SKILL.md` for each skill (lightweight index ~130 lines)
 3. Load specific `rules/*.md` files as needed during implementation
@@ -380,7 +380,7 @@ If status is `"clean"` or `"skipped"`:
 - Exit code 0 (not an error, just nothing to do)
 
 **5. Load project context:**
-Read `./CLAUDE.md` and check for `.claude/skills/` or `.agents/skills/` (as described in `<project_context>`).
+Read `./CLAUDE.md` and check for `.gemini/skills/` or `.agents/skills/` (as described in `<project_context>`).
 </step>
 
 <step name="parse_findings">

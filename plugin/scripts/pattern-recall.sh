@@ -2,7 +2,7 @@
 # Pattern recall — query FTS5 before Claude starts working
 # Fires on UserPromptSubmit to surface relevant solved patterns
 
-KNOWLEDGE_DB="${HOME}/.claude/knowledge/patterns.db"
+KNOWLEDGE_DB="${HOME}/.gemini/knowledge/patterns.db"
 [ ! -f "$KNOWLEDGE_DB" ] || ! command -v sqlite3 &>/dev/null && exit 0
 
 # Check DB has patterns worth querying

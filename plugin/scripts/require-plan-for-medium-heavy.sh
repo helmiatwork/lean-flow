@@ -4,8 +4,8 @@
 #   "Medium/heavy tasks must invoke superpowers:writing-plans before code changes."
 #
 # State files (managed by Claude during the session):
-#   ${CLAUDE_STATE_DIR:-~/.claude/state}/current-task.classification   contents: simple|medium|heavy|hotfix|bug
-#   ${CLAUDE_STATE_DIR:-~/.claude/state}/current-task.plan             contents: path or marker (presence = plan exists)
+#   ${CLAUDE_STATE_DIR:-~/.gemini/state}/current-task.classification   contents: simple|medium|heavy|hotfix|bug
+#   ${CLAUDE_STATE_DIR:-~/.gemini/state}/current-task.plan             contents: path or marker (presence = plan exists)
 #
 # Behavior (opt-out default):
 #   - LEAN_FLOW_REQUIRE_PLAN_DISABLED == "true"  -> allow (opt-out; hook disabled)
@@ -19,7 +19,7 @@ set -uo pipefail
 
 [[ "${LEAN_FLOW_REQUIRE_PLAN_DISABLED:-}" == "true" ]] && exit 0
 
-STATE_DIR="${CLAUDE_STATE_DIR:-${HOME}/.claude/state}"
+STATE_DIR="${CLAUDE_STATE_DIR:-${HOME}/.gemini/state}"
 CLASSIFICATION_FILE="${STATE_DIR}/current-task.classification"
 PLAN_MARKER="${STATE_DIR}/current-task.plan"
 

@@ -24,7 +24,7 @@ function setupFixture() {
   const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'plan-viewer-test-'));
   const skeleton = `# plan-plus: example-feature
 
-> full plan: ${dir}/.claude/plans/example-feature.md
+> full plan: ${dir}/.gemini/plans/example-feature.md
 
 - [ ] Step 1: scaffold the module
 - [x] Step 2: write failing test

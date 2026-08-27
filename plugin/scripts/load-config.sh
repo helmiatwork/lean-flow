@@ -16,7 +16,7 @@ LEAN_FLOW_ENABLE_RTK=true
 LEAN_FLOW_BRANCH_PREFIXES="feature fix improvement security test docs chore hotfix"
 
 # --- User overrides ---
-CONFIG_FILE="${HOME}/.claude/lean-flow.json"
+CONFIG_FILE="${HOME}/.gemini/lean-flow.json"
 
 if [ -f "$CONFIG_FILE" ] && command -v jq &>/dev/null; then
   _val() { jq -r "$1 // empty" "$CONFIG_FILE" 2>/dev/null; }

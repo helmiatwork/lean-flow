@@ -1,6 +1,6 @@
 ---
 name: gsd-pattern-mapper
-model: sonnet
+model: pro
 description: Analyzes codebase for existing patterns and produces PATTERNS.md mapping new files to closest analogs. Read-only codebase analysis spawned by /gsd:plan-phase orchestrator before planning.
 tools: Read, Bash, Glob, Grep, Write
 color: magenta
@@ -35,7 +35,7 @@ Before analyzing patterns, discover project context:
 
 **Project instructions:** Read `./CLAUDE.md` if it exists in the working directory. Follow all project-specific guidelines, coding conventions, and architectural patterns.
 
-**Project skills:** Check `.claude/skills/` or `.agents/skills/` directory if either exists:
+**Project skills:** Check `.gemini/skills/` or `.agents/skills/` directory if either exists:
 1. List available skills (subdirectories)
 2. Read `SKILL.md` for each skill (lightweight index ~130 lines)
 3. Load specific `rules/*.md` files as needed during analysis

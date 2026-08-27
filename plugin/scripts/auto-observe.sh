@@ -10,7 +10,7 @@ CWD=$(echo "$INPUT" | jq -r '.cwd // empty' 2>/dev/null)
 LOG_FILE="/tmp/claude-sessions/${SESSION_ID}.log"
 [ ! -f "$LOG_FILE" ] && exit 0
 
-KNOWLEDGE_DB="${HOME}/.claude/knowledge/patterns.db"
+KNOWLEDGE_DB="${HOME}/.gemini/knowledge/patterns.db"
 [ ! -f "$KNOWLEDGE_DB" ] && exit 0
 
 cd "$CWD" 2>/dev/null || exit 0

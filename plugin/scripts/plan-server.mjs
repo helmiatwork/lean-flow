@@ -31,7 +31,7 @@ function extractPlanName(md) {
 function extractProjectName(md) {
   const m = md.match(/full plan:\s*(.+)/m);
   if (!m) return 'unknown';
-  const parts = m[1].trim().split('/.claude/');
+  const parts = m[1].trim().split('/.gemini/');
   return parts.length >= 2 ? path.basename(parts[0]) : 'unknown';
 }
 
@@ -333,7 +333,7 @@ if (fs.existsSync(PLANS_DIR)) {
   });
 }
 
-// Also watch CWD .claude/plans if it exists
+// Also watch CWD .gemini/plans if it exists
 const cwdPlans = path.join(process.cwd(), '.claude', 'plans');
 if (fs.existsSync(cwdPlans) && cwdPlans !== PLANS_DIR) {
   fs.watch(cwdPlans, { recursive: true }, () => {

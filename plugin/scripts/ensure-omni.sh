@@ -11,7 +11,7 @@
 
 source "$(dirname "$0")/load-config.sh" 2>/dev/null
 
-# Honor LEAN_FLOW_ENABLE_OMNI=false in ~/.claude/lean-flow.json to opt out.
+# Honor LEAN_FLOW_ENABLE_OMNI=false in ~/.gemini/lean-flow.json to opt out.
 LEAN_FLOW_ENABLE_OMNI="${LEAN_FLOW_ENABLE_OMNI:-true}"
 [ "$LEAN_FLOW_ENABLE_OMNI" = "false" ] && exit 0
 
@@ -39,7 +39,7 @@ EOF
 fi
 
 # If OMNI's hooks are already registered in user settings, nothing to do.
-SETTINGS_FILE="${HOME}/.claude/settings.json"
+SETTINGS_FILE="${HOME}/.gemini/settings.json"
 if [ -f "$SETTINGS_FILE" ] && command -v jq &>/dev/null; then
   if jq -e '.. | objects | select(.command? // "" | test("omni"))' "$SETTINGS_FILE" &>/dev/null; then
     exit 0
@@ -47,7 +47,7 @@ if [ -f "$SETTINGS_FILE" ] && command -v jq &>/dev/null; then
 fi
 
 # Run `omni init` non-interactively to register PreToolUse, PostToolUse,
-# SessionStart, and PreCompact hooks plus MCP server in ~/.claude.json.
+# SessionStart, and PreCompact hooks plus MCP server in ~/.gemini.json.
 yes 2>/dev/null | omni init --all &>/dev/null
 
 cat <<'EOF'

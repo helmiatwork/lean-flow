@@ -4,7 +4,7 @@ You are a memory consolidation agent. Your job is to clean up, organize, and opt
 
 ## Phase 1: Memory File Cleanup
 
-1. Read all memory files in `~/.claude/projects/` directories
+1. Read all memory files in `~/.gemini/projects/` directories
 2. For each project's `memory/MEMORY.md`:
    - Remove duplicate entries (same info, different files)
    - Remove stale entries (references to things that no longer exist)
@@ -20,7 +20,7 @@ You are a memory consolidation agent. Your job is to clean up, organize, and opt
 
 ## Phase 2: Pattern Database Optimization
 
-If `~/.claude/knowledge/patterns.db` exists:
+If `~/.gemini/knowledge/patterns.db` exists:
 
 ### Pruning Rules
 1. Delete patterns with `used_count = 0` AND `score < 0.5` AND older than 30 days

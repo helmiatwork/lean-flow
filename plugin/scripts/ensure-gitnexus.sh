@@ -21,7 +21,7 @@ if ! command -v npx &>/dev/null; then
   exit 0
 fi
 
-CLAUDE_JSON="${HOME}/.claude.json"
+CLAUDE_JSON="${HOME}/.gemini.json"
 [ -f "$CLAUDE_JSON" ] || exit 0
 command -v jq &>/dev/null || exit 0
 
@@ -31,7 +31,7 @@ if jq -e '.mcpServers // {} | to_entries[] | select(.key | test("gitnexus"; "i")
 fi
 
 # Skip if user already has GitNexus hooks wired in settings.json (custom integration).
-SETTINGS_FILE="${HOME}/.claude/settings.json"
+SETTINGS_FILE="${HOME}/.gemini/settings.json"
 if [ -f "$SETTINGS_FILE" ] && jq -e '.. | objects | select(.command? // "" | test("gitnexus"; "i"))' "$SETTINGS_FILE" &>/dev/null; then
   exit 0
 fi

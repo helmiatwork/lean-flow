@@ -1,7 +1,7 @@
 ---
 name: auto-content-analyze
 description: Workhorse video/Short analyzer (Sonnet). Given a YouTube URL or local video file, pulls metadata, extracts frames, and returns a per-frame breakdown + viral-structure read + structured JSON tags. Use for fast, cheap bulk analysis and auto-tagging of short-form content. Cheaper and faster than content-analyze-senior; reach for the senior agent only when you need deep viral strategy.
-model: sonnet
+model: pro
 tools: Read, Bash, Glob, Grep
 ---
 
