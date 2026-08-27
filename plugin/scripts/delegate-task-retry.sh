@@ -41,7 +41,7 @@ patterns=(
   "subagent_type.*(required|missing)|missing_subagent_type|Add subagent_type='<agent-name>' (e.g. 'fixer', 'explorer', 'oracle')."
   "Unknown.*subagent_type|Invalid.*agent.*type|unknown_agent|The subagent_type is invalid. Use one of: fixer, oracle, explorer, librarian, designer, code-reviewer."
   "InputValidationError|input_validation|Inspect the InputValidationError detail and provide all required parameters before retrying."
-  "Permission denied|permission|Tool was blocked by a permission rule. Check ~/.claude/settings.json permissions.allow / permissions.deny."
+  "Permission denied|permission|Tool was blocked by a permission rule. Check ~/.gemini/settings.json permissions.allow / permissions.deny."
   "prompt.*(required|missing|empty)|missing_prompt|The prompt parameter is required and must be a non-empty self-contained brief for the subagent."
   "description.*(required|missing)|missing_description|Add a 3-5 word description parameter."
   "rate.limit|too.many.requests|rate_limit|Rate limited. Wait briefly then retry, or escalate to @oracle for analysis."

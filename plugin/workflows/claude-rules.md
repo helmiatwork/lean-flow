@@ -124,12 +124,12 @@ Anything else for medium/heavy work → dispatch `lean-flow:fixer`.
 
 ---
 
-## Pre-Work for Medium / Heavy
+## Pre-Work for Medium / Heavy (Skipped on Simple Tier / Direct Queries)
 
 Before dispatching `lean-flow:fixer` (in order):
 
 0. **Triage gate (lean-flow §1):** check `docs/CODEBASE_MAP.md` exists — if not, run `/cartographer` first before any other pre-work.
-1. **STAR confirm** + **`pattern_search`** (knowledge MCP).
+1. **STAR confirm** + **`pattern_search`** (knowledge MCP — Institutional Memory for medium/heavy tasks; skip on simple tier / direct Q&A).
 2. **`lean-flow:discuss`** — scope alignment for ambiguous tasks.
 3. **`lean-flow:phase-researcher`** + **`lean-flow:assumptions-analyzer`** — research before planning.
 4. **Heavy/brownfield only:** `lean-flow:map-codebase` + `lean-flow:ingest-docs`.
@@ -196,7 +196,7 @@ Always use the repo's PR template if `.github/PULL_REQUEST_TEMPLATE*.md` exists.
 
 ## Knowledge MCP
 
-- **`pattern_search`** — before solving, check for solved patterns in `patterns.db`.
+- **`pattern_search`** — before solving medium/heavy tasks, check for solved patterns in `patterns.db` (skip on simple tier / direct Q&A).
 - **`pattern_store`** — save problem/solution pairs after successful work.
 - **`project_context`** — get/set project summary (tech stack, conventions).
 

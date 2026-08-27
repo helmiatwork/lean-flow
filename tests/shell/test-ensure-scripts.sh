@@ -67,8 +67,8 @@ assert_exit "$exit_code" "0" "ensure-permissions: second run exits 0"
 echo ""
 echo "=== Test 3: ensure-plugins.sh (first run) ==="
 # Create minimal settings.json for the test
-mkdir -p "$HOME/.claude"
-cat > "$HOME/.claude/settings.json" << 'EOF'
+mkdir -p "$HOME/.gemini"
+cat > "$HOME/.gemini/settings.json" << 'EOF'
 {
   "enabledPlugins": {},
   "extraKnownMarketplaces": {}
@@ -81,11 +81,11 @@ assert_exit "$exit_code" "0" "ensure-plugins: first run exits 0"
 
 echo ""
 echo "=== Test 4: ensure-plugins.sh (settings updated) ==="
-if [ -f "$HOME/.claude/settings.json" ]; then
+if [ -f "$HOME/.gemini/settings.json" ]; then
   if command -v jq &>/dev/null; then
-    has_superpowers=$(jq -e '.enabledPlugins["superpowers@claude-plugins-official"]' "$HOME/.claude/settings.json" 2>/dev/null || echo "false")
-    has_plan_plus=$(jq -e '.enabledPlugins["plan-plus@plan-plus"]' "$HOME/.claude/settings.json" 2>/dev/null || echo "false")
-    has_plan_plus_marketplace=$(jq -e '.extraKnownMarketplaces["plan-plus"]' "$HOME/.claude/settings.json" 2>/dev/null || echo "false")
+    has_superpowers=$(jq -e '.enabledPlugins["superpowers@claude-plugins-official"]' "$HOME/.gemini/settings.json" 2>/dev/null || echo "false")
+    has_plan_plus=$(jq -e '.enabledPlugins["plan-plus@plan-plus"]' "$HOME/.gemini/settings.json" 2>/dev/null || echo "false")
+    has_plan_plus_marketplace=$(jq -e '.extraKnownMarketplaces["plan-plus"]' "$HOME/.gemini/settings.json" 2>/dev/null || echo "false")
     assert_contains "$has_superpowers" "true" "ensure-plugins: superpowers plugin enabled"
     # Regression: ensure-plugins must NOT auto-enable plan-plus (PR #20).
     # superpowers:writing-plans + executing-plans replace plan-plus as the canonical planning system.

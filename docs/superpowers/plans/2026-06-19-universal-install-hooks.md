@@ -2,7 +2,7 @@
 
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
 
-**Goal:** Ship `bunx lean-flow install` that resolves+installs system dependencies and idempotently wires lean-flow hooks into a teammate's `~/.claude/settings.json`.
+**Goal:** Ship `bunx lean-flow install` that resolves+installs system dependencies and idempotently wires lean-flow hooks into a teammate's `~/.gemini/settings.json`.
 
 **Architecture:** A Node CLI (`bin/cli.js`) reads two declarative sources of truth (`core/deps.toml`, `core/hook-manifest.json`), probes the target machine, installs missing deps via the OS package manager, copies bundled hook scripts, and merges hook registrations into `settings.json` — all idempotent, with a `.bak` backup and path-prefix-based uninstall.
 
@@ -334,7 +334,7 @@ const HOME = '/home/teammate'
 test('mergeHooks rewrites path to target HOME', () => {
   const out = mergeHooks({}, hooks, HOME)
   const cmd = out.hooks.SessionStart[0].hooks[0].command
-  assert.equal(cmd, 'bash /home/teammate/.claude/hooks/leanflow-fix.sh')
+  assert.equal(cmd, 'bash /home/teammate/.gemini/hooks/leanflow-fix.sh')
 })
 
 test('mergeHooks is idempotent — no duplicate on second run', () => {
@@ -366,7 +366,7 @@ Expected: FAIL — `Cannot find module '../src/settings.js'`
 
 `src/settings.js`:
 ```js
-const PREFIX = home => `${home}/.claude/hooks/`
+const PREFIX = home => `${home}/.gemini/hooks/`
 
 function commandFor(hook, home) {
   return `${hook.runner} ${PREFIX(home)}${hook.script}`
@@ -433,17 +433,17 @@ test('install copies hooks + writes settings + backup; uninstall reverts', () =>
   const HOME = mkdtempSync(join(tmpdir(), 'lf-'))
   install({ home: HOME, skipDeps: true })            // skipDeps avoids real brew calls
 
-  assert.ok(existsSync(join(HOME, '.claude/hooks/leanflow-fix.sh')), 'hook copied')
-  const s = JSON.parse(readFileSync(join(HOME, '.claude/settings.json'), 'utf8'))
+  assert.ok(existsSync(join(HOME, '.gemini/hooks/leanflow-fix.sh')), 'hook copied')
+  const s = JSON.parse(readFileSync(join(HOME, '.gemini/settings.json'), 'utf8'))
   assert.ok(s.hooks.SessionStart.some(g => g.hooks[0].command.includes('leanflow-fix.sh')))
 
   install({ home: HOME, skipDeps: true })            // idempotent
-  const s2 = JSON.parse(readFileSync(join(HOME, '.claude/settings.json'), 'utf8'))
+  const s2 = JSON.parse(readFileSync(join(HOME, '.gemini/settings.json'), 'utf8'))
   assert.equal(
     s2.hooks.SessionStart.filter(g => g.hooks[0].command.includes('leanflow-fix.sh')).length, 1)
 
   uninstall({ home: HOME })
-  const s3 = JSON.parse(readFileSync(join(HOME, '.claude/settings.json'), 'utf8'))
+  const s3 = JSON.parse(readFileSync(join(HOME, '.gemini/settings.json'), 'utf8'))
   assert.equal((s3.hooks.SessionStart ?? []).filter(
     g => g.hooks[0].command.includes('leanflow-fix.sh')).length, 0)
 })
@@ -487,8 +487,8 @@ function readSettings(path) {
 }
 
 export function install({ home = homedir(), skipDeps = false } = {}) {
-  const hooksDir = join(home, '.claude/hooks')
-  const settingsPath = join(home, '.claude/settings.json')
+  const hooksDir = join(home, '.gemini/hooks')
+  const settingsPath = join(home, '.gemini/settings.json')
   mkdirSync(hooksDir, { recursive: true })
 
   if (!skipDeps) {
@@ -508,7 +508,7 @@ export function install({ home = homedir(), skipDeps = false } = {}) {
 }
 
 export function uninstall({ home = homedir() } = {}) {
-  const settingsPath = join(home, '.claude/settings.json')
+  const settingsPath = join(home, '.gemini/settings.json')
   const current = readSettings(settingsPath)
   const cleaned = removeHooks(current, home)
   writeFileSync(settingsPath, JSON.stringify(cleaned, null, 2))

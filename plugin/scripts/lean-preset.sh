@@ -3,7 +3,7 @@
 #
 # Adapted (concept only) from oh-my-opencode-slim's runtime preset system.
 # Swaps the ANTHROPIC_DEFAULT_HAIKU_MODEL / ANTHROPIC_DEFAULT_SONNET_MODEL /
-# ANTHROPIC_DEFAULT_OPUS_MODEL env vars in ~/.claude/settings.json based on
+# ANTHROPIC_DEFAULT_OPUS_MODEL env vars in ~/.gemini/settings.json based on
 # named profiles, without rewriting agent frontmatter.
 #
 # Built-in profiles:
@@ -17,7 +17,7 @@
 #   lean-preset.sh <profile-name>    # switch to a profile
 #   lean-preset.sh --custom-file <path-to-preset.json>
 #
-# Custom presets live at ~/.claude/lean-flow-presets.json:
+# Custom presets live at ~/.gemini/lean-flow-presets.json:
 #   {
 #     "myteam": {
 #       "haiku":  "claude-haiku-4-5-20251001",
@@ -28,11 +28,11 @@
 
 set -uo pipefail
 
-SETTINGS="${HOME}/.claude/settings.json"
-CUSTOM_PRESETS="${HOME}/.claude/lean-flow-presets.json"
+SETTINGS="${HOME}/.gemini/settings.json"
+CUSTOM_PRESETS="${HOME}/.gemini/lean-flow-presets.json"
 
 if [ ! -f "$SETTINGS" ] || ! command -v jq &>/dev/null; then
-  echo "[lean-preset] requires ~/.claude/settings.json and jq" >&2
+  echo "[lean-preset] requires ~/.gemini/settings.json and jq" >&2
   exit 1
 fi
 

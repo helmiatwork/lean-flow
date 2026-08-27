@@ -285,9 +285,9 @@ assert_exit "$exit_code" "2" "Exit code 2 for plan in wrong directory"
 assert_contains "$output" "Blocked" "Error message shown"
 
 echo ""
-echo "Allow plan file in ~/.claude/plans/ (correct directory)"
+echo "Allow plan file in ~/.gemini/plans/ (correct directory)"
 exit_code=0
-output=$(echo '{"tool_input":{"file_path":"/Users/test/.claude/plans/my-plan.md"}}' | bash plugin/scripts/block-wrong-plan-dir.sh 2>&1) || exit_code=$?
+output=$(echo '{"tool_input":{"file_path":"/Users/test/.gemini/plans/my-plan.md"}}' | bash plugin/scripts/block-wrong-plan-dir.sh 2>&1) || exit_code=$?
 assert_exit "$exit_code" "0" "Exit code 0 for plan in correct directory"
 
 echo ""

@@ -111,7 +111,7 @@ test('plan-server.mjs exposes SSE endpoint /events', async () => {
   }
 });
 
-test('plan-server.mjs response embeds plan step state from HOME/.claude/plans', async () => {
+test('plan-server.mjs response embeds plan step state from HOME/.gemini/plans', async () => {
   const port = pickPort();
   const home = setupHomeFixture();
   const proc = spawnServer(port, home);

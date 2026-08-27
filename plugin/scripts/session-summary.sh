@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # session-summary.sh
-# PostCompact: save compaction summary to ~/.claude/session-summaries/
+# PostCompact: save compaction summary to ~/.gemini/session-summaries/
 
 INPUT=$(cat)
 EVENT=$(printf '%s' "$INPUT" | jq -r '.hookEventName // empty' 2>/dev/null)
@@ -11,7 +11,7 @@ if [ "$EVENT" = "Stop" ] || [ -z "$SUMMARY" ]; then
   SUMMARY="Session ended (no compact summary available)."
 fi
 
-SAVE_DIR="$HOME/.claude/session-summaries"
+SAVE_DIR="$HOME/.gemini/session-summaries"
 mkdir -p "$SAVE_DIR"
 
 SESSION_ID=$(printf '%s' "$INPUT" | jq -r '.session_id // empty' 2>/dev/null)

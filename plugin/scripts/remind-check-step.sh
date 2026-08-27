@@ -3,7 +3,7 @@
 # - If unchecked steps exist → remind to mark [x]
 # - If ALL steps checked → congratulate + remind to proceed to audit/PR
 
-PLANS_DIR="${HOME}/.claude/plans"
+PLANS_DIR="${HOME}/.gemini/plans"
 
 if [ ! -d "$PLANS_DIR" ]; then
   exit 0

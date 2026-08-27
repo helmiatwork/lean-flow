@@ -2,10 +2,10 @@
 # Ensure the knowledge MCP server is installed and registered.
 # Runs on SessionStart — idempotent (skips if already set up).
 
-KNOWLEDGE_DIR="${HOME}/.claude/mcp-servers/knowledge"
+KNOWLEDGE_DIR="${HOME}/.gemini/mcp-servers/knowledge"
 KNOWLEDGE_SRC="${CLAUDE_PLUGIN_ROOT}/mcp-servers/knowledge"
 KNOWLEDGE_ENTRY="index.mjs"
-DB_DIR="${HOME}/.claude/knowledge"
+DB_DIR="${HOME}/.gemini/knowledge"
 
 # Skip if plugin root is not set
 if [ -z "$CLAUDE_PLUGIN_ROOT" ]; then

@@ -2,12 +2,12 @@
   {
     "id": "mem-MEMORY----geps-express-split-order-lo",
     "key": "-geps-express-split-order-logic-project-geps-expre",
-    "content": "- [Skills primary source](feedback_skills_primary_source.md) — ~/.claude/skills/ is PRIMARY, not fallback; read here first before plugin cache\n- [@fixer uses sonnet](feedback_fixer_model.md) — @fixer model is sonnet (not haiku); CLAUDE.md table is wrong — check agent files directly",
+    "content": "- [Skills primary source](feedback_skills_primary_source.md) — ~/.gemini/skills/ is PRIMARY, not fallback; read here first before plugin cache\n- [@fixer uses sonnet](feedback_fixer_model.md) — @fixer model is sonnet (not haiku); CLAUDE.md table is wrong — check agent files directly",
     "summary": "- [GePS Express Split Order Logic](project_geps_express_split_orders.md) — Fulfillment must scope to component for multi-component orders; never change this branching",
     "namespace": "core",
     "type": "semantic",
     "metadata": {
-      "sourceFile": "/Users/ichigo/.claude/projects/-Users-ichigo/memory/MEMORY.md",
+      "sourceFile": "/Users/ichigo/.gemini/projects/-Users-ichigo/memory/MEMORY.md",
       "bootstrapped": true
     },
     "createdAt": 1775262069525
@@ -15,12 +15,12 @@
   {
     "id": "mem-feedback_fixer_model----",
     "key": "-",
-    "content": "name: @fixer uses sonnet\ndescription: @fixer agent model is sonnet, not haiku — CLAUDE.md table is wrong\ntype: feedback\n---\n\n@fixer uses `model: sonnet` (confirmed in ~/.claude/agents/fixer.md frontmatter). The CLAUDE.md table incorrectly lists it as haiku. Never use haiku for @fixer under any circumstances.\n\n**Why:** User explicitly stated \"never use haiku\" for @fixer.\n**How to apply:** Always dispatch @fixer with sonnet. Never downgrade to haiku even for simple tasks. Check the actual agent fi",
+    "content": "name: @fixer uses sonnet\ndescription: @fixer agent model is sonnet, not haiku — CLAUDE.md table is wrong\ntype: feedback\n---\n\n@fixer uses `model: sonnet` (confirmed in ~/.gemini/agents/fixer.md frontmatter). The CLAUDE.md table incorrectly lists it as haiku. Never use haiku for @fixer under any circumstances.\n\n**Why:** User explicitly stated \"never use haiku\" for @fixer.\n**How to apply:** Always dispatch @fixer with sonnet. Never downgrade to haiku even for simple tasks. Check the actual agent fi",
     "summary": "---",
     "namespace": "feedback_fixer_model",
     "type": "semantic",
     "metadata": {
-      "sourceFile": "/Users/ichigo/.claude/projects/-Users-ichigo/memory/feedback_fixer_model.md",
+      "sourceFile": "/Users/ichigo/.gemini/projects/-Users-ichigo/memory/feedback_fixer_model.md",
       "bootstrapped": true
     },
     "createdAt": 1775262069526
@@ -28,12 +28,12 @@
   {
     "id": "mem-feedback_skills_primary_source----",
     "key": "-",
-    "content": "name: Skills primary source\ndescription: ~/.claude/skills/ is the PRIMARY source for all skills, not a fallback — always read from here first\ntype: feedback\n---\n\n`~/.claude/skills/` is the **primary** source of truth for all skills — not a fallback.\n\n**Why:** User explicitly corrected the assumption that the plugin cache is primary and `~/.claude/skills/` is secondary. The user maintains their skills in `~/.claude/skills/` (inside the Claude-setting git repo) and considers it authoritative over ",
+    "content": "name: Skills primary source\ndescription: ~/.gemini/skills/ is the PRIMARY source for all skills, not a fallback — always read from here first\ntype: feedback\n---\n\n`~/.gemini/skills/` is the **primary** source of truth for all skills — not a fallback.\n\n**Why:** User explicitly corrected the assumption that the plugin cache is primary and `~/.gemini/skills/` is secondary. The user maintains their skills in `~/.gemini/skills/` (inside the Claude-setting git repo) and considers it authoritative over ",
     "summary": "---",
     "namespace": "feedback_skills_primary_source",
     "type": "semantic",
     "metadata": {
-      "sourceFile": "/Users/ichigo/.claude/projects/-Users-ichigo/memory/feedback_skills_primary_source.md",
+      "sourceFile": "/Users/ichigo/.gemini/projects/-Users-ichigo/memory/feedback_skills_primary_source.md",
       "bootstrapped": true
     },
     "createdAt": 1775262069527
@@ -46,7 +46,7 @@
     "namespace": "project_geps_express_split_orders",
     "type": "semantic",
     "metadata": {
-      "sourceFile": "/Users/ichigo/.claude/projects/-Users-ichigo/memory/project_geps_express_split_orders.md",
+      "sourceFile": "/Users/ichigo/.gemini/projects/-Users-ichigo/memory/project_geps_express_split_orders.md",
       "bootstrapped": true
     },
     "createdAt": 1775262069528
@@ -59,7 +59,7 @@
     "namespace": "core",
     "type": "semantic",
     "metadata": {
-      "sourceFile": "/Users/ichigo/.claude/projects/-Users-ichigo--config-opencode-superpowers/memory/MEMORY.md",
+      "sourceFile": "/Users/ichigo/.gemini/projects/-Users-ichigo--config-opencode-superpowers/memory/MEMORY.md",
       "bootstrapped": true
     },
     "createdAt": 1775262069530
@@ -72,7 +72,7 @@
     "namespace": "feedback_superpowers_push_main",
     "type": "semantic",
     "metadata": {
-      "sourceFile": "/Users/ichigo/.claude/projects/-Users-ichigo--config-opencode-superpowers/memory/feedback_superpowers_push_main.md",
+      "sourceFile": "/Users/ichigo/.gemini/projects/-Users-ichigo--config-opencode-superpowers/memory/feedback_superpowers_push_main.md",
       "bootstrapped": true
     },
     "createdAt": 1775262069530
@@ -85,7 +85,7 @@
     "namespace": "project_active_repos",
     "type": "semantic",
     "metadata": {
-      "sourceFile": "/Users/ichigo/.claude/projects/-Users-ichigo-Documents-repo/memory/project_active_repos.md",
+      "sourceFile": "/Users/ichigo/.gemini/projects/-Users-ichigo-Documents-repo/memory/project_active_repos.md",
       "bootstrapped": true
     },
     "createdAt": 1775262069531
@@ -98,7 +98,7 @@
     "namespace": "core",
     "type": "semantic",
     "metadata": {
-      "sourceFile": "/Users/ichigo/.claude/projects/-Users-ichigo-Documents-repo-chargebee-checkout/memory/MEMORY.md",
+      "sourceFile": "/Users/ichigo/.gemini/projects/-Users-ichigo-Documents-repo-chargebee-checkout/memory/MEMORY.md",
       "bootstrapped": true
     },
     "createdAt": 1775262069532
@@ -111,7 +111,7 @@
     "namespace": "feedback_check_codemap",
     "type": "semantic",
     "metadata": {
-      "sourceFile": "/Users/ichigo/.claude/projects/-Users-ichigo-Documents-repo-chargebee-checkout/memory/feedback_check_codemap.md",
+      "sourceFile": "/Users/ichigo/.gemini/projects/-Users-ichigo-Documents-repo-chargebee-checkout/memory/feedback_check_codemap.md",
       "bootstrapped": true
     },
     "createdAt": 1775262069532
@@ -124,7 +124,7 @@
     "namespace": "feedback_subagent_delegation",
     "type": "semantic",
     "metadata": {
-      "sourceFile": "/Users/ichigo/.claude/projects/-Users-ichigo-Documents-repo-chargebee-checkout/memory/feedback_subagent_delegation.md",
+      "sourceFile": "/Users/ichigo/.gemini/projects/-Users-ichigo-Documents-repo-chargebee-checkout/memory/feedback_subagent_delegation.md",
       "bootstrapped": true
     },
     "createdAt": 1775262069532
@@ -137,7 +137,7 @@
     "namespace": "feedback_superpower_startup",
     "type": "semantic",
     "metadata": {
-      "sourceFile": "/Users/ichigo/.claude/projects/-Users-ichigo-Documents-repo-chargebee-checkout/memory/feedback_superpower_startup.md",
+      "sourceFile": "/Users/ichigo/.gemini/projects/-Users-ichigo-Documents-repo-chargebee-checkout/memory/feedback_superpower_startup.md",
       "bootstrapped": true
     },
     "createdAt": 1775262069533
@@ -150,7 +150,7 @@
     "namespace": "feedback_superpowers_skills",
     "type": "semantic",
     "metadata": {
-      "sourceFile": "/Users/ichigo/.claude/projects/-Users-ichigo-Documents-repo-chargebee-checkout/memory/feedback_superpowers_skills.md",
+      "sourceFile": "/Users/ichigo/.gemini/projects/-Users-ichigo-Documents-repo-chargebee-checkout/memory/feedback_superpowers_skills.md",
       "bootstrapped": true
     },
     "createdAt": 1775262069557
@@ -163,7 +163,7 @@
     "namespace": "feedback_mermaid_colorful",
     "type": "semantic",
     "metadata": {
-      "sourceFile": "/Users/ichigo/.claude/projects/-Users-ichigo-Documents-repo-claude-usage-monitor/memory/feedback_mermaid_colorful.md",
+      "sourceFile": "/Users/ichigo/.gemini/projects/-Users-ichigo-Documents-repo-claude-usage-monitor/memory/feedback_mermaid_colorful.md",
       "bootstrapped": true
     },
     "createdAt": 1775262069558
@@ -176,7 +176,7 @@
     "namespace": "core",
     "type": "semantic",
     "metadata": {
-      "sourceFile": "/Users/ichigo/.claude/projects/-Users-ichigo-Documents-repo-customer-portal/memory/MEMORY.md",
+      "sourceFile": "/Users/ichigo/.gemini/projects/-Users-ichigo-Documents-repo-customer-portal/memory/MEMORY.md",
       "bootstrapped": true
     },
     "createdAt": 1775262069558
@@ -189,7 +189,7 @@
     "namespace": "core",
     "type": "semantic",
     "metadata": {
-      "sourceFile": "/Users/ichigo/.claude/projects/-Users-ichigo-Documents-repo-customer-portal/memory/MEMORY.md",
+      "sourceFile": "/Users/ichigo/.gemini/projects/-Users-ichigo-Documents-repo-customer-portal/memory/MEMORY.md",
       "bootstrapped": true
     },
     "createdAt": 1775262069558
@@ -202,7 +202,7 @@
     "namespace": "core",
     "type": "semantic",
     "metadata": {
-      "sourceFile": "/Users/ichigo/.claude/projects/-Users-ichigo-Documents-repo-customer-portal/memory/MEMORY.md",
+      "sourceFile": "/Users/ichigo/.gemini/projects/-Users-ichigo-Documents-repo-customer-portal/memory/MEMORY.md",
       "bootstrapped": true
     },
     "createdAt": 1775262069558
@@ -215,7 +215,7 @@
     "namespace": "core",
     "type": "semantic",
     "metadata": {
-      "sourceFile": "/Users/ichigo/.claude/projects/-Users-ichigo-Documents-repo-customer-portal/memory/MEMORY.md",
+      "sourceFile": "/Users/ichigo/.gemini/projects/-Users-ichigo-Documents-repo-customer-portal/memory/MEMORY.md",
       "bootstrapped": true
     },
     "createdAt": 1775262069558
@@ -228,7 +228,7 @@
     "namespace": "feedback_always_create_todos",
     "type": "semantic",
     "metadata": {
-      "sourceFile": "/Users/ichigo/.claude/projects/-Users-ichigo-Documents-repo-customer-portal/memory/feedback_always_create_todos.md",
+      "sourceFile": "/Users/ichigo/.gemini/projects/-Users-ichigo-Documents-repo-customer-portal/memory/feedback_always_create_todos.md",
       "bootstrapped": true
     },
     "createdAt": 1775262069558
@@ -236,12 +236,12 @@
   {
     "id": "mem-feedback_mcp_global_only----",
     "key": "-",
-    "content": "name: feedback_mcp_global_only\ndescription: MCP server configurations must be global only, never added per-repo\ntype: feedback\n---\n\nMCP server configurations must only be set globally, never per-repository.\n\n**Why:** User wants a single source of truth for MCP configs to avoid duplication and drift across repos.\n\n**How to apply:** When adding or modifying MCP server configs, always use the global Claude config (~/.claude/config/mcp.json), never create .mcp.json or similar files in individual rep",
+    "content": "name: feedback_mcp_global_only\ndescription: MCP server configurations must be global only, never added per-repo\ntype: feedback\n---\n\nMCP server configurations must only be set globally, never per-repository.\n\n**Why:** User wants a single source of truth for MCP configs to avoid duplication and drift across repos.\n\n**How to apply:** When adding or modifying MCP server configs, always use the global Claude config (~/.gemini/config/mcp.json), never create .mcp.json or similar files in individual rep",
     "summary": "---",
     "namespace": "feedback_mcp_global_only",
     "type": "semantic",
     "metadata": {
-      "sourceFile": "/Users/ichigo/.claude/projects/-Users-ichigo-Documents-repo-customer-portal/memory/feedback_mcp_global_only.md",
+      "sourceFile": "/Users/ichigo/.gemini/projects/-Users-ichigo-Documents-repo-customer-portal/memory/feedback_mcp_global_only.md",
       "bootstrapped": true
     },
     "createdAt": 1775262069558
@@ -254,7 +254,7 @@
     "namespace": "feedback_never_merge_prs",
     "type": "semantic",
     "metadata": {
-      "sourceFile": "/Users/ichigo/.claude/projects/-Users-ichigo-Documents-repo-customer-portal/memory/feedback_never_merge_prs.md",
+      "sourceFile": "/Users/ichigo/.gemini/projects/-Users-ichigo-Documents-repo-customer-portal/memory/feedback_never_merge_prs.md",
       "bootstrapped": true
     },
     "createdAt": 1775262069559
@@ -267,7 +267,7 @@
     "namespace": "feedback_no_claude_identity",
     "type": "semantic",
     "metadata": {
-      "sourceFile": "/Users/ichigo/.claude/projects/-Users-ichigo-Documents-repo-customer-portal/memory/feedback_no_claude_identity.md",
+      "sourceFile": "/Users/ichigo/.gemini/projects/-Users-ichigo-Documents-repo-customer-portal/memory/feedback_no_claude_identity.md",
       "bootstrapped": true
     },
     "createdAt": 1775262069559
@@ -280,7 +280,7 @@
     "namespace": "feedback_no_n_plus_one",
     "type": "semantic",
     "metadata": {
-      "sourceFile": "/Users/ichigo/.claude/projects/-Users-ichigo-Documents-repo-customer-portal/memory/feedback_no_n_plus_one.md",
+      "sourceFile": "/Users/ichigo/.gemini/projects/-Users-ichigo-Documents-repo-customer-portal/memory/feedback_no_n_plus_one.md",
       "bootstrapped": true
     },
     "createdAt": 1775262069559
@@ -293,7 +293,7 @@
     "namespace": "project_overview",
     "type": "semantic",
     "metadata": {
-      "sourceFile": "/Users/ichigo/.claude/projects/-Users-ichigo-Documents-repo-customer-portal/memory/project_overview.md",
+      "sourceFile": "/Users/ichigo/.gemini/projects/-Users-ichigo-Documents-repo-customer-portal/memory/project_overview.md",
       "bootstrapped": true
     },
     "createdAt": 1775262069559
@@ -306,7 +306,7 @@
     "namespace": "core",
     "type": "semantic",
     "metadata": {
-      "sourceFile": "/Users/ichigo/.claude/projects/-Users-ichigo-Documents-repo-grewme/memory/MEMORY.md",
+      "sourceFile": "/Users/ichigo/.gemini/projects/-Users-ichigo-Documents-repo-grewme/memory/MEMORY.md",
       "bootstrapped": true
     },
     "createdAt": 1775262069560
@@ -319,7 +319,7 @@
     "namespace": "feedback_autonomous_execution",
     "type": "semantic",
     "metadata": {
-      "sourceFile": "/Users/ichigo/.claude/projects/-Users-ichigo-Documents-repo-grewme/memory/feedback_autonomous_execution.md",
+      "sourceFile": "/Users/ichigo/.gemini/projects/-Users-ichigo-Documents-repo-grewme/memory/feedback_autonomous_execution.md",
       "bootstrapped": true
     },
     "createdAt": 1775262069561
@@ -332,7 +332,7 @@
     "namespace": "feedback_github_account",
     "type": "semantic",
     "metadata": {
-      "sourceFile": "/Users/ichigo/.claude/projects/-Users-ichigo-Documents-repo-grewme/memory/feedback_github_account.md",
+      "sourceFile": "/Users/ichigo/.gemini/projects/-Users-ichigo-Documents-repo-grewme/memory/feedback_github_account.md",
       "bootstrapped": true
     },
     "createdAt": 1775262069561
@@ -345,7 +345,7 @@
     "namespace": "feedback_planplus_workflow",
     "type": "semantic",
     "metadata": {
-      "sourceFile": "/Users/ichigo/.claude/projects/-Users-ichigo-Documents-repo-grewme/memory/feedback_planplus_workflow.md",
+      "sourceFile": "/Users/ichigo/.gemini/projects/-Users-ichigo-Documents-repo-grewme/memory/feedback_planplus_workflow.md",
       "bootstrapped": true
     },
     "createdAt": 1775262069561
@@ -358,7 +358,7 @@
     "namespace": "core",
     "type": "semantic",
     "metadata": {
-      "sourceFile": "/Users/ichigo/.claude/projects/-Users-ichigo-Documents-repo-ichigo-admin/memory/MEMORY.md",
+      "sourceFile": "/Users/ichigo/.gemini/projects/-Users-ichigo-Documents-repo-ichigo-admin/memory/MEMORY.md",
       "bootstrapped": true
     },
     "createdAt": 1775262069562
@@ -371,7 +371,7 @@
     "namespace": "feedback_boot_superpowers",
     "type": "semantic",
     "metadata": {
-      "sourceFile": "/Users/ichigo/.claude/projects/-Users-ichigo-Documents-repo-ichigo-admin/memory/feedback_boot_superpowers.md",
+      "sourceFile": "/Users/ichigo/.gemini/projects/-Users-ichigo-Documents-repo-ichigo-admin/memory/feedback_boot_superpowers.md",
       "bootstrapped": true
     },
     "createdAt": 1775262069562
@@ -384,7 +384,7 @@
     "namespace": "feedback_rtk_prefix",
     "type": "semantic",
     "metadata": {
-      "sourceFile": "/Users/ichigo/.claude/projects/-Users-ichigo-Documents-repo-ichigo-admin/memory/feedback_rtk_prefix.md",
+      "sourceFile": "/Users/ichigo/.gemini/projects/-Users-ichigo-Documents-repo-ichigo-admin/memory/feedback_rtk_prefix.md",
       "bootstrapped": true
     },
     "createdAt": 1775262069562
@@ -397,7 +397,7 @@
     "namespace": "core",
     "type": "semantic",
     "metadata": {
-      "sourceFile": "/Users/ichigo/.claude/projects/-Users-ichigo-Documents-repo-ichigo-crm/memory/MEMORY.md",
+      "sourceFile": "/Users/ichigo/.gemini/projects/-Users-ichigo-Documents-repo-ichigo-crm/memory/MEMORY.md",
       "bootstrapped": true
     },
     "createdAt": 1775262069563
@@ -410,7 +410,7 @@
     "namespace": "feedback_plan_plus",
     "type": "semantic",
     "metadata": {
-      "sourceFile": "/Users/ichigo/.claude/projects/-Users-ichigo-Documents-repo-ichigo-crm/memory/feedback_plan_plus.md",
+      "sourceFile": "/Users/ichigo/.gemini/projects/-Users-ichigo-Documents-repo-ichigo-crm/memory/feedback_plan_plus.md",
       "bootstrapped": true
     },
     "createdAt": 1775262069563
@@ -423,7 +423,7 @@
     "namespace": "project_cicd",
     "type": "semantic",
     "metadata": {
-      "sourceFile": "/Users/ichigo/.claude/projects/-Users-ichigo-Documents-repo-ichigo-crm/memory/project_cicd.md",
+      "sourceFile": "/Users/ichigo/.gemini/projects/-Users-ichigo-Documents-repo-ichigo-crm/memory/project_cicd.md",
       "bootstrapped": true
     },
     "createdAt": 1775262069564
@@ -436,7 +436,7 @@
     "namespace": "project_cicd",
     "type": "semantic",
     "metadata": {
-      "sourceFile": "/Users/ichigo/.claude/projects/-Users-ichigo-Documents-repo-ichigo-crm/memory/project_cicd.md",
+      "sourceFile": "/Users/ichigo/.gemini/projects/-Users-ichigo-Documents-repo-ichigo-crm/memory/project_cicd.md",
       "bootstrapped": true
     },
     "createdAt": 1775262069564
@@ -449,7 +449,7 @@
     "namespace": "project_cicd",
     "type": "semantic",
     "metadata": {
-      "sourceFile": "/Users/ichigo/.claude/projects/-Users-ichigo-Documents-repo-ichigo-crm/memory/project_cicd.md",
+      "sourceFile": "/Users/ichigo/.gemini/projects/-Users-ichigo-Documents-repo-ichigo-crm/memory/project_cicd.md",
       "bootstrapped": true
     },
     "createdAt": 1775262069564
@@ -462,7 +462,7 @@
     "namespace": "project_oms_pundit",
     "type": "semantic",
     "metadata": {
-      "sourceFile": "/Users/ichigo/.claude/projects/-Users-ichigo-Documents-repo-ichigo-crm/memory/project_oms_pundit.md",
+      "sourceFile": "/Users/ichigo/.gemini/projects/-Users-ichigo-Documents-repo-ichigo-crm/memory/project_oms_pundit.md",
       "bootstrapped": true
     },
     "createdAt": 1775262069564
@@ -475,7 +475,7 @@
     "namespace": "project_oms_pundit",
     "type": "semantic",
     "metadata": {
-      "sourceFile": "/Users/ichigo/.claude/projects/-Users-ichigo-Documents-repo-ichigo-crm/memory/project_oms_pundit.md",
+      "sourceFile": "/Users/ichigo/.gemini/projects/-Users-ichigo-Documents-repo-ichigo-crm/memory/project_oms_pundit.md",
       "bootstrapped": true
     },
     "createdAt": 1775262069564
@@ -488,7 +488,7 @@
     "namespace": "project_oms_pundit",
     "type": "semantic",
     "metadata": {
-      "sourceFile": "/Users/ichigo/.claude/projects/-Users-ichigo-Documents-repo-ichigo-crm/memory/project_oms_pundit.md",
+      "sourceFile": "/Users/ichigo/.gemini/projects/-Users-ichigo-Documents-repo-ichigo-crm/memory/project_oms_pundit.md",
       "bootstrapped": true
     },
     "createdAt": 1775262069564
@@ -501,7 +501,7 @@
     "namespace": "project_oms_pundit",
     "type": "semantic",
     "metadata": {
-      "sourceFile": "/Users/ichigo/.claude/projects/-Users-ichigo-Documents-repo-ichigo-crm/memory/project_oms_pundit.md",
+      "sourceFile": "/Users/ichigo/.gemini/projects/-Users-ichigo-Documents-repo-ichigo-crm/memory/project_oms_pundit.md",
       "bootstrapped": true
     },
     "createdAt": 1775262069564
@@ -514,7 +514,7 @@
     "namespace": "project_oms_pundit",
     "type": "semantic",
     "metadata": {
-      "sourceFile": "/Users/ichigo/.claude/projects/-Users-ichigo-Documents-repo-ichigo-crm/memory/project_oms_pundit.md",
+      "sourceFile": "/Users/ichigo/.gemini/projects/-Users-ichigo-Documents-repo-ichigo-crm/memory/project_oms_pundit.md",
       "bootstrapped": true
     },
     "createdAt": 1775262069564
@@ -527,7 +527,7 @@
     "namespace": "project_oms_pundit",
     "type": "semantic",
     "metadata": {
-      "sourceFile": "/Users/ichigo/.claude/projects/-Users-ichigo-Documents-repo-ichigo-crm/memory/project_oms_pundit.md",
+      "sourceFile": "/Users/ichigo/.gemini/projects/-Users-ichigo-Documents-repo-ichigo-crm/memory/project_oms_pundit.md",
       "bootstrapped": true
     },
     "createdAt": 1775262069564
@@ -540,7 +540,7 @@
     "namespace": "core",
     "type": "semantic",
     "metadata": {
-      "sourceFile": "/Users/ichigo/.claude/projects/-Users-ichigo-Documents-repo-japanhaul-rails/memory/MEMORY.md",
+      "sourceFile": "/Users/ichigo/.gemini/projects/-Users-ichigo-Documents-repo-japanhaul-rails/memory/MEMORY.md",
       "bootstrapped": true
     },
     "createdAt": 1775262069565
@@ -553,7 +553,7 @@
     "namespace": "core",
     "type": "semantic",
     "metadata": {
-      "sourceFile": "/Users/ichigo/.claude/projects/-Users-ichigo-Documents-repo-oms/memory/MEMORY.md",
+      "sourceFile": "/Users/ichigo/.gemini/projects/-Users-ichigo-Documents-repo-oms/memory/MEMORY.md",
       "bootstrapped": true
     },
     "createdAt": 1775262069565
@@ -566,7 +566,7 @@
     "namespace": "core",
     "type": "semantic",
     "metadata": {
-      "sourceFile": "/Users/ichigo/.claude/projects/-Users-ichigo-Documents-repo-oms/memory/MEMORY.md",
+      "sourceFile": "/Users/ichigo/.gemini/projects/-Users-ichigo-Documents-repo-oms/memory/MEMORY.md",
       "bootstrapped": true
     },
     "createdAt": 1775262069565
@@ -579,7 +579,7 @@
     "namespace": "core",
     "type": "semantic",
     "metadata": {
-      "sourceFile": "/Users/ichigo/.claude/projects/-Users-ichigo-Documents-repo-oms/memory/MEMORY.md",
+      "sourceFile": "/Users/ichigo/.gemini/projects/-Users-ichigo-Documents-repo-oms/memory/MEMORY.md",
       "bootstrapped": true
     },
     "createdAt": 1775262069565
@@ -592,7 +592,7 @@
     "namespace": "core",
     "type": "semantic",
     "metadata": {
-      "sourceFile": "/Users/ichigo/.claude/projects/-Users-ichigo-Documents-repo-oms/memory/MEMORY.md",
+      "sourceFile": "/Users/ichigo/.gemini/projects/-Users-ichigo-Documents-repo-oms/memory/MEMORY.md",
       "bootstrapped": true
     },
     "createdAt": 1775262069565
@@ -605,7 +605,7 @@
     "namespace": "core",
     "type": "semantic",
     "metadata": {
-      "sourceFile": "/Users/ichigo/.claude/projects/-Users-ichigo-Documents-repo-oms/memory/MEMORY.md",
+      "sourceFile": "/Users/ichigo/.gemini/projects/-Users-ichigo-Documents-repo-oms/memory/MEMORY.md",
       "bootstrapped": true
     },
     "createdAt": 1775262069565
@@ -618,7 +618,7 @@
     "namespace": "consolidation-plan",
     "type": "semantic",
     "metadata": {
-      "sourceFile": "/Users/ichigo/.claude/projects/-Users-ichigo-Documents-repo-oms/memory/consolidation-plan.md",
+      "sourceFile": "/Users/ichigo/.gemini/projects/-Users-ichigo-Documents-repo-oms/memory/consolidation-plan.md",
       "bootstrapped": true
     },
     "createdAt": 1775262069565
@@ -631,7 +631,7 @@
     "namespace": "consolidation-plan",
     "type": "semantic",
     "metadata": {
-      "sourceFile": "/Users/ichigo/.claude/projects/-Users-ichigo-Documents-repo-oms/memory/consolidation-plan.md",
+      "sourceFile": "/Users/ichigo/.gemini/projects/-Users-ichigo-Documents-repo-oms/memory/consolidation-plan.md",
       "bootstrapped": true
     },
     "createdAt": 1775262069565
@@ -644,7 +644,7 @@
     "namespace": "consolidation-plan",
     "type": "semantic",
     "metadata": {
-      "sourceFile": "/Users/ichigo/.claude/projects/-Users-ichigo-Documents-repo-oms/memory/consolidation-plan.md",
+      "sourceFile": "/Users/ichigo/.gemini/projects/-Users-ichigo-Documents-repo-oms/memory/consolidation-plan.md",
       "bootstrapped": true
     },
     "createdAt": 1775262069565
@@ -657,7 +657,7 @@
     "namespace": "consolidation-plan",
     "type": "semantic",
     "metadata": {
-      "sourceFile": "/Users/ichigo/.claude/projects/-Users-ichigo-Documents-repo-oms/memory/consolidation-plan.md",
+      "sourceFile": "/Users/ichigo/.gemini/projects/-Users-ichigo-Documents-repo-oms/memory/consolidation-plan.md",
       "bootstrapped": true
     },
     "createdAt": 1775262069565
@@ -670,7 +670,7 @@
     "namespace": "feedback_always_planplus",
     "type": "semantic",
     "metadata": {
-      "sourceFile": "/Users/ichigo/.claude/projects/-Users-ichigo-Documents-repo-oms/memory/feedback_always_planplus.md",
+      "sourceFile": "/Users/ichigo/.gemini/projects/-Users-ichigo-Documents-repo-oms/memory/feedback_always_planplus.md",
       "bootstrapped": true
     },
     "createdAt": 1775262069566
@@ -683,7 +683,7 @@
     "namespace": "feedback_confluence_draft",
     "type": "semantic",
     "metadata": {
-      "sourceFile": "/Users/ichigo/.claude/projects/-Users-ichigo-Documents-repo-oms/memory/feedback_confluence_draft.md",
+      "sourceFile": "/Users/ichigo/.gemini/projects/-Users-ichigo-Documents-repo-oms/memory/feedback_confluence_draft.md",
       "bootstrapped": true
     },
     "createdAt": 1775262069566
@@ -696,7 +696,7 @@
     "namespace": "feedback_fixer_model",
     "type": "semantic",
     "metadata": {
-      "sourceFile": "/Users/ichigo/.claude/projects/-Users-ichigo-Documents-repo-oms/memory/feedback_fixer_model.md",
+      "sourceFile": "/Users/ichigo/.gemini/projects/-Users-ichigo-Documents-repo-oms/memory/feedback_fixer_model.md",
       "bootstrapped": true
     },
     "createdAt": 1775262069567
@@ -704,12 +704,12 @@
   {
     "id": "mem-feedback_no_remove_agents----",
     "key": "-",
-    "content": "name: Don't suggest removing agents\ndescription: Never suggest removing ruflo agents or templates unless explicitly asked\ntype: feedback\n---\n\nNever suggest removing or cleaning up ruflo agents, agent templates, or swarm state unless the user explicitly asks for it.\n\n**Why:** User wants to explore and keep ruflo agents/templates. Unsolicited cleanup suggestions are unwanted.\n\n**How to apply:** Don't offer to delete agents, templates in ~/.claude/agents/, swarm state, or any ruflo resources proact",
+    "content": "name: Don't suggest removing agents\ndescription: Never suggest removing ruflo agents or templates unless explicitly asked\ntype: feedback\n---\n\nNever suggest removing or cleaning up ruflo agents, agent templates, or swarm state unless the user explicitly asks for it.\n\n**Why:** User wants to explore and keep ruflo agents/templates. Unsolicited cleanup suggestions are unwanted.\n\n**How to apply:** Don't offer to delete agents, templates in ~/.gemini/agents/, swarm state, or any ruflo resources proact",
     "summary": "---",
     "namespace": "feedback_no_remove_agents",
     "type": "semantic",
     "metadata": {
-      "sourceFile": "/Users/ichigo/.claude/projects/-Users-ichigo-Documents-repo-oms/memory/feedback_no_remove_agents.md",
+      "sourceFile": "/Users/ichigo/.gemini/projects/-Users-ichigo-Documents-repo-oms/memory/feedback_no_remove_agents.md",
       "bootstrapped": true
     },
     "createdAt": 1775262069567
@@ -722,7 +722,7 @@
     "namespace": "feedback_ruflo_workflow",
     "type": "semantic",
     "metadata": {
-      "sourceFile": "/Users/ichigo/.claude/projects/-Users-ichigo-Documents-repo-oms/memory/feedback_ruflo_workflow.md",
+      "sourceFile": "/Users/ichigo/.gemini/projects/-Users-ichigo-Documents-repo-oms/memory/feedback_ruflo_workflow.md",
       "bootstrapped": true
     },
     "createdAt": 1775262069568
@@ -735,7 +735,7 @@
     "namespace": "feedback_self_review",
     "type": "semantic",
     "metadata": {
-      "sourceFile": "/Users/ichigo/.claude/projects/-Users-ichigo-Documents-repo-oms/memory/feedback_self_review.md",
+      "sourceFile": "/Users/ichigo/.gemini/projects/-Users-ichigo-Documents-repo-oms/memory/feedback_self_review.md",
       "bootstrapped": true
     },
     "createdAt": 1775262069568
@@ -748,7 +748,7 @@
     "namespace": "feedback_stage_schema",
     "type": "semantic",
     "metadata": {
-      "sourceFile": "/Users/ichigo/.claude/projects/-Users-ichigo-Documents-repo-oms/memory/feedback_stage_schema.md",
+      "sourceFile": "/Users/ichigo/.gemini/projects/-Users-ichigo-Documents-repo-oms/memory/feedback_stage_schema.md",
       "bootstrapped": true
     },
     "createdAt": 1775262069569
@@ -761,7 +761,7 @@
     "namespace": "feedback_token_priority",
     "type": "semantic",
     "metadata": {
-      "sourceFile": "/Users/ichigo/.claude/projects/-Users-ichigo-Documents-repo-oms/memory/feedback_token_priority.md",
+      "sourceFile": "/Users/ichigo/.gemini/projects/-Users-ichigo-Documents-repo-oms/memory/feedback_token_priority.md",
       "bootstrapped": true
     },
     "createdAt": 1775262069570
@@ -774,7 +774,7 @@
     "namespace": "i18n-patterns",
     "type": "semantic",
     "metadata": {
-      "sourceFile": "/Users/ichigo/.claude/projects/-Users-ichigo-Documents-repo-oms/memory/i18n-patterns.md",
+      "sourceFile": "/Users/ichigo/.gemini/projects/-Users-ichigo-Documents-repo-oms/memory/i18n-patterns.md",
       "bootstrapped": true
     },
     "createdAt": 1775262069570
@@ -787,7 +787,7 @@
     "namespace": "i18n-patterns",
     "type": "semantic",
     "metadata": {
-      "sourceFile": "/Users/ichigo/.claude/projects/-Users-ichigo-Documents-repo-oms/memory/i18n-patterns.md",
+      "sourceFile": "/Users/ichigo/.gemini/projects/-Users-ichigo-Documents-repo-oms/memory/i18n-patterns.md",
       "bootstrapped": true
     },
     "createdAt": 1775262069570
@@ -800,7 +800,7 @@
     "namespace": "i18n-patterns",
     "type": "semantic",
     "metadata": {
-      "sourceFile": "/Users/ichigo/.claude/projects/-Users-ichigo-Documents-repo-oms/memory/i18n-patterns.md",
+      "sourceFile": "/Users/ichigo/.gemini/projects/-Users-ichigo-Documents-repo-oms/memory/i18n-patterns.md",
       "bootstrapped": true
     },
     "createdAt": 1775262069570
@@ -813,7 +813,7 @@
     "namespace": "i18n-patterns",
     "type": "semantic",
     "metadata": {
-      "sourceFile": "/Users/ichigo/.claude/projects/-Users-ichigo-Documents-repo-oms/memory/i18n-patterns.md",
+      "sourceFile": "/Users/ichigo/.gemini/projects/-Users-ichigo-Documents-repo-oms/memory/i18n-patterns.md",
       "bootstrapped": true
     },
     "createdAt": 1775262069570
@@ -826,7 +826,7 @@
     "namespace": "i18n-patterns",
     "type": "semantic",
     "metadata": {
-      "sourceFile": "/Users/ichigo/.claude/projects/-Users-ichigo-Documents-repo-oms/memory/i18n-patterns.md",
+      "sourceFile": "/Users/ichigo/.gemini/projects/-Users-ichigo-Documents-repo-oms/memory/i18n-patterns.md",
       "bootstrapped": true
     },
     "createdAt": 1775262069570
@@ -839,7 +839,7 @@
     "namespace": "i18n-patterns",
     "type": "semantic",
     "metadata": {
-      "sourceFile": "/Users/ichigo/.claude/projects/-Users-ichigo-Documents-repo-oms/memory/i18n-patterns.md",
+      "sourceFile": "/Users/ichigo/.gemini/projects/-Users-ichigo-Documents-repo-oms/memory/i18n-patterns.md",
       "bootstrapped": true
     },
     "createdAt": 1775262069570
@@ -852,7 +852,7 @@
     "namespace": "i18n-patterns",
     "type": "semantic",
     "metadata": {
-      "sourceFile": "/Users/ichigo/.claude/projects/-Users-ichigo-Documents-repo-oms/memory/i18n-patterns.md",
+      "sourceFile": "/Users/ichigo/.gemini/projects/-Users-ichigo-Documents-repo-oms/memory/i18n-patterns.md",
       "bootstrapped": true
     },
     "createdAt": 1775262069570
@@ -865,7 +865,7 @@
     "namespace": "i18n-patterns",
     "type": "semantic",
     "metadata": {
-      "sourceFile": "/Users/ichigo/.claude/projects/-Users-ichigo-Documents-repo-oms/memory/i18n-patterns.md",
+      "sourceFile": "/Users/ichigo/.gemini/projects/-Users-ichigo-Documents-repo-oms/memory/i18n-patterns.md",
       "bootstrapped": true
     },
     "createdAt": 1775262069570
@@ -878,7 +878,7 @@
     "namespace": "i18n-patterns",
     "type": "semantic",
     "metadata": {
-      "sourceFile": "/Users/ichigo/.claude/projects/-Users-ichigo-Documents-repo-oms/memory/i18n-patterns.md",
+      "sourceFile": "/Users/ichigo/.gemini/projects/-Users-ichigo-Documents-repo-oms/memory/i18n-patterns.md",
       "bootstrapped": true
     },
     "createdAt": 1775262069570
@@ -891,7 +891,7 @@
     "namespace": "i18n-patterns",
     "type": "semantic",
     "metadata": {
-      "sourceFile": "/Users/ichigo/.claude/projects/-Users-ichigo-Documents-repo-oms/memory/i18n-patterns.md",
+      "sourceFile": "/Users/ichigo/.gemini/projects/-Users-ichigo-Documents-repo-oms/memory/i18n-patterns.md",
       "bootstrapped": true
     },
     "createdAt": 1775262069570
@@ -904,7 +904,7 @@
     "namespace": "project_ichigo_crm",
     "type": "semantic",
     "metadata": {
-      "sourceFile": "/Users/ichigo/.claude/projects/-Users-ichigo-Documents-repo-oms/memory/project_ichigo_crm.md",
+      "sourceFile": "/Users/ichigo/.gemini/projects/-Users-ichigo-Documents-repo-oms/memory/project_ichigo_crm.md",
       "bootstrapped": true
     },
     "createdAt": 1775262069571
@@ -917,7 +917,7 @@
     "namespace": "project_ichigo_crm",
     "type": "semantic",
     "metadata": {
-      "sourceFile": "/Users/ichigo/.claude/projects/-Users-ichigo-Documents-repo-oms/memory/project_ichigo_crm.md",
+      "sourceFile": "/Users/ichigo/.gemini/projects/-Users-ichigo-Documents-repo-oms/memory/project_ichigo_crm.md",
       "bootstrapped": true
     },
     "createdAt": 1775262069571
@@ -930,7 +930,7 @@
     "namespace": "project_ichigo_crm",
     "type": "semantic",
     "metadata": {
-      "sourceFile": "/Users/ichigo/.claude/projects/-Users-ichigo-Documents-repo-oms/memory/project_ichigo_crm.md",
+      "sourceFile": "/Users/ichigo/.gemini/projects/-Users-ichigo-Documents-repo-oms/memory/project_ichigo_crm.md",
       "bootstrapped": true
     },
     "createdAt": 1775262069571
@@ -943,7 +943,7 @@
     "namespace": "project_ichigo_crm",
     "type": "semantic",
     "metadata": {
-      "sourceFile": "/Users/ichigo/.claude/projects/-Users-ichigo-Documents-repo-oms/memory/project_ichigo_crm.md",
+      "sourceFile": "/Users/ichigo/.gemini/projects/-Users-ichigo-Documents-repo-oms/memory/project_ichigo_crm.md",
       "bootstrapped": true
     },
     "createdAt": 1775262069571
@@ -956,7 +956,7 @@
     "namespace": "project_ichigo_crm",
     "type": "semantic",
     "metadata": {
-      "sourceFile": "/Users/ichigo/.claude/projects/-Users-ichigo-Documents-repo-oms/memory/project_ichigo_crm.md",
+      "sourceFile": "/Users/ichigo/.gemini/projects/-Users-ichigo-Documents-repo-oms/memory/project_ichigo_crm.md",
       "bootstrapped": true
     },
     "createdAt": 1775262069571
@@ -969,7 +969,7 @@
     "namespace": "project_ichigo_crm",
     "type": "semantic",
     "metadata": {
-      "sourceFile": "/Users/ichigo/.claude/projects/-Users-ichigo-Documents-repo-oms/memory/project_ichigo_crm.md",
+      "sourceFile": "/Users/ichigo/.gemini/projects/-Users-ichigo-Documents-repo-oms/memory/project_ichigo_crm.md",
       "bootstrapped": true
     },
     "createdAt": 1775262069571
@@ -982,7 +982,7 @@
     "namespace": "project_ichigo_crm",
     "type": "semantic",
     "metadata": {
-      "sourceFile": "/Users/ichigo/.claude/projects/-Users-ichigo-Documents-repo-oms/memory/project_ichigo_crm.md",
+      "sourceFile": "/Users/ichigo/.gemini/projects/-Users-ichigo-Documents-repo-oms/memory/project_ichigo_crm.md",
       "bootstrapped": true
     },
     "createdAt": 1775262069571
@@ -995,7 +995,7 @@
     "namespace": "project_ichigo_crm",
     "type": "semantic",
     "metadata": {
-      "sourceFile": "/Users/ichigo/.claude/projects/-Users-ichigo-Documents-repo-oms/memory/project_ichigo_crm.md",
+      "sourceFile": "/Users/ichigo/.gemini/projects/-Users-ichigo-Documents-repo-oms/memory/project_ichigo_crm.md",
       "bootstrapped": true
     },
     "createdAt": 1775262069571
@@ -1008,7 +1008,7 @@
     "namespace": "project_ichigo_crm",
     "type": "semantic",
     "metadata": {
-      "sourceFile": "/Users/ichigo/.claude/projects/-Users-ichigo-Documents-repo-oms/memory/project_ichigo_crm.md",
+      "sourceFile": "/Users/ichigo/.gemini/projects/-Users-ichigo-Documents-repo-oms/memory/project_ichigo_crm.md",
       "bootstrapped": true
     },
     "createdAt": 1775262069571
@@ -1021,7 +1021,7 @@
     "namespace": "project_ichigo_crm",
     "type": "semantic",
     "metadata": {
-      "sourceFile": "/Users/ichigo/.claude/projects/-Users-ichigo-Documents-repo-oms/memory/project_ichigo_crm.md",
+      "sourceFile": "/Users/ichigo/.gemini/projects/-Users-ichigo-Documents-repo-oms/memory/project_ichigo_crm.md",
       "bootstrapped": true
     },
     "createdAt": 1775262069571
@@ -1034,7 +1034,7 @@
     "namespace": "project_ichigo_crm",
     "type": "semantic",
     "metadata": {
-      "sourceFile": "/Users/ichigo/.claude/projects/-Users-ichigo-Documents-repo-oms/memory/project_ichigo_crm.md",
+      "sourceFile": "/Users/ichigo/.gemini/projects/-Users-ichigo-Documents-repo-oms/memory/project_ichigo_crm.md",
       "bootstrapped": true
     },
     "createdAt": 1775262069571
@@ -1047,7 +1047,7 @@
     "namespace": "reference_staging_urls",
     "type": "semantic",
     "metadata": {
-      "sourceFile": "/Users/ichigo/.claude/projects/-Users-ichigo-Documents-repo-oms/memory/reference_staging_urls.md",
+      "sourceFile": "/Users/ichigo/.gemini/projects/-Users-ichigo-Documents-repo-oms/memory/reference_staging_urls.md",
       "bootstrapped": true
     },
     "createdAt": 1775262069571
@@ -1060,7 +1060,7 @@
     "namespace": "shipping-finder-refactor",
     "type": "semantic",
     "metadata": {
-      "sourceFile": "/Users/ichigo/.claude/projects/-Users-ichigo-Documents-repo-oms/memory/shipping-finder-refactor.md",
+      "sourceFile": "/Users/ichigo/.gemini/projects/-Users-ichigo-Documents-repo-oms/memory/shipping-finder-refactor.md",
       "bootstrapped": true
     },
     "createdAt": 1775262069571
@@ -1073,7 +1073,7 @@
     "namespace": "shipping-finder-refactor",
     "type": "semantic",
     "metadata": {
-      "sourceFile": "/Users/ichigo/.claude/projects/-Users-ichigo-Documents-repo-oms/memory/shipping-finder-refactor.md",
+      "sourceFile": "/Users/ichigo/.gemini/projects/-Users-ichigo-Documents-repo-oms/memory/shipping-finder-refactor.md",
       "bootstrapped": true
     },
     "createdAt": 1775262069571
@@ -1086,7 +1086,7 @@
     "namespace": "shipping-finder-refactor",
     "type": "semantic",
     "metadata": {
-      "sourceFile": "/Users/ichigo/.claude/projects/-Users-ichigo-Documents-repo-oms/memory/shipping-finder-refactor.md",
+      "sourceFile": "/Users/ichigo/.gemini/projects/-Users-ichigo-Documents-repo-oms/memory/shipping-finder-refactor.md",
       "bootstrapped": true
     },
     "createdAt": 1775262069571
@@ -1099,7 +1099,7 @@
     "namespace": "shipping-finder-refactor",
     "type": "semantic",
     "metadata": {
-      "sourceFile": "/Users/ichigo/.claude/projects/-Users-ichigo-Documents-repo-oms/memory/shipping-finder-refactor.md",
+      "sourceFile": "/Users/ichigo/.gemini/projects/-Users-ichigo-Documents-repo-oms/memory/shipping-finder-refactor.md",
       "bootstrapped": true
     },
     "createdAt": 1775262069571
@@ -1112,7 +1112,7 @@
     "namespace": "shipping-finder-refactor",
     "type": "semantic",
     "metadata": {
-      "sourceFile": "/Users/ichigo/.claude/projects/-Users-ichigo-Documents-repo-oms/memory/shipping-finder-refactor.md",
+      "sourceFile": "/Users/ichigo/.gemini/projects/-Users-ichigo-Documents-repo-oms/memory/shipping-finder-refactor.md",
       "bootstrapped": true
     },
     "createdAt": 1775262069571
@@ -1125,7 +1125,7 @@
     "namespace": "shipping-finder-refactor",
     "type": "semantic",
     "metadata": {
-      "sourceFile": "/Users/ichigo/.claude/projects/-Users-ichigo-Documents-repo-oms/memory/shipping-finder-refactor.md",
+      "sourceFile": "/Users/ichigo/.gemini/projects/-Users-ichigo-Documents-repo-oms/memory/shipping-finder-refactor.md",
       "bootstrapped": true
     },
     "createdAt": 1775262069571

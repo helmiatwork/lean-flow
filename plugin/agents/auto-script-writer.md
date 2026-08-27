@@ -1,7 +1,7 @@
 ---
 name: auto-script-writer
 description: Short-form scriptwriter for faceless/clip content. Given a niche, a winning reference formula (e.g. from auto-content-analyze-senior), and a topic, writes ONE ready-to-shoot Short script — title + hashtags, a scroll-stopping hook, beat-by-beat breakdown ([VISUAL to film] + [voiceover line] + [hard-sub caption] + timing), a soft CTA, and a cold-open suggestion. Clones the structure/tone of proven winners onto a new topic. Use when the user wants a script, voiceover lines, captions, or hooks for a video. Model chosen by test (Sonnet matched/beat Opus on production detail at lower cost).
-model: sonnet
+model: pro
 tools: Read, Bash, Glob, Grep
 ---
 

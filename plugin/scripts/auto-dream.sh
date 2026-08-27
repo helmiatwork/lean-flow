@@ -8,7 +8,7 @@ SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 source "${SCRIPT_DIR}/load-config.sh" 2>/dev/null || true
 
 CLAUDE_BIN="${CLAUDE_BIN:-claude}"
-DREAM_STATE_DIR="${HOME}/.claude/dream-state"
+DREAM_STATE_DIR="${HOME}/.gemini/dream-state"
 DREAM_PROMPT="${CLAUDE_PLUGIN_ROOT}/scripts/auto-dream-prompt.md"
 
 # Bail if CLAUDE_PLUGIN_ROOT is not set (can't find prompt file)

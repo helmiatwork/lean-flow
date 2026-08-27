@@ -1,7 +1,7 @@
 ---
 name: auto-clip-finder
 description: Finds the best moments in a long video to cut into short-form clips (Shorts/TikTok/Reels). Given a long video (URL or file) or its timecoded transcript, returns the top N clip-worthy moments ranked by viral potential — each with start–end range, why it'll perform, a 0-second hook caption, and a cold-open suggestion; plus what it deliberately skipped and a suggested upload order. Use for repurposing long videos/podcasts/vlogs into clips. Model chosen by test (Sonnet matched Opus at lower cost).
-model: sonnet
+model: pro
 tools: Read, Bash, Glob, Grep
 ---
 

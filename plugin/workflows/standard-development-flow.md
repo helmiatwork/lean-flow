@@ -19,7 +19,7 @@ flowchart TD
       STARCHECK -->|"medium / heavy"| STARSHOW["📋 STAR breakdown<br/>shown to user"]
       STARSHOW --> STARCONFIRM{"User confirms?"}
       STARCONFIRM -->|"adjust"| STARSHOW
-      STARCONFIRM -->|"yes"| MEMORY["🧠 pattern_search<br/>+ map-codebase<br/>+ ingest-docs (heavy)"]
+      STARCONFIRM -->|"yes"| MEMORY["🧠 1. pattern_search (knowledge)<br/>2. gitnexus_context & query (AST graph)<br/>3. map-codebase (heavy)"]
       MEMORY --> FOUND{"Pattern match?"}
       FOUND -->|"yes"| DISPATCH_ADAPT(["📤 Dispatch fixer<br/>(apply pattern)"])
       FOUND -->|"no"| BRAINSTORM["💡 brainstorming<br/>+ phase-researcher<br/>+ assumptions-analyzer<br/>+ spike if blocked"]
@@ -285,7 +285,8 @@ Short prompts (<50 chars) and follow-up messages (`yes`, `ok`, `proceed`, etc.) 
 
 When the project root contains `.gitnexus/`, the repo is indexed by GitNexus and the MCP tools are available to orchestrator and every agent it dispatches. **These calls are mandatory — not optional enrichment.**
 
-**Always do:**
+**Tier Scoping & Fast Path:**
+- **Fast path optimization:** Simple 1–2 line edits, conceptual Q&A, and tasks where target files/lines are known skip pre-flight graph queries and pattern search to eliminate startup latency.
 - **Before editing any public function/class/method** (medium/heavy tier): `gitnexus_impact({target: "<symbol>", direction: "upstream"})`. Report blast radius (callers, processes, risk) to user. **HALT on HIGH or CRITICAL until user confirms.**
 - **Before committing:** `gitnexus_detect_changes()` to verify the change scope matches intent (no accidental drift, no unintended public-API edits).
 - **Renaming a symbol:** `gitnexus_rename` (call-graph aware). Never find-and-replace.
@@ -314,7 +315,7 @@ Before brainstorming on complex tasks in existing codebases:
 - **`lean-flow:ingest-docs`** — If ADRs, PRDs, or SPECs exist, extract locked decisions and surface conflicts before planning. ADR decisions are treated as locked unless user overrides.
 
 ### 2. Pattern Search (knowledge MCP)
-- `pattern_search` for previously solved patterns
+- `pattern_search` for previously solved patterns (scoped to medium/heavy/refactor planning; skipped on simple tier / direct Q&A)
 - Match found: fixer applies pattern, skip planning, enter step loop
 - No match: proceed to brainstorming + `superpowers:writing-plans`
 

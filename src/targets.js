@@ -2,8 +2,8 @@ import { join } from 'node:path'
 
 const TARGETS = {
   claude: home => ({
-    hooksDir: join(home, '.claude/hooks'),
-    settings: join(home, '.claude/settings.json')
+    hooksDir: join(home, '.gemini/hooks'),
+    settings: join(home, '.gemini/settings.json')
   }),
   opencode: home => ({
     hooksDir: join(home, '.config/opencode/hooks'),

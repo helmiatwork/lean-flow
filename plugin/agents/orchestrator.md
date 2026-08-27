@@ -105,22 +105,25 @@ For medium/heavy: STAR breakdown shown to user, user confirms before any work.
 
 | Tier | Path |
 |---|---|
-| **simple** | Orchestrator edits directly. No fixer dispatch. |
+| **simple** | Orchestrator answers or edits directly. Fast path: skip pre-flight graph injection and pattern search. No fixer dispatch. |
 | **medium** | Orchestrator → plan via `superpowers:writing-plans` → delegate `lean-flow:fixer` (haiku) for ALL execution |
-| **heavy** | Orchestrator → plan + `lean-flow:map-codebase` + `lean-flow:ingest-docs` → delegate `lean-flow:fixer` (haiku) |
-| **greenfield** | Brainstorm → generate docs (PRD/HLA/TRD) → plan → `lean-flow:fixer` |
+| **heavy** | Orchestrator → SPARC plan (`Specification` → `Pseudocode` → `Architecture` → `Refinement` → `Completion`) + `lean-flow:map-codebase` → delegate `lean-flow:fixer` (haiku) |
+| **greenfield** | Brainstorm → SPARC 5-phase doc generation (PRD/HLA/TRD) → plan → `lean-flow:fixer` |
 | **hotfix** | `hotfix/` branch → `lean-flow:fixer` minimal fix → `lean-flow:oracle` inline review → PR to main |
 
-## 3. Pre-Work (medium/heavy)
-Before dispatching `lean-flow:fixer`:
+## 3. Pre-Work (medium/heavy — skipped on simple tier / direct Q&A)
+Before dispatching `lean-flow:fixer` on medium/heavy tasks:
 
-1. `pattern_search` (knowledge MCP) — reuse solved patterns
-2. `lean-flow:discuss` — scope alignment for ambiguous tasks
-3. `lean-flow:phase-researcher` + `lean-flow:assumptions-analyzer` — research before planning
-4. `lean-flow:map-codebase` + `lean-flow:ingest-docs` — heavy tasks only (brownfield)
-5. `lean-flow:spike` — when feasibility is unclear
-6. `superpowers:writing-plans` — canonical plan creation
-7. `lean-flow:plan-checker` — 8-dimension goal-backward verification before fixer dispatch
+1. `pattern_search` (knowledge MCP) — **Institutional Memory Recall** (check if repo/team solved this in past PRs)
+2. **GitNexus Pre-Flight Graph Injection** (`gitnexus_context` & `gitnexus_query`) — **AST Reality & Structure** (map target symbols, callers, callees, execution flows before planning)
+3. `lean-flow:discuss` / `interview-me` — scope alignment & Socratic requirements interrogation (one question at a time with concrete options) for ambiguous tasks
+4. `lean-flow:phase-researcher` + `lean-flow:assumptions-analyzer` — research before planning
+5. `lean-flow:map-codebase` + `lean-flow:ingest-docs` — heavy tasks only (brownfield)
+6. `lean-flow:spike` — when feasibility is unclear
+7. `superpowers:writing-plans` — canonical plan creation with explicit DoD checklist
+8. `gitnexus_impact({target: "<symbol>", direction: "upstream"})` — compute blast radius before delegating edits
+9. `doubt-driven-development` — run 5-step adversarial disproof cycle (`CLAIM` → `CONTRACT` → `DISSENT` → `RECONCILE` → `STOP`) on high-stakes architectural assumptions
+10. `lean-flow:plan-checker` — 8-dimension goal-backward verification before fixer dispatch
 
 ## Definition of Done (DoD) — ownership & flow <!-- dod-flow -->
 
@@ -254,6 +257,16 @@ When oracle or code-reviewer surfaces issues during PR review, fixer (PR owner) 
 | **Cross-Cutting** | Both parallel | Frontend ↔ backend contract (API shape, serialization, error formats), shared types/interfaces, integration points |
 | **Testing** | `lean-flow:fixer` | Test coverage, test structure, mocking, fixtures; or `lean-flow:designer` if UI/component testing |
 | **Docs / Config** | Issue owner (fixer if on step PR, orchestrator if on main PR) | Comments, README, configuration files, CLAUDE.md, rule files |
+
+### Review Conflict Arbitration (Quorum Priority)
+
+When reviewer agents (`oracle`, `code-reviewer`, `security-manager`) surface conflicting recommendations, resolve using strict hierarchy:
+
+1. **Security P0/P1**: Non-negotiable block. Overrides convenience and optimization.
+2. **Correctness & DoD**: Task acceptance criteria must be satisfied with concrete test evidence.
+3. **Architecture & Domain Seams**: Maintain system boundaries and backward compatibility over micro-optimizations.
+4. **Performance & Scalability**: Hot path efficiency, N+1 query elimination, Core Web Vitals budgets.
+5. **Maintainability & Style**: Code simplification, idiomatic style, standard library preference.
 
 **Workflow:**
 1. Reviewer (code-reviewer / oracle) returns APPROVED or numbered issues
@@ -461,7 +474,7 @@ When the project root contains `.gitnexus/`, GitNexus MCP tools are available to
 
 Required usage on medium/heavy tier:
 - **Before editing any public function/class/method:** `gitnexus_impact({target: "<symbol>", direction: "upstream"})`. Report blast radius (callers, processes, risk) to user. Halt if `HIGH` or `CRITICAL` until user confirms.
-- **Before committing:** `gitnexus_detect_changes()` to verify the change scope matches intent.
+- **Before committing / PR:** Run `npx gitnexus analyze` locally to refresh AST, then `gitnexus_detect_changes()` to verify change scope matches intent.
 - **Exploring unfamiliar code:** `gitnexus_query({query: "<concept>"})` returns process-grouped results — preferred over grep.
 - **Need 360° symbol view:** `gitnexus_context({name: "<symbol>"})` lists callers, callees, processes.
 - **Renaming:** `gitnexus_rename` only (call-graph aware). Never find-and-replace.
