@@ -105,14 +105,14 @@ For medium/heavy: STAR breakdown shown to user, user confirms before any work.
 
 | Tier | Path |
 |---|---|
-| **simple** | Orchestrator edits directly. No fixer dispatch. |
+| **simple** | Orchestrator answers or edits directly. Fast path: skip pre-flight graph injection and pattern search. No fixer dispatch. |
 | **medium** | Orchestrator → plan via `superpowers:writing-plans` → delegate `lean-flow:fixer` (haiku) for ALL execution |
 | **heavy** | Orchestrator → plan + `lean-flow:map-codebase` + `lean-flow:ingest-docs` → delegate `lean-flow:fixer` (haiku) |
 | **greenfield** | Brainstorm → generate docs (PRD/HLA/TRD) → plan → `lean-flow:fixer` |
 | **hotfix** | `hotfix/` branch → `lean-flow:fixer` minimal fix → `lean-flow:oracle` inline review → PR to main |
 
-## 3. Pre-Work (medium/heavy)
-Before dispatching `lean-flow:fixer`:
+## 3. Pre-Work (medium/heavy — skipped on simple tier / direct Q&A)
+Before dispatching `lean-flow:fixer` on medium/heavy tasks:
 
 1. `pattern_search` (knowledge MCP) — **Institutional Memory Recall** (check if repo/team solved this in past PRs)
 2. **GitNexus Pre-Flight Graph Injection** (`gitnexus_context` & `gitnexus_query`) — **AST Reality & Structure** (map target symbols, callers, callees, execution flows before planning)
