@@ -68,6 +68,8 @@ The code-reviewer requires these skills:
 - `code-simplification` — Refactor for clarity without behavior change; eliminate unnecessary cognitive load, deep nesting, and ad-hoc helpers; prefer native platform/stdlib
 - `ponytail:ponytail-review` — **MANDATORY every review.** Hunt over-engineering in the diff: reinvented stdlib, unneeded dependencies, speculative abstractions, dead flexibility, and verbose code a shorter/native form already covers. Invoke the skill, then fold its findings into the Maintainability dimension of the Dimension Sweep. If it finds nothing, state "over-engineering: clean" — never silently skip it.
 
+When dispatched from `lean-flow:pr-review`, map severities for the orchestrator: Critical → 🚫 Blocker, Important/Major → ⚠️ Important, Minor/Suggestion → 💡 Nit-picks, numbered within each group.
+
 When reviewing completed work, you will:
 
 1. **Plan Alignment Analysis**:
