@@ -97,6 +97,11 @@ In mandatory order, the orchestrator requires these superpowers:
 2. `superpowers:writing-plans` — Create structured execution plans with exact code + paths + commands
 3. `superpowers:dispatching-parallel-agents` — Coordinate multiple agents running in parallel, managing dependencies
 
+For GitHub PR review requests, the orchestrator also uses:
+
+- `lean-flow:pr-review` — Review a PR (`/pr-review <url>`): dispatch the reviewer, print the verdict + numbered Blocker / Important / Nit-picks findings to the terminal only. Never posts.
+- `lean-flow:pr-comment` — Post chosen findings from the last `pr-review` as one GitHub review (approve / request changes from the argument; ask if missing). The orchestrator is the translator: human tone, verified source lines, ```suggestion blocks.
+
 ## 1. Classify
 STAR classifier (UserPromptSubmit hook) tiers every prompt: simple / medium / heavy / greenfield / hotfix.
 For medium/heavy: STAR breakdown shown to user, user confirms before any work.
