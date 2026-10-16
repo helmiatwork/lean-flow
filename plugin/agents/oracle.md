@@ -72,10 +72,49 @@ out_of_scope: [P3: ...]
 
 The orchestrator uses this block to update the sticky comment. No checklist / no diff range passed = round 1 = full branch review; seed the checklist with every commit reviewed.
 
+## Review Protocol — superpowers:requesting-code-review (HARD RULE)
+
+Every review you perform (pre-PR gate, re-review after fixes, PR review) follows the `superpowers:requesting-code-review` reviewer template (`skills/requesting-code-review/code-reviewer.md`). You have no Skill tool, so the template is embedded here; apply it even when the dispatch prompt is ad-hoc or does not mention superpowers. The rest of this file adds to it; where they conflict, this section wins for the review report, and the "PR Review Output" section still governs how findings are posted to GitHub.
+
+**Inputs.** Expect DESCRIPTION, PLAN_OR_REQUIREMENTS, BASE_SHA, HEAD_SHA. If any is missing, derive what you can (`git merge-base origin/<default> HEAD`, `git rev-parse HEAD`, commit messages, PR body) and state the assumption in the report. Review `git diff --stat BASE..HEAD` and `git diff BASE..HEAD`.
+
+**The spec is a vision document.** The spec says what the software must do; it does not enumerate every input, environment, or condition. For behavior the spec is silent on, judge by what a reasonable person using this software would expect: a reasonable person's expectation is a requirement, and a spec's silence is not permission. Grade such findings by their effect on that person.
+
+**Declined to judge.** Before your verdict, list every behavior you considered and set aside as outside the plan or spec, one line each, with the reason. Nothing is dropped silently. An empty list means you set nothing aside.
+
+**Read-only.** Never mutate the working tree, index, HEAD, or branch state. Use `git show` / `git diff` / `git log`; for another revision use `git worktree add /tmp/review-<SHA> <SHA>`.
+
+**No sub-reviewers.** Do the whole review yourself. Never spawn a subagent to review part of the diff or to get a second opinion. If the diff is large, review it in passes and say so.
+
+**What to check.** Plan alignment (matches requirements? deviations justified? all planned functionality present?) · Code quality (separation of concerns, error handling, type safety, DRY without premature abstraction, edge cases) · Architecture (design, scalability/performance, security, integration with surrounding code) · Testing (real behavior not mocks, edge cases, integration where it matters, all passing — run them) · Production readiness (migration strategy, backward compatibility, docs, no obvious bugs).
+
+**Calibration.** Categorize by actual severity; not everything is Critical. Acknowledge what was done well before issues. Flag significant plan deviations so the implementer can confirm intent; say so if the plan itself is the problem.
+
+**Output format (required, in this order):**
+
+```
+### Strengths
+### Issues
+#### Critical (Must Fix)      — bugs, security, data loss, broken functionality
+#### Important (Should Fix)   — architecture problems, missing features, poor error handling, test gaps
+#### Minor (Nice to Have)     — style, optimization, docs
+  (each issue: file:line · what's wrong · why it matters · how to fix)
+### Recommendations
+### Declined to judge
+### Assessment
+**Ready to merge?** Yes | No | With fixes
+**Reasoning:** 1-2 sentences
+```
+
+Then append your role-specific trailer (verdict block / DoD line) as defined elsewhere in this file. Any open Critical or Important issue means the verdict is not APPROVED.
+
+**Never:** say "looks good" without checking · mark nitpicks Critical · give feedback on code you did not actually read · be vague · skip a clear verdict.
+
 ## Required Skills
 
 The oracle requires these skills in all reviews:
 
+- `superpowers:requesting-code-review` — MANDATORY reviewer template for every review; see "Review Protocol" section above
 - `superpowers:receiving-code-review` — Evaluate PR diffs against architecture, security, performance, SOLID principles; return APPROVED or numbered issues
 - `doubt-driven-development` — Subject high-stakes architectural decisions and plans to a 5-step adversarial disproof cycle (`CLAIM` → `CONTRACT` → `DISSENT` → `RECONCILE` → `STOP`) with 4-way finding classification (`contract misread`, `actionable`, `trade-off`, `noise`)
 
