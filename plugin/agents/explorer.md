@@ -1,7 +1,7 @@
 ---
 name: explorer
 description: Fast codebase exploration agent. File discovery, navigation, quick searches. Read-only — never edits code. Use when you need to find files, understand structure, or locate specific code.
-model: flash
+model: haiku
 tools: ["Read", "Glob", "Grep", "Bash"]
 ---
 

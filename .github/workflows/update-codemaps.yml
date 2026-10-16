@@ -10,6 +10,8 @@ permissions:
 jobs:
   update-codemaps:
     runs-on: ubuntu-latest
+    env:
+      HAS_KEY: ${{ secrets.ANTHROPIC_API_KEY != '' }}
     steps:
       - uses: actions/checkout@v4
         with:
@@ -22,7 +24,13 @@ jobs:
       - name: Install dependencies
         run: pip install anthropic
 
+      - name: Warn when API key is missing
+        if: env.HAS_KEY != 'true'
+        run: echo "::warning::ANTHROPIC_API_KEY not configured; codemaps not updated"
+
       - name: Update codemaps for changed directories
+        # Skip (instead of failing) when the repo secret is not configured.
+        if: env.HAS_KEY == 'true'
         env:
           ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
         run: python3 scripts/ci-update-codemaps.py

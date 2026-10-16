@@ -2,7 +2,7 @@
 name: code-reviewer
 description: |
   Code-quality / SOLID / patterns / coverage review. Reads diffs, analyzes code structure, and provides actionable feedback on implementation quality without writing code.
-model: pro
+model: sonnet
 tools: ["Read", "Grep", "Glob", "Bash"]
 ---
 

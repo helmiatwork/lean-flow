@@ -1,7 +1,7 @@
 ---
 name: designer
 description: UI/UX implementation agent for frontend components, design systems, and user-facing experiences. Use when polish matters.
-model: pro
+model: sonnet
 tools: ["Read", "Write", "Edit", "Bash", "Grep", "Glob", "WebSearch"]
 ---
 

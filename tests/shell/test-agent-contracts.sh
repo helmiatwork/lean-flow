@@ -22,7 +22,7 @@ assert_file_exists() {
 }
 
 assert_contains() {
-  if echo "$1" | grep -q "$2"; then
+  if grep -q "$2" <<<"$1"; then
     echo "✓ $3"
     PASS=$((PASS+1))
   else
@@ -32,7 +32,7 @@ assert_contains() {
 }
 
 assert_not_contains() {
-  if ! echo "$1" | grep -q "$2"; then
+  if ! grep -q "$2" <<<"$1"; then
     echo "✓ $3"
     PASS=$((PASS+1))
   else
@@ -61,7 +61,7 @@ orchestrator_content=$(cat plugin/agents/orchestrator.md)
 # Look for (model) marker in the ~10 lines after the agent heading
 parse_agent_model() {
   local agent="$1"
-  local section=$(echo "$orchestrator_content" | sed -n "/@lean-flow:$agent/,/@lean-flow:/p" | head -10)
+  local section=$(echo "$orchestrator_content" | sed -n "/@lean-flow:$agent/,/@lean-flow:/p" | sed -n 1,10p)
 
   if echo "$section" | grep -qE '\(haiku\)'; then
     echo "haiku"
@@ -80,7 +80,7 @@ parse_agent_model() {
 #            "Read/Write (Read, Write, Edit, Bash, Grep, Glob, Agent)" → ["Read", "Write", "Edit", "Bash", "Grep", "Glob", "Agent"]
 parse_agent_tools() {
   local agent="$1"
-  local section=$(echo "$orchestrator_content" | sed -n "/@lean-flow:$agent/,/@lean-flow:/p" | head -10)
+  local section=$(echo "$orchestrator_content" | sed -n "/@lean-flow:$agent/,/@lean-flow:/p" | sed -n 1,10p)
 
   # Match "Permissions: ..." or "tools: ..." line
   local perms_line=$(echo "$section" | grep -E "Permissions:|tools:" | head -1)
@@ -129,7 +129,7 @@ for agent in fixer designer oracle code-reviewer explorer librarian; do
     agent_content=$(cat "$agent_file")
 
     # Check frontmatter name
-    if echo "$agent_content" | head -10 | grep -q "^name: $agent"; then
+    if sed -n 1,10p <<<"$agent_content" | grep -q "^name: $agent"; then
       echo "✓ $agent has correct 'name:' in frontmatter"
       PASS=$((PASS+1))
     else
@@ -138,7 +138,7 @@ for agent in fixer designer oracle code-reviewer explorer librarian; do
     fi
 
     # Extract and verify exact model value (from orchestrator.md)
-    actual_model=$(echo "$agent_content" | head -10 | grep "^model:" | sed 's/^model: //' | tr -d ' ')
+    actual_model=$(sed -n 1,10p <<<"$agent_content" | grep "^model:" | sed 's/^model: //' | tr -d ' ')
     expected_model=$(get_expected_model "$agent")
     if [ -z "$expected_model" ]; then
       echo "✗ $agent: could not parse model from orchestrator.md"
@@ -152,7 +152,7 @@ for agent in fixer designer oracle code-reviewer explorer librarian; do
     fi
 
     # Extract and verify exact tools value (from orchestrator.md)
-    actual_tools=$(echo "$agent_content" | head -10 | grep "^tools:" | sed 's/^tools: //')
+    actual_tools=$(sed -n 1,10p <<<"$agent_content" | grep "^tools:" | sed 's/^tools: //')
     actual_tools_normalized=$(normalize_json "$actual_tools")
     expected_tools=$(get_expected_tools "$agent")
     expected_tools_normalized=$(normalize_json "$expected_tools")
@@ -193,12 +193,12 @@ for agent in fixer designer oracle code-reviewer explorer librarian; do
   agent_content=$(cat "$agent_file")
 
   # Check Required Skills section exists
-  if echo "$agent_content" | grep -qE "## Required Skills|^## Mandatory Skills|^## Skills"; then
+  if grep -qE "## Required Skills|^## Mandatory Skills|^## Skills" <<<"$agent_content"; then
     echo "✓ $agent has Required Skills section"
     PASS=$((PASS+1))
 
     # Check for at least one skill keyword
-    if echo "$agent_content" | grep -qE "(superpower|skill|capability)"; then
+    if grep -qE "(superpower|skill|capability)" <<<"$agent_content"; then
       echo "✓ $agent Required Skills section has content"
       PASS=$((PASS+1))
     else
@@ -231,7 +231,7 @@ for agent in fixer designer oracle code-reviewer explorer librarian; do
   agent_content=$(cat "$agent_file")
 
   # Assert: Off-scope routing section exists with correct heading
-  if echo "$agent_content" | grep -q "## Off-scope Routing"; then
+  if grep -q "## Off-scope Routing" <<<"$agent_content"; then
     echo "✓ $agent has '## Off-scope Routing' section"
     PASS=$((PASS+1))
   else
@@ -241,7 +241,7 @@ for agent in fixer designer oracle code-reviewer explorer librarian; do
   fi
 
   # Assert: "do NOT execute" or equivalent refusal language is present
-  if echo "$agent_content" | grep -qE "(do NOT execute|do not execute|Do NOT|refusal|off-scope.*re-dispatch)"; then
+  if grep -qE "(do NOT execute|do not execute|Do NOT|refusal|off-scope.*re-dispatch)" <<<"$agent_content"; then
     echo "✓ $agent has refusal language (do NOT execute)"
     PASS=$((PASS+1))
   else
@@ -250,7 +250,7 @@ for agent in fixer designer oracle code-reviewer explorer librarian; do
   fi
 
   # Assert: OFF-SCOPE return format is documented
-  if echo "$agent_content" | grep -q "OFF-SCOPE: dispatch to"; then
+  if grep -q "OFF-SCOPE: dispatch to" <<<"$agent_content"; then
     echo "✓ $agent documents OFF-SCOPE return format"
     PASS=$((PASS+1))
   else
@@ -259,7 +259,7 @@ for agent in fixer designer oracle code-reviewer explorer librarian; do
   fi
 
   # Assert: Clarifier that OFF-SCOPE is system-context guidance (not automatic runtime routing)
-  if echo "$agent_content" | grep -q "system-context"; then
+  if grep -q "system-context" <<<"$agent_content"; then
     echo "✓ $agent clarifies OFF-SCOPE as system-context guidance"
     PASS=$((PASS+1))
   else
@@ -270,7 +270,7 @@ for agent in fixer designer oracle code-reviewer explorer librarian; do
   # Assert: All 5 other peer agents are mentioned by lean-flow:<name>
   for other in fixer designer oracle code-reviewer explorer librarian; do
     [ "$other" = "$agent" ] && continue
-    if echo "$agent_content" | grep -q "lean-flow:$other"; then
+    if grep -q "lean-flow:$other" <<<"$agent_content"; then
       echo "✓ $agent mentions peer agent lean-flow:$other"
       PASS=$((PASS+1))
     else
@@ -290,7 +290,7 @@ echo ""
 
 # Check that fixer has end-to-end execution contract
 fixer_content=$(cat plugin/agents/fixer.md)
-if echo "$fixer_content" | grep -q "End-to-End Execution Contract"; then
+if grep -q "End-to-End Execution Contract" <<<"$fixer_content"; then
   echo "✓ Fixer has End-to-End Execution Contract section"
   PASS=$((PASS+1))
 else
@@ -300,7 +300,7 @@ fi
 
 # Check that designer has required content (responsibilities and stops before PR)
 designer_content=$(cat plugin/agents/designer.md)
-if echo "$designer_content" | grep -q "Stops Before PR\|stops before"; then
+if grep -q "Stops Before PR\|stops before" <<<"$designer_content"; then
   echo "✓ Designer has Stops Before PR section"
   PASS=$((PASS+1))
 else
@@ -308,13 +308,13 @@ else
   FAIL=$((FAIL+1))
 fi
 
-# Check that oracle explicitly documents tools: []
+# Check that oracle declares its read-only tools in the frontmatter (not body text)
 oracle_content=$(cat plugin/agents/oracle.md)
-if echo "$oracle_content" | grep -q "tools: \[\]"; then
-  echo "✓ Oracle frontmatter explicitly declares tools: []"
+if sed -n 1,10p <<<"$oracle_content" | grep -q '^tools: \["Read", "Grep", "Glob", "Bash"\]$'; then
+  echo "✓ Oracle frontmatter declares read-only tools (Read, Grep, Glob, Bash)"
   PASS=$((PASS+1))
 else
-  echo "✗ Oracle frontmatter missing tools: []"
+  echo "✗ Oracle frontmatter 'tools:' is not the read-only set (Read, Grep, Glob, Bash)"
   FAIL=$((FAIL+1))
 fi
 

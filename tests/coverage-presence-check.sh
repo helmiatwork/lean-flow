@@ -21,10 +21,8 @@ is_referenced() {
 
   # Check if this script is referenced in any test file
   # Test references typically look like: source/invoke the script, or reference by name
-  if grep -r "$scriptbase\|$scriptname" "$REPO_ROOT/tests/shell/" 2>/dev/null | grep -q .; then
-    return 0
-  fi
-  return 1
+  # grep -q directly: piping into `grep -q` SIGPIPEs the writer under pipefail
+  grep -rq -e "$scriptbase" -e "$scriptname" "$REPO_ROOT/tests/shell/" 2>/dev/null
 }
 
 # Main check run
