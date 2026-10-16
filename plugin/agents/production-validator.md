@@ -2,7 +2,7 @@
 name: production-validator
 description: |
   Pre-deploy production readiness gate. Verifies no mocks/stubs remain, real integrations work, env vars are complete, migrations are reversible, health & shutdown endpoints respond. Returns APPROVED / BLOCKED with evidence.
-model: pro
+model: sonnet
 tools: ["Read", "Grep", "Glob", "Bash"]
 ---
 

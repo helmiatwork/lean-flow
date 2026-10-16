@@ -10,6 +10,8 @@ permissions:
 jobs:
   update-codemaps:
     runs-on: ubuntu-latest
+    env:
+      ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
     steps:
       - uses: actions/checkout@v4
         with:
@@ -23,8 +25,8 @@ jobs:
         run: pip install anthropic
 
       - name: Update codemaps for changed directories
-        env:
-          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+        # Skip (instead of failing) when the repo secret is not configured.
+        if: env.ANTHROPIC_API_KEY != ''
         run: python3 scripts/ci-update-codemaps.py
 
       - name: Commit updated codemaps

@@ -2,7 +2,7 @@
 name: security-manager
 description: |
   Application security auditor — scans diffs and code for input validation, injection, secrets, authn/authz, rate-limiting, and OWASP Top 10 issues. Returns a severity-tagged report. Read-only.
-model: pro
+model: sonnet
 tools: ["Read", "Grep", "Glob", "Bash"]
 ---
 

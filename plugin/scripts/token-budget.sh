@@ -50,7 +50,7 @@ total=$((total + pattern_total))
 
 # CLAUDE.md files
 claude_total=0
-if git rev-parse --is-inside-work-tree &>/dev/null 2>/dev/null; then
+if git rev-parse --is-inside-work-tree &>/dev/null; then
   root=$(git rev-parse --show-toplevel 2>/dev/null)
   for cf in "$root/CLAUDE.md" "$HOME/CLAUDE.md" "$HOME/.gemini/CLAUDE.md"; do
     t=$(count_tokens "$cf")

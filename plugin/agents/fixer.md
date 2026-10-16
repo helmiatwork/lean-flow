@@ -1,7 +1,7 @@
 ---
 name: fixer
 description: Primary implementation agent for all code changes — features, bug fixes, refactors, and mechanical tasks. Handles both complex and simple work.
-model: flash
+model: haiku
 tools: ["Read", "Write", "Edit", "Bash", "Grep", "Glob", "Agent"]
 ---
 

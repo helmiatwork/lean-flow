@@ -22,7 +22,7 @@ assert_file_exists() {
 }
 
 assert_contains() {
-  if echo "$1" | grep -q "$2"; then
+  if grep -q "$2" <<<"$1"; then
     echo "✓ $3"
     PASS=$((PASS+1))
   else
@@ -32,7 +32,7 @@ assert_contains() {
 }
 
 assert_not_contains() {
-  if ! echo "$1" | grep -q "$2"; then
+  if ! grep -q "$2" <<<"$1"; then
     echo "✓ $3"
     PASS=$((PASS+1))
   else
@@ -61,7 +61,7 @@ orchestrator_content=$(cat plugin/agents/orchestrator.md)
 # Look for (model) marker in the ~10 lines after the agent heading
 parse_agent_model() {
   local agent="$1"
-  local section=$(echo "$orchestrator_content" | sed -n "/@lean-flow:$agent/,/@lean-flow:/p" | head -10)
+  local section=$(echo "$orchestrator_content" | sed -n "/@lean-flow:$agent/,/@lean-flow:/p" | sed -n 1,10p)
 
   if echo "$section" | grep -qE '\(haiku\)'; then
     echo "haiku"
@@ -80,7 +80,7 @@ parse_agent_model() {
 #            "Read/Write (Read, Write, Edit, Bash, Grep, Glob, Agent)" → ["Read", "Write", "Edit", "Bash", "Grep", "Glob", "Agent"]
 parse_agent_tools() {
   local agent="$1"
-  local section=$(echo "$orchestrator_content" | sed -n "/@lean-flow:$agent/,/@lean-flow:/p" | head -10)
+  local section=$(echo "$orchestrator_content" | sed -n "/@lean-flow:$agent/,/@lean-flow:/p" | sed -n 1,10p)
 
   # Match "Permissions: ..." or "tools: ..." line
   local perms_line=$(echo "$section" | grep -E "Permissions:|tools:" | head -1)
@@ -129,7 +129,7 @@ for agent in fixer designer oracle code-reviewer explorer librarian; do
     agent_content=$(cat "$agent_file")
 
     # Check frontmatter name
-    if echo "$agent_content" | head -10 | grep -q "^name: $agent"; then
+    if sed -n 1,10p <<<"$agent_content" | grep -q "^name: $agent"; then
       echo "✓ $agent has correct 'name:' in frontmatter"
       PASS=$((PASS+1))
     else
@@ -138,7 +138,7 @@ for agent in fixer designer oracle code-reviewer explorer librarian; do
     fi
 
     # Extract and verify exact model value (from orchestrator.md)
-    actual_model=$(echo "$agent_content" | head -10 | grep "^model:" | sed 's/^model: //' | tr -d ' ')
+    actual_model=$(sed -n 1,10p <<<"$agent_content" | grep "^model:" | sed 's/^model: //' | tr -d ' ')
     expected_model=$(get_expected_model "$agent")
     if [ -z "$expected_model" ]; then
       echo "✗ $agent: could not parse model from orchestrator.md"
@@ -152,7 +152,7 @@ for agent in fixer designer oracle code-reviewer explorer librarian; do
     fi
 
     # Extract and verify exact tools value (from orchestrator.md)
-    actual_tools=$(echo "$agent_content" | head -10 | grep "^tools:" | sed 's/^tools: //')
+    actual_tools=$(sed -n 1,10p <<<"$agent_content" | grep "^tools:" | sed 's/^tools: //')
     actual_tools_normalized=$(normalize_json "$actual_tools")
     expected_tools=$(get_expected_tools "$agent")
     expected_tools_normalized=$(normalize_json "$expected_tools")

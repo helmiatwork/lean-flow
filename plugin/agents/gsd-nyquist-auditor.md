@@ -1,6 +1,6 @@
 ---
 name: gsd-nyquist-auditor
-model: pro
+model: sonnet
 description: Fills Nyquist validation gaps by generating tests and verifying coverage for phase requirements
 tools:
   - Read
