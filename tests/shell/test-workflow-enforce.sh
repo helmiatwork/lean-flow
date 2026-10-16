@@ -21,7 +21,7 @@ check() {
 }
 
 echo "=== grammar-check.sh ==="
-out=$(GEMINI_PROJECT_DIR="$ROOT" bash "$S/grammar-check.sh" </dev/null 2>&1 || true)
+out=$(CLAUDE_PROJECT_DIR="$ROOT" bash "$S/grammar-check.sh" </dev/null 2>&1 || true)
 if grep -q "grammar-check" <<<"$out"; then echo "✓ grammar-check.sh injects prompt"; PASS=$((PASS+1)); else echo "✗ grammar-check.sh injects prompt"; FAIL=$((FAIL+1)); fi
 
 echo "=== block-ai-attribution.sh ==="
