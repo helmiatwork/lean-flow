@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # star-clarify.sh
-# UserPromptSubmit: inject STAR protocol instruction — no API call, zero latency.
+# UserPromptSubmit: inject the goal brief instruction (Goal / Done when / Constraints / Ask) — no API call, zero latency.
 
 INPUT=$(cat)
 PROMPT=$(printf '%s' "$INPUT" | jq -r '.prompt // empty' 2>/dev/null)
@@ -28,26 +28,18 @@ if [ "$IS_CODE_CREATE" = "1" ]; then
   exit 0
 fi
 
-MSG='[STAR PROTOCOL]
-Before responding, classify this prompt as simple, medium, or heavy. This applies to ANY task — code or non-code:
-- simple: single-step, quick answer, 1-2 changes → skip the full STAR breakdown, but FIRST state one line — "Interpretation: <what you understood> → Expected result: <concrete outcome>" — then proceed WITHOUT waiting for confirmation. This front-loads a checkable intent so a wrong reading surfaces cheaply, without adding a confirmation gate to trivial work.
-- medium: multi-step plan, structured output, multiple components or areas → STAR required
-- heavy: new system, major initiative, multi-phase, many stakeholders or components → STAR required
+MSG='[GOAL BRIEF]
+Before responding, classify this prompt as simple, medium, or heavy. This applies to ANY task — code or non-code.
+- simple: single-step, quick answer, 1-2 changes → FIRST state one line — "Interpretation: <what you understood> → Expected result: <concrete outcome>" — then proceed WITHOUT waiting for confirmation.
+- medium / heavy: multi-step work, several components or areas, or a new system → show this brief BEFORE doing any work:
 
-If medium or heavy: generate a STAR breakdown and show it to the user BEFORE doing any work.
-Format:
-**S — Situation:** <context in 1 sentence>
-**T — Task:** <goal in 1 sentence>
-**A — Action:** <approach in 1 sentence>
-**R — Result:** <expected outcome in 1 sentence>
+Goal: <what this achieves, 1 sentence>
+Done when: <verifiable evidence: tests/CI green, measured numbers, files or PRs produced, checks run>
+Constraints: <rules that apply: user rules, behaviour that must not change, limits, things not to touch>
+Ask: <only decisions that belong to the user, or "-">
 
-Then use the AskUserQuestion tool to present decision areas as a multi-select checkbox list.
-- Question: "Which areas do you want to clarify for [short task description]?"
-- Each option: "[Area name] — [one-line description of what needs deciding]"
-- Include a "Use recommended defaults for all" option as the last item
-After the user selects, present your recommended option for each selected area with a 1-line rationale, then confirm before proceeding.
-If the task involves any UI or frontend work, add a final question: "Would you like a quick mockup before we start building? a) Yes — create HTML mockup first  b) No — proceed directly to implementation"
-Wait for confirmation before starting any work.'
+If Ask is "-", proceed right after the brief without waiting. If Ask has items, use the AskUserQuestion tool for exactly those decisions (recommended option first) and wait for the answer. Never ask about things you can verify yourself or that have a sensible default.
+If the task involves UI or frontend work and the look is not specified, include "mockup first?" in Ask.'
 
 jq -n --arg msg "$MSG" \
   '{"hookSpecificOutput":{"hookEventName":"UserPromptSubmit","additionalContext":$msg}}' 2>/dev/null

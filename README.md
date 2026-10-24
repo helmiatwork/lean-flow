@@ -119,7 +119,7 @@ All workflow-related hooks are consolidated into a **single entry point**: `work
 | `SessionStart` | Session opens | **session-briefing**: git state summary (branch, status, recent commits) |
 | `UserPromptSubmit` | Every prompt | **pattern-recall**: searches knowledge MCP for matching patterns before re-solving |
 | | | **load-workflow**: injects `claude-rules.md` + full workflow into model context (once per session) |
-| | | **star-clarify**: detects vague requests and asks clarifying questions before work starts |
+| | | **star-clarify**: injects the goal brief (Goal / Done when / Constraints / Ask); asks only for decisions that belong to the user |
 | `PostToolUse Write\|Edit` | After any file write | **enforce-tdd**: injects mandatory RED→GREEN→REFACTOR + E2E + coverage ≥80% + oracle escalation after 3 failures |
 | `PostToolUse EnterPlanMode` | On entering plan mode | **knowledge-prefilter**: checks knowledge MCP for relevant patterns, injects into plan context |
 | `PostToolUse ExitPlanMode` | On exiting plan mode | **generate-plan-viewer**: opens live plan dashboard at `localhost:3456` |
@@ -259,17 +259,17 @@ flowchart TD
 
     AUTORECALL["⚡ Auto pattern recall\nUserPromptSubmit hook\nFTS5 → patterns.db"] --> STAR
 
-    STAR{"⭐ STAR classify\nsimple / medium / heavy\n+ greenfield / hotfix"}
+    STAR{"⭐ Classify\nsimple / medium / heavy\n+ greenfield / hotfix"}
     STAR -->|"Simple"| DIRECTFIX
     STAR -->|"Medium / Complex"| STARSHOW
     STAR -->|"Greenfield 🌱"| GREENFIELD
     STAR -->|"Hotfix 🔥"| HOTFIX
 
-    %% === STAR CONFIRM (medium / heavy only) ===
-    STARSHOW["📋 STAR breakdown\nS·T·A·R shown to user\n(medium / heavy)"] --> STARCONFIRM
-    STARCONFIRM{"User confirms?"}
-    STARCONFIRM -->|"Adjust"| STARSHOW
-    STARCONFIRM -->|"Yes"| MEMORY
+    %% === GOAL BRIEF (medium / heavy only) ===
+    STARSHOW["📋 Goal brief\nGoal · Done when · Constraints · Ask\n(medium / heavy)"] --> STARCONFIRM
+    STARCONFIRM{"Ask has decisions?"}
+    STARCONFIRM -->|"Yes: user answers"| MEMORY
+    STARCONFIRM -->|"No"| MEMORY
 
     %% === GREENFIELD PATH ===
     GREENFIELD["🌱 Brainstorm\nproduct concept"] --> GENDOCS

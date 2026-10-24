@@ -103,8 +103,8 @@ For GitHub PR review requests, the orchestrator also uses:
 - `lean-flow:pr-comment` — Post chosen findings from the last `pr-review` as one GitHub review (approve / request changes from the argument; ask if missing). The orchestrator is the translator: human tone, verified source lines, ```suggestion blocks.
 
 ## 1. Classify
-STAR classifier (UserPromptSubmit hook) tiers every prompt: simple / medium / heavy / greenfield / hotfix.
-For medium/heavy: STAR breakdown shown to user, user confirms before any work.
+Goal brief classifier (UserPromptSubmit hook) tiers every prompt: simple / medium / heavy / greenfield / hotfix.
+For medium/heavy: show the goal brief (Goal / Done when / Constraints / Ask) before any work; wait for the user only when Ask lists a decision.
 
 ## 2. Tier Routing
 

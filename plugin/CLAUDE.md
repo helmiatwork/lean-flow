@@ -38,7 +38,7 @@ Plugin internals. All files here are bundled into the `helmiatwork/lean-flow` di
 8. Features → `superpowers:test-driven-development` (RED → GREEN → REFACTOR).
 9. Coverage gate is hard: < 90% means add more tests, not skip.
 10. 3 combined `lean-flow:code-reviewer` + `lean-flow:oracle` rounds is the hard cap — round 4+ = human escalation.
-11. STAR is mandatory for medium/heavy — never start work before user confirms STAR breakdown.
+11. Goal brief is mandatory for medium/heavy — show Goal / Done when / Constraints / Ask before work; wait only when Ask lists a decision for the user.
 12. Every `lean-flow:fixer` / `lean-flow:designer` dispatch MUST use git worktree isolation (`isolation: "worktree"`).
 
 ### Tier Routing (MANDATORY)
