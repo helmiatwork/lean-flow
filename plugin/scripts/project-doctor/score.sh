@@ -356,12 +356,12 @@ fi
 # 21. STAR enforcement
 HAS_STAR=false
 if [ -f "$ROOT/CLAUDE.md" ]; then
-  if grep -qE 'STAR PROTOCOL|Tier Routing' "$ROOT/CLAUDE.md" 2>/dev/null; then
+  if grep -qE 'STAR PROTOCOL|GOAL BRIEF|Tier Routing' "$ROOT/CLAUDE.md" 2>/dev/null; then
     HAS_STAR=true
   fi
 fi
 if [ "$HAS_STAR" = "false" ] && [ -f "$HOME/.gemini/CLAUDE.md" ]; then
-  if grep -qE 'STAR PROTOCOL|Tier Routing' "$HOME/.gemini/CLAUDE.md" 2>/dev/null; then
+  if grep -qE 'STAR PROTOCOL|GOAL BRIEF|Tier Routing' "$HOME/.gemini/CLAUDE.md" 2>/dev/null; then
     HAS_STAR=true
   fi
 fi

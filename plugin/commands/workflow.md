@@ -37,7 +37,7 @@ Every prompt is classified into one tier. Route per tier:
 | **greenfield** 🌱 | Empty repo, new project | Docs (PRD/HLA/TRD) → plan → fixer | lean-flow:fixer (haiku) | Code-reviewer + oracle |
 | **hotfix** 🔥 | Production emergency | Quick fix on hotfix/ branch → main | lean-flow:fixer (haiku) | Oracle inline (no code-reviewer) |
 
-**STAR breakdown shown to user for medium/heavy/greenfield/hotfix.** User confirms before work starts.
+**Goal brief (Goal / Done when / Constraints / Ask) shown to user for medium/heavy/greenfield/hotfix.** Work waits for the user only when Ask lists a decision.
 
 ### Execution Paths
 
