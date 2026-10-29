@@ -3,6 +3,8 @@
 # PreToolUse: Bash — intercept high-output commands, run them directly,
 # compress output via haiku if large, return summary, block original call.
 # Zero cost for small output — falls through transparently.
+# Opt-out: LEAN_FLOW_AUTO_COMPRESS_OUTPUT_DISABLED=true
+[[ "${LEAN_FLOW_AUTO_COMPRESS_OUTPUT_DISABLED:-}" == "true" ]] && exit 0
 
 INPUT=$(cat)
 COMMAND=$(printf '%s' "$INPUT" | jq -r '.tool_input.command // empty' 2>/dev/null)
@@ -31,7 +33,7 @@ LINE_COUNT=$(printf '%s' "$OUTPUT" | wc -l | tr -d ' ')
 [ "$LINE_COUNT" -lt 25 ] && exit 0
 
 # Large output — compress via haiku
-HAIKU_MODEL="claude-haiku-4-5-20251001"
+HAIKU_MODEL="claude-haiku-5-5"
 SUMMARY=""
 
 if command -v claude &>/dev/null; then
